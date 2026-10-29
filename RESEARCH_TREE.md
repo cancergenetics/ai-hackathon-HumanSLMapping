@@ -139,7 +139,15 @@ then DESIGN.md and up to three review rounds.
     - batch 110: −5% at 160 (still +26% vs random); batch 50: −1 to −4%;
     - feasible pool: −6 to −9%;
     - minimal features: ±2%.
-  - [ ] Independent P4 review → freeze (finalists.yaml, frozen.yaml) → run_final.py build + dry run on dev
+  - [x] Independent P4 review: ACCEPT WITH FIXES (fixes applied, commit 1938d80).
+    - No leakage: selections are bit-identical under 4 poisonings, and the positive controls change them.
+    - The statistics recompute exactly.
+    - [!] Mechanism: adaptive arms screen moderately SL-rich genes (1.5–1.65× random's degree). AUPRC tracks the SLs
+      revealed, and the gain comes through each on-array target's own column. The true-degree oracle overshoots to
+      extreme hubs. Both oracles are relabelled as references, not ceilings.
+    - The R deviation is declared in DESIGN.
+    - The gain holds with stack_lr_wr2 and with m1_hgb on stored selections.
+  - [~] run_final.py build + dry run on dev (agent running) → freeze (finalists.yaml, frozen.yaml) → Final on T
 - [ ] M4 Q1: performance vs. fraction screened (random)
 - [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
 - [ ] M6 Q3: translation to HAP1 (query numbers, choice of query lines, role of prediction)
