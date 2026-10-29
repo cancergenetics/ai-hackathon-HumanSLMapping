@@ -15,6 +15,10 @@ then DESIGN.md and up to three review rounds.
 
 ## Decision log
 - 2026-10-29 D1: Test split drawn preferentially from the upstream lockbox (upstream tuned on non-lockbox rows).
+- 2026-10-29 D7: User freed disk (~500 GB+). Disk policy relaxed going forward: prediction vectors may be saved for all
+  predictors (useful for baseline bootstraps and independent rescoring); not retroactive (no regeneration of deleted
+  baseline vectors). The 10 GB free-disk guard stays. D0's decision to read upstream data in place is kept (it also
+  guarantees provenance).
 - 2026-10-29 D6: Scheduling: P2 (critical path to P* freeze) has priority; P1 holds n ≥ 820 and universe jobs until P2
   finishes. All jobs export BLAS thread caps (load reached 38–120 on 8 cores from oversubscription). The §12 P1 > 6 h
   trigger (50%-only universe) is deferred, not applied: the overrun came from PI scheduling contention, not P1 cost;
