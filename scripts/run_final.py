@@ -93,6 +93,10 @@ def start(mode: str, root: Path = ROOT) -> dict:
 
 def _launch_cmd(P: dict, jobs_file: Path, max_conc) -> tuple[list, dict]:
     cmd = [F.PY, "scripts/launch.py", str(jobs_file.relative_to(ROOT))]
+    g = (P.get("compute") or {}).get("gate")
+    if g:                                                            # D10 memory gate (opt-in in launch.py)
+        cmd += ["--min-free-gb", str(g["headroom_gb"]), "--gate-max-jobs", str(g["max_jobs"]),
+                "--gate-max-big", str(g["max_big"])]
     if max_conc:
         cmd += ["--max-concurrent", str(max_conc)]
     env = {**os.environ, "HSL_LOGS_DIR": str(P["run"] / "logs")}   # logs inside the ignored run dir (clean tree)

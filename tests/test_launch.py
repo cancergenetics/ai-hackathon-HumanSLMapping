@@ -45,3 +45,34 @@ def test_run_jobs_timeout_and_logs(tmp_path, monkeypatch):
     assert (tmp_path / "ok.log").read_text().strip() == "2"
     recs = {r["name"]: r for f in tmp_path.glob("launch_*.jsonl") for r in map(json.loads, f.read_text().splitlines())}
     assert recs["ok"]["status"] == "ok" and recs["slow"]["status"] == "timeout" and recs["bad"]["status"] == "exit_3"
+
+
+def test_memory_gate_opt_in():
+    L = _mod()
+    c = config.protocol()["compute"]
+    j = {"n": 660, "rss_gb": 3.0}
+    assert L.gate_ok(j, [], c, 2.0, 6, 2, free_fn=lambda: 0.0)                    # nothing running: progress
+    run = [{"n": 160, "rss_hint": 3.0, "rss": 1.0}]                                # 2 GB not yet claimed
+    assert L.gate_ok(j, run, c, 2.0, 6, 2, free_fn=lambda: 7.0)                    # 7 - 2 >= 3 + 2
+    assert not L.gate_ok(j, run, c, 2.0, 6, 2, free_fn=lambda: 6.9)
+    assert not L.gate_ok(j, run * 6, c, 2.0, 6, 2, free_fn=lambda: 100.0)          # job cap
+    big = {"n": 2627, "rss_gb": 9.0}
+    two_big = [{"n": 1970, "rss_hint": 7.0, "rss": 7.0}] * 2
+    assert not L.gate_ok(big, two_big, c, 2.0, 6, 2, free_fn=lambda: 100.0)        # <= 2 jobs at n >= 1970
+    assert L.gate_ok(big, two_big[:1], c, 2.0, 6, 2, free_fn=lambda: 11.0)
+    assert not L.gate_ok(j, run, c, 2.0, 6, 2, free_fn=lambda: None)               # unknown memory: wait
+    assert L.job_hint({}, c) == float(c["rss_cap_gb_per_job"])
+    free = L.unused_gb()
+    assert free is None or free >= 0
+
+
+def test_gate_runs_jobs_and_job_rss_cap(tmp_path, monkeypatch):
+    monkeypatch.setenv("HSL_LOGS_DIR", str(tmp_path))
+    L = _mod()
+    jobs = [{"name": f"j{i}", "cmd": [sys.executable, "-c", "pass"], "n": 30, "rss_gb": 0.1, "rss_cap_gb": 7.5}
+            for i in range(3)]
+    jf = tmp_path / "jobs.json"
+    jf.write_text(json.dumps(jobs))
+    assert L.main([str(jf), "--min-free-gb", "0.1"]) == 0
+    recs = [r for f in tmp_path.glob("launch_*.jsonl") for r in map(json.loads, f.read_text().splitlines())]
+    assert len(recs) == 3 and all(r["status"] == "ok" and r["rss_cap_gb"] == 7.5 for r in recs)

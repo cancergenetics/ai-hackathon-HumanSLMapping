@@ -40,9 +40,10 @@ R: {strategy: 20, random: 40}                    # R_s, R_r (D9; final per P4 re
 random:
   predictors: [pstar, B1_array_rate, B2_product, stack_lr]    # DESIGN §7.1
   grid: random_grid                              # budgets.yaml key; budgets above the pool map to the pool max
-  # Trajectories per budget where it differs from R_r. At the pool maximum every permutation screens the SAME set
-  # (the whole pool), so trajectories differ only by model seed; 5 as in dev P1 batch6. PI to confirm (cost note).
-  R_by_n: {2627: 5}
+  # Trajectories per budget where it differs from R_r (D10, decided before any T contact, for cost): R = 10 at every
+  # n > 660 (no Q2 contrast lives there; R_r = 40 kept at n <= 660) and 5 at the pool maximum, where every permutation
+  # screens the SAME set (the whole pool) and trajectories differ only by model seed (dev P1 batch6 precedent).
+  R_by_n: {820: 10, 980: 10, 1310: 10, 1640: 10, 1970: 10, 2627: 5}
   e_unobs_at: q2_checkpoints                     # E_unobs (descriptive) for P* at these random budgets only
 
 # ---------------------------------------------------------------------------------------------------- descriptive arms
@@ -77,9 +78,8 @@ dev_only: [feasible_pool, no_AP-MS]               # 'no AP-MS' = selector featur
 secondary:
   m1_hgb:
     random: {checkpoints: m1_hgb_q1_grid, R: m1_hgb_q1_trajectories}             # §7.1: {30,...,2627} x 5
-    # P4 review (1938d80): strategies at {160, 490, 660} x 5 on T (supports the headline condition); budgets.yaml
-    # m1_hgb_q2_checkpoints.strategies still says {160, 660} (frozen file, not edited): this list supersedes it.
-    strategies: {checkpoints: [160, 490, 660], R: m1_hgb_q2_trajectories}
+    # P4 review (1938d80) / D10: strategies at {160, 490, 660} x 5 on T (supports the headline condition; DESIGN §4)
+    strategies: {checkpoints: m1_hgb_q2_checkpoints.strategies, R: m1_hgb_q2_trajectories}
     # random {160, 490, 660} x 5 (§4) is a subset of the Q1 set above (same trajectories 0-4): not run twice.
   reference:                                     # stack_lr_wr2 (pre-P2 P*): "also reported with the unmodified
     arms: [finalists, R0]                        #  predictor" (DESIGN §4), on the SAME trajectories 0..R-1
@@ -94,6 +94,24 @@ sensitivities:
   no_same_chromosome: true                       # E_fixed minus same-chromosome cells (DESIGN §1)
   two_way_bootstrap: true                        # query x array (B = protocol B_two_way) for the family contrasts
   contrast_budgets: [160, 660]                   # strata/sensitivity Δ(n); c1 always included
+
+# ---------------------------------------------------------------------------------------------------- compute (D10)
+# Per-job memory hint for the launch.py memory gate: peak RSS (GB) of one unit ~ scale * (a + b * n/1000) + margin,
+# (a, b) = least-squares fit of measured peak RSS (P1 random-curve rows incl. n = 1970-2103, and the final dry run;
+# dev targets ~526) per predictor; scale covers the larger target grid of T (656). A job's hint is the max over its
+# units; its RSS kill cap is max(protocol class cap, cap_factor * hint).
+compute:
+  rss_fit_gb: {pstar: [1.67, 1.98], ref: [1.50, 1.61], m1_hgb: [1.80, 1.88], stack_lr: [1.25, 1.11],
+               B1_array_rate: [1.22, 0.88], B2_product: [1.22, 0.88]}
+  rss_scale: 1.15
+  rss_margin_gb: 0.5
+  rss_cap_factor: 1.5
+  labels_job_rss_gb: 4.0
+  gate:                                          # launch.py --min-free-gb (opt-in memory gate)
+    headroom_gb: 2.0                             # start only if unused memory >= job hint + headroom
+    max_jobs: 6
+    max_big: 2                                   # jobs with n >= protocol alone_min_n (1970)
+    budget_gb: 12.0                              # for the cost simulation: memory available to us (others hold ~12)
 
 # ---------------------------------------------------------------------------------------------------- seeds
 # Trajectory r of every arm uses SeedSequence(<trajectories>).spawn(.)[r] (selection stream = child 0, evaluation /

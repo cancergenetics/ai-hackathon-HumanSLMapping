@@ -6,7 +6,8 @@ q2_checkpoints: [30, 60, 100, 160, 220, 330, 490, 660]
 q2_max_n: 660                       # trajectories run to 660 (dev: to 660 or pool exhaustion)
 m1_hgb_q1_grid: [30, 160, 490, 660, 1310, 2627]       # 5 trajectories
 m1_hgb_q1_trajectories: 5
-m1_hgb_q2_checkpoints: {strategies: [160, 660], random: [160, 490, 660]}   # 5 trajectories per arm
+m1_hgb_q2_checkpoints: {strategies: [160, 490, 660], random: [160, 490, 660]}   # 5 trajectories per arm
+# (strategies 490 added 2026-10-29, D10: consistency with DESIGN §4 as review round 3 asked; not results-driven)
 m1_hgb_q2_trajectories: 5
 warm_start_n0: 220                  # S_0 chosen by R1 (≈ Billmann's 222 lines)
 warm_start_checkpoints: [220, 330, 440, 490, 660]

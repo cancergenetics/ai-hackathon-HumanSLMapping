@@ -9,11 +9,18 @@ Concurrency policy (config/protocol.yaml `compute`):
     the summed RSS of running jobs stays <= rss_cap_gb_total;
   * other jobs: at most max_concurrent_default running jobs in total, threads_default threads;
   * n >= alone_min_n: runs alone (RSS cap rss_cap_gb_alone).
+Optional MEMORY GATE (opt-in, `--min-free-gb H`; D10, 2026-10-29): replaces the class limits above. A job starts only
+if fewer than --gate-max-jobs (default 6) run, at most --gate-max-big (default 2) jobs with n >= alone_min_n run, and
+the machine's unused memory (macOS vm_stat free + speculative pages; Linux MemAvailable) minus the memory running jobs
+have not yet claimed (their `rss_gb` hint minus current RSS) is >= the job's `rss_gb` hint + H. With nothing running a
+job always starts (progress). Jobs may carry "rss_gb" (expected peak RSS; default rss_cap_gb_per_job) and
+"rss_cap_gb" (kill cap overriding the class cap). Without the flag, behaviour is unchanged.
 Threads are passed as OMP/OPENBLAS/MKL/VECLIB/NUMEXPR_NUM_THREADS and HSL_THREADS. A job exceeding its timeout or
 its RSS cap is killed (process group). stdout+stderr -> logs/<name>.log; one JSON line per job ->
 logs/launch_<timestamp>.jsonl. Exit code = number of failed jobs (capped at 255).
 
     .venv/bin/python scripts/launch.py jobs.json [--max-concurrent 2] [--dry-run]
+        [--min-free-gb 2 --gate-max-jobs 6 --gate-max-big 2]
 """
 from __future__ import annotations
 
@@ -22,6 +29,7 @@ import hsl  # noqa: F401  (guard)
 import argparse
 import json
 import os
+import re
 import shlex
 import signal
 import subprocess
@@ -99,11 +107,59 @@ def can_start(cls: str, running: list[dict], c: dict, max_conc: int | None) -> b
     return len(running) < limit
 
 
+def unused_gb() -> float | None:
+    """Unused physical memory (GB): macOS vm_stat (free + speculative pages); Linux /proc/meminfo MemAvailable."""
+    try:
+        out = subprocess.run(["vm_stat"], capture_output=True, text=True, timeout=10).stdout
+        ps = int(re.search(r"page size of (\d+) bytes", out).group(1))
+        pages = {}
+        for ln in out.splitlines()[1:]:
+            k, _, v = ln.partition(":")
+            v = v.strip().rstrip(".")
+            if v.isdigit():
+                pages[k.strip()] = int(v)
+        return (pages.get("Pages free", 0) + pages.get("Pages speculative", 0)) * ps / 2**30
+    except (OSError, AttributeError, ValueError, subprocess.SubprocessError):
+        pass
+    try:
+        for ln in Path("/proc/meminfo").read_text().splitlines():
+            if ln.startswith("MemAvailable:"):
+                return int(ln.split()[1]) / 2**20
+    except OSError:
+        pass
+    return None
+
+
+def job_hint(job: dict, c: dict) -> float:
+    return float(job.get("rss_gb", c["rss_cap_gb_per_job"]))
+
+
+def gate_ok(job: dict, running: list[dict], c: dict, headroom: float, max_jobs: int, max_big: int,
+            free_fn=unused_gb) -> bool:
+    """Memory gate (see module docstring)."""
+    if not running:
+        return True
+    if len(running) >= int(max_jobs):
+        return False
+    big = lambda j: j.get("n") is not None and int(j["n"]) >= int(c["alone_min_n"])  # noqa: E731
+    if big(job) and sum(big(r) for r in running) >= int(max_big):
+        return False
+    free = free_fn()
+    if free is None:
+        return False
+    pending = sum(max(0.0, float(r.get("rss_hint", 0.0)) - float(r.get("rss", 0.0))) for r in running)
+    return free - pending >= job_hint(job, c) + float(headroom)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("jobs", type=Path)
     ap.add_argument("--max-concurrent", type=int, default=None, help="further cap on concurrency")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--min-free-gb", type=float, default=None,
+                    help="enable the memory gate with this headroom (GB) above each job's rss_gb hint")
+    ap.add_argument("--gate-max-jobs", type=int, default=6)
+    ap.add_argument("--gate-max-big", type=int, default=2)
     a = ap.parse_args(argv)
     c = config.protocol()["compute"]
     jobs = load_jobs(a.jobs)
@@ -114,7 +170,13 @@ def main(argv=None) -> int:
     failed = 0
     poll = float(c["poll_s"])
     while queue or running:
-        while queue and can_start(job_class(queue[0], c), running, c, a.max_concurrent):
+        def startable(job):
+            if a.min_free_gb is None:
+                return can_start(job_class(job, c), running, c, a.max_concurrent)
+            lim = a.gate_max_jobs if a.max_concurrent is None else min(a.gate_max_jobs, a.max_concurrent)
+            return gate_ok(job, running, c, a.min_free_gb, lim, a.gate_max_big)
+
+        while queue and startable(queue[0]):
             job = queue.pop(0)
             cls = job_class(job, c)
             th = threads_for(cls, c)
@@ -126,7 +188,8 @@ def main(argv=None) -> int:
             log = LOGS / f"{job['name']}.log"
             rec = {"name": job["name"], "cmd": cmd, "cls": cls, "threads": th, "log": os.path.relpath(
                 log, paths.PROJECT_ROOT), "timeout_s": int(job.get("timeout_s", c["job_timeout_s"])),
-                   "rss_cap_gb": rss_cap(cls, c)}
+                   "rss_cap_gb": float(job.get("rss_cap_gb", rss_cap(cls, c))), "n": job.get("n"),
+                   "rss_hint": job_hint(job, c)}
             print(f"[launch] start {job['name']} ({cls}, {th} threads)", flush=True)
             if a.dry_run:
                 rec.update(status="dry-run")

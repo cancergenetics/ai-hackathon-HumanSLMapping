@@ -1,8 +1,8 @@
 # Cost projection for the REAL final (plan of mode `final`)
 
-Inputs: per-unit wall time (fit + predict + E_fixed scoring + save) = median of measured runs per (predictor, n): dry-run rows on dev1 (this machine, 1 job, 2 threads, shared with a running batch) and P1 random-curve rows (up to 4 concurrent jobs, loaded machine), interpolated in log n; above the largest measured n: power-law fit (time) / linear fit (RSS) over n >= max/3 (flagged). Scaled × 1.25 (= |T| 656 / |dev1 targets| 526) for the larger prediction grid. Selection per trajectory = dry-run median by arm role (full trajectories to 660): batch 6 s, det 20 s, ws 8 s, finalist 15 s, static 9 s, ws_random 0 s, random 0 s, R1 13 s. Per-job overhead 15 s. Peak RSS per job = max over its units (+1 GB process; +10% if extrapolated).
+Inputs: per-unit wall time (fit + predict + E_fixed scoring + save) = median of measured runs per (predictor, n): dry-run rows on dev1 (this machine, 1 job, 2 threads, shared with a running batch) and P1 random-curve rows (up to 4 concurrent jobs, loaded machine), interpolated in log n; above the largest measured n: power-law fit (time) / linear fit (RSS) over n >= max/3 (flagged). Scaled × 1.25 (= |T| 656 / |dev1 targets| 526) for the larger prediction grid. Selection per trajectory = dry-run median by arm role (full trajectories to 660): batch 6 s, det 20 s, ws 8 s, finalist 15 s, static 9 s, ws_random 0 s, random 0 s, R1 13 s. Per-job overhead 15 s. Job memory = the launch.py `rss_gb` hint (finalists.yaml compute: fitted on measured peak RSS, scaled for |T|), the same number the gate uses.
 
-Plan: 4619 units in 453 jobs (+ labels job).
+Plan: 4019 units in 393 jobs (+ labels job).
 
 Dry-run / P1 speed ratios per predictor: B1_array_rate 0.72, B2_product 0.74, m1_hgb 0.63, pstar 0.77, ref 0.49, stack_lr 0.71.
 
@@ -16,32 +16,32 @@ Dry-run / P1 speed ratios per predictor: B1_array_rate 0.72, B2_product 0.74, m1
 | finalist | m1_hgb | 45 | 3.2 | 5.1 |
 | finalist | pstar | 480 | 7.5 | 9.7 |
 | finalist | ref | 240 | 1.9 | 3.8 |
-| random | B1_array_rate | 685 | 0.1 | 0.2 |
-| random | B2_product | 685 | 0.1 | 0.2 |
+| random | B1_array_rate | 535 | 0.1 | 0.1 |
+| random | B2_product | 535 | 0.1 | 0.2 |
 | random | m1_hgb | 30 | 2.9 | 4.6 |
-| random | pstar | 685 | 15.3 | 19.8 |
+| random | pstar | 535 | 9.8 | 12.7 |
 | random | ref | 80 | 0.6 | 1.3 |
-| random | stack_lr | 685 | 1.4 | 2.0 |
+| random | stack_lr | 535 | 0.8 | 1.1 |
 | static | pstar | 320 | 5.0 | 6.5 |
 | ws | pstar | 160 | 3.1 | 4.0 |
 | ws_random | pstar | 80 | 1.5 | 2.0 |
 
-Totals in units: 50.0 (1-job speed) to 68.7 (loaded) job-h, + 1.9 h job overhead + selection 0.9 h.
+Totals in units: 43.8 (1-job speed) to 60.5 (loaded) job-h, + 1.6 h job overhead + selection 0.9 h.
 
-## Wall-clock (event simulation of the launch.py queue; 20 GB RAM cap)
+## Wall-clock (event simulation of the launch.py queue in plan order)
 
-`alone` = protocol rule (n ≥ 1970 runs alone); `ram` = n ≥ 1970 jobs share the machine within the RAM cap (as P1 batch6 did, D-log 2026-10-29).
+`gate` = D10 memory gate: ≤ 6 jobs, ≤ 2 jobs at n ≥ 1970, start only if 12 GB (memory available to us; other processes hold ~12 GB) minus the running jobs' hints ≥ hint + 2 GB. `old` = previous policy for comparison (4 jobs, n ≥ 1970 alone, 20 GB). CPU contention at 6 jobs is not modelled beyond the loaded-speed bound (P1 rows ran up to 4 jobs on a shared machine).
 
-| scenario | jobs | job-h | wall h, 3 jobs (alone) | 3 jobs (ram) | 4 jobs (alone) | 4 jobs (ram) | > 10 h? |
+| scenario | jobs | job-h | wall h, gate 12 GB (mean jobs running) | gate 16 GB | gate 20 GB | old, 4 jobs | > 10 h at 12 GB? |
 |---|---|---|---|---|---|---|---|
-| 1-job speed (lower bound): as configured | 453 | 52.7 | 20.6 | 18.0 | 17.1 | 14.5 | YES |
-| 1-job speed (lower bound): random n > 660 at R = 10 | 393 | 46.3 | 17.0 | 15.8 | 13.5 | 12.3 | YES |
-| 1-job speed (lower bound): random n > 660 at R = 5 | 383 | 45.2 | 16.4 | 15.4 | 12.9 | 11.9 | YES |
-| 1-job speed (lower bound): random n > 660 at R = 5 and no reference predictor | 343 | 42.4 | 15.4 | 14.5 | 12.2 | 11.2 | YES |
-| P1 loaded speed (upper bound): as configured | 453 | 71.4 | 28.0 | 24.4 | 23.2 | 19.7 | YES |
-| P1 loaded speed (upper bound): random n > 660 at R = 10 | 393 | 63.0 | 23.3 | 21.6 | 18.5 | 16.9 | YES |
-| P1 loaded speed (upper bound): random n > 660 at R = 5 | 383 | 61.6 | 22.4 | 21.1 | 17.7 | 16.4 | YES |
-| P1 loaded speed (upper bound): random n > 660 at R = 5 and no reference predictor | 343 | 56.2 | 20.6 | 19.3 | 16.4 | 15.0 | YES |
+| 1-job speed (lower bound): D10 plan as configured | 393 | 46.2 | 25.3 (1.8) | 16.9 | 12.5 | 13.5 | YES |
+| 1-job speed (lower bound): without the reference predictor | 353 | 43.5 | 23.9 (1.8) | 16.2 | 11.9 | 12.8 | YES |
+| 1-job speed (lower bound): §12 trims: m1_hgb Q1 {30, 1310} and batch 50 dropped | 348 | 43.1 | 23.4 (1.8) | 15.8 | 11.6 | 12.7 | YES |
+| 1-job speed (lower bound): both of the above | 308 | 40.3 | 22.0 (1.8) | 15.1 | 11.1 | 12.0 | YES |
+| P1 loaded speed (upper bound): D10 plan as configured | 393 | 63.0 | 34.6 (1.8) | 23.0 | 16.9 | 18.5 | YES |
+| P1 loaded speed (upper bound): without the reference predictor | 353 | 57.6 | 31.9 (1.8) | 21.7 | 15.9 | 17.2 | YES |
+| P1 loaded speed (upper bound): §12 trims: m1_hgb Q1 {30, 1310} and batch 50 dropped | 348 | 58.7 | 31.9 (1.8) | 21.5 | 15.8 | 17.3 | YES |
+| P1 loaded speed (upper bound): both of the above | 308 | 53.3 | 29.2 (1.8) | 20.1 | 14.7 | 16.0 | YES |
 
 ## Measured per-unit times used (s, before × T scaling) and peak RSS (GB)
 
@@ -80,7 +80,7 @@ Totals in units: 50.0 (1-job speed) to 68.7 (loaded) job-h, + 1.9 h job overhead
 | p1 | pstar | 980 | 75.6 | 94.3 | 3.75 | 30 |
 | p1 | pstar | 1310 | 122.0 | 152.2 | 4.42 | 30 |
 | p1 | pstar | 1640 | 182.0 | 227.0 | 4.82 | 30 |
-| p1 | pstar | 1970 | 241.9 | 301.6 | 5.50 | 29 |
+| p1 | pstar | 1970 | 241.8 | 301.6 | 5.50 | 30 |
 | p1 | pstar | 2100 | 244.8 | 305.3 | 5.80 | 5 |
 | p1 | pstar | 2101 | 246.7 | 307.7 | 5.90 | 5 |
 | p1 | pstar | 2103 | 306.9 | 382.7 | 5.79 | 5 |
@@ -116,13 +116,13 @@ Totals in units: 50.0 (1-job speed) to 68.7 (loaded) job-h, + 1.9 h job overhead
 | p1 | stack_lr | 980 | 12.1 | 15.0 | 2.14 | 30 |
 | p1 | stack_lr | 1310 | 19.2 | 23.9 | 2.88 | 30 |
 | p1 | stack_lr | 1640 | 25.8 | 32.2 | 2.83 | 30 |
-| p1 | stack_lr | 1970 | 21.5 | 26.8 | 3.45 | 28 |
+| p1 | stack_lr | 1970 | 21.3 | 26.5 | 3.45 | 30 |
 | p1 | stack_lr | 2100 | 28.2 | 35.2 | 3.62 | 5 |
 | p1 | stack_lr | 2101 | 25.9 | 32.3 | 3.70 | 5 |
 | p1 | stack_lr | 2103 | 21.6 | 27.0 | 3.68 | 5 |
 
-Largest projected job RSS (pool max, extrapolated): 9.6 GB.
-Score step (separate, 1 process, no bundle): ≈ 5819 bootstrap vectors + 200 two-way vectors ≈ 2.6 h (measured dry-run engine speed scaled to |E_fixed|).
+Largest job memory hint (pool max; RSS extrapolated beyond n = 2103): 8.4 GB.
+Score step (separate, 1 process, no bundle): ≈ 5219 bootstrap vectors + 200 two-way vectors ≈ 2.4 h (measured dry-run engine speed scaled to |E_fixed|).
 
 Extrapolated (no measurement at this n): B1_array_rate@2627, B2_product@2627, m1_hgb@2627, pstar@2627, stack_lr@2627
 

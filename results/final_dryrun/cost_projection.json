@@ -1,76 +1,84 @@
 {
  "scenarios": [
   {
-   "scenario": "1-job speed (lower bound): as configured",
-   "jobs": 453,
-   "job_hours": 52.7204755667356,
-   "wall_h_k3_alone": 20.644342194410722,
-   "wall_h_k3_ram": 17.99106460272134,
-   "wall_h_k4_alone": 17.144364469147643,
-   "wall_h_k4_ram": 14.505939597939822
-  },
-  {
-   "scenario": "1-job speed (lower bound): random n > 660 at R = 10",
+   "scenario": "1-job speed (lower bound): D10 plan as configured",
    "jobs": 393,
-   "job_hours": 46.2506327937785,
-   "wall_h_k3_alone": 16.999078741498774,
-   "wall_h_k3_ram": 15.83445034506897,
-   "wall_h_k4_alone": 13.499101016235695,
-   "wall_h_k4_ram": 12.34932534028745
+   "job_hours": 46.249730884655065,
+   "wall_h_gate": 25.331821515163142,
+   "wall_h_gate16": 16.92579680896624,
+   "wall_h_gate20": 12.45917525497296,
+   "wall_h_old4": 13.498199107112242,
+   "mean_conc_gate": 1.8257562274773989
   },
   {
-   "scenario": "1-job speed (lower bound): random n > 660 at R = 5",
-   "jobs": 383,
-   "job_hours": 45.17232566495232,
-   "wall_h_k3_alone": 16.35075099024005,
-   "wall_h_k3_ram": 15.409419973099181,
-   "wall_h_k4_alone": 12.886666234731853,
-   "wall_h_k4_ram": 11.945335217590983
+   "scenario": "1-job speed (lower bound): without the reference predictor",
+   "jobs": 353,
+   "job_hours": 43.45859349927074,
+   "wall_h_gate": 23.936252822470966,
+   "wall_h_gate16": 16.22377548919952,
+   "wall_h_gate20": 11.898010390710482,
+   "wall_h_old4": 12.802470266906212,
+   "mean_conc_gate": 1.8155971956676744
   },
   {
-   "scenario": "1-job speed (lower bound): random n > 660 at R = 5 and no reference predictor",
-   "jobs": 343,
-   "job_hours": 42.381188279568,
-   "wall_h_k3_alone": 15.43631110735942,
-   "wall_h_k3_ram": 14.49498009021855,
-   "wall_h_k4_alone": 12.186826382245716,
-   "wall_h_k4_ram": 11.245495365104846
+   "scenario": "1-job speed (lower bound): \u00a712 trims: m1_hgb Q1 {30, 1310} and batch 50 dropped",
+   "jobs": 348,
+   "job_hours": 43.07727037871412,
+   "wall_h_gate": 23.39375533106758,
+   "wall_h_gate16": 15.819787568066896,
+   "wall_h_gate20": 11.637482257162775,
+   "wall_h_old4": 12.6629075935905,
+   "mean_conc_gate": 1.8414003980586333
   },
   {
-   "scenario": "P1 loaded speed (upper bound): as configured",
-   "jobs": 453,
-   "job_hours": 71.40728936901569,
-   "wall_h_k3_alone": 27.976279329910152,
-   "wall_h_k3_ram": 24.43784840962294,
-   "wall_h_k4_alone": 23.226977194582993,
-   "wall_h_k4_ram": 19.688546274295767
+   "scenario": "1-job speed (lower bound): both of the above",
+   "jobs": 308,
+   "job_hours": 40.286132993329794,
+   "wall_h_gate": 21.998186638375405,
+   "wall_h_gate16": 15.101943237021954,
+   "wall_h_gate20": 11.05407835916003,
+   "wall_h_old4": 11.963067741104364,
+   "mean_conc_gate": 1.8313388124024472
   },
   {
-   "scenario": "P1 loaded speed (upper bound): random n > 660 at R = 10",
+   "scenario": "P1 loaded speed (upper bound): D10 plan as configured",
    "jobs": 393,
-   "job_hours": 63.011609575070025,
-   "wall_h_k3_alone": 23.259051065390928,
-   "wall_h_k3_ram": 21.6392884783077,
-   "wall_h_k4_alone": 18.50974893006376,
-   "wall_h_k4_ram": 16.889986342980535
+   "job_hours": 63.01036567276569,
+   "wall_h_gate": 34.604687624146784,
+   "wall_h_gate16": 23.038998888672594,
+   "wall_h_gate20": 16.93199705001057,
+   "wall_h_old4": 18.508505027759416,
+   "mean_conc_gate": 1.8208621432200913
   },
   {
-   "scenario": "P1 loaded speed (upper bound): random n > 660 at R = 5",
-   "jobs": 383,
-   "job_hours": 61.612329609412406,
-   "wall_h_k3_alone": 22.42314742361811,
-   "wall_h_k3_ram": 21.091185086515484,
-   "wall_h_k4_alone": 17.70083656906967,
-   "wall_h_k4_ram": 16.368874231967034
+   "scenario": "P1 loaded speed (upper bound): without the reference predictor",
+   "jobs": 353,
+   "job_hours": 57.63005860952171,
+   "wall_h_gate": 31.914534092524782,
+   "wall_h_gate16": 21.68436903453084,
+   "wall_h_gate20": 15.855935637361782,
+   "wall_h_old4": 17.16548376808849,
+   "mean_conc_gate": 1.805762178524805
   },
   {
-   "scenario": "P1 loaded speed (upper bound): random n > 660 at R = 5 and no reference predictor",
-   "jobs": 343,
-   "job_hours": 56.232022546168444,
-   "wall_h_k3_alone": 20.633792285822356,
-   "wall_h_k3_ram": 19.30182994871973,
-   "wall_h_k4_alone": 16.35370429711863,
-   "wall_h_k4_ram": 15.021741960015996
+   "scenario": "P1 loaded speed (upper bound): \u00a712 trims: m1_hgb Q1 {30, 1310} and batch 50 dropped",
+   "jobs": 348,
+   "job_hours": 58.707618046839734,
+   "wall_h_gate": 31.900654107964268,
+   "wall_h_gate16": 21.520852254673752,
+   "wall_h_gate20": 15.81226841675638,
+   "wall_h_old4": 17.339281559720494,
+   "mean_conc_gate": 1.8403264662896952
+  },
+  {
+   "scenario": "P1 loaded speed (upper bound): both of the above",
+   "jobs": 308,
+   "job_hours": 53.327310983595765,
+   "wall_h_gate": 29.210500576342262,
+   "wall_h_gate16": 20.1497120003022,
+   "wall_h_gate20": 14.705027079319995,
+   "wall_h_old4": 15.992149287769456,
+   "mean_conc_gate": 1.8256212639774423
   }
  ],
  "by_arm": [
@@ -120,15 +128,15 @@
    "est": "calibrated",
    "role": "random",
    "pred": "B1_array_rate",
-   "units": 685,
-   "job_h": 0.13008089373077808
+   "units": 535,
+   "job_h": 0.10301587311060059
   },
   {
    "est": "calibrated",
    "role": "random",
    "pred": "B2_product",
-   "units": 685,
-   "job_h": 0.14435826083207282
+   "units": 535,
+   "job_h": 0.11224053231209465
   },
   {
    "est": "calibrated",
@@ -141,8 +149,8 @@
    "est": "calibrated",
    "role": "random",
    "pred": "pstar",
-   "units": 685,
-   "job_h": 15.25538814369007
+   "units": 535,
+   "job_h": 9.760234078498865
   },
   {
    "est": "calibrated",
@@ -155,8 +163,8 @@
    "est": "calibrated",
    "role": "random",
    "pred": "stack_lr",
-   "units": 685,
-   "job_h": 1.4350409959307202
+   "units": 535,
+   "job_h": 0.7746347240161261
   },
   {
    "est": "calibrated",
@@ -225,15 +233,15 @@
    "est": "loaded",
    "role": "random",
    "pred": "B1_array_rate",
-   "units": 685,
-   "job_h": 0.18033941509659523
+   "units": 535,
+   "job_h": 0.14281745588925895
   },
   {
    "est": "loaded",
    "role": "random",
    "pred": "B2_product",
-   "units": 685,
-   "job_h": 0.19462979155013724
+   "units": 535,
+   "job_h": 0.15132733853583474
   },
   {
    "est": "loaded",
@@ -246,8 +254,8 @@
    "est": "loaded",
    "role": "random",
    "pred": "pstar",
-   "units": 685,
-   "job_h": 19.805749693477317
+   "units": 535,
+   "job_h": 12.671506702269786
   },
   {
    "est": "loaded",
@@ -260,8 +268,8 @@
    "est": "loaded",
    "role": "random",
    "pred": "stack_lr",
-   "units": 685,
-   "job_h": 2.0118516479233515
+   "units": 535,
+   "job_h": 1.0859969509370946
   },
   {
    "est": "loaded",

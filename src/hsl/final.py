@@ -181,6 +181,7 @@ def resolve(cfg: dict, mode: str, root: Path = ROOT) -> dict:
         "preds": predictor_table(cfg),
         "c1": dict(config.budgets()["contrast_c1"]), "brief": dict(config.budgets()["brief_example"]),
         "e_unobs_save": bool(cfg["e_unobs"].get("save", True)),
+        "compute": dict(cfg.get("compute") or {}),
     }
     P["ws_cps"] = [n for n in P["ws_cps"] if n > P["ws_n0"]]
     return P
@@ -320,6 +321,25 @@ def plan_job(plan: dict, name: str) -> Job:
     raise KeyError(f"job {name!r} not in the plan")
 
 
+def rss_hint_gb(P: dict, pred: str, n: int) -> float:
+    """Expected peak RSS (GB) of one unit (finalists.yaml compute: fitted on measured runs, scaled for |T|)."""
+    c = P.get("compute") or {}
+    fit = (c.get("rss_fit_gb") or {}).get(pred)
+    if not fit:
+        return float(config.protocol()["compute"]["rss_cap_gb_per_job"])
+    a, b = fit
+    return float(c.get("rss_scale", 1.0)) * (a + b * int(n) / 1000.0) + float(c.get("rss_margin_gb", 0.0))
+
+
+def job_rss(P: dict, units) -> tuple[float, float]:
+    """(memory hint, RSS kill cap) of a job: max unit hint; cap = max(protocol class cap, factor x hint)."""
+    c = config.protocol()["compute"]
+    hint = max(rss_hint_gb(P, p, n) for _, _, n, p, _ in units)
+    nmax = max(int(n) for _, _, n, _, _ in units)
+    cls_cap = float(c["rss_cap_gb_alone"] if nmax >= int(c["alone_min_n"]) else c["rss_cap_gb_per_job"])
+    return round(hint, 2), round(max(cls_cap, float((P.get("compute") or {}).get("rss_cap_factor", 1.0)) * hint), 2)
+
+
 def job_entries(plan: dict, P: dict, names=None) -> list[dict]:
     """launch.py job list: the labels job first, then the plan order. Final jobs carry HSL_FINAL=1."""
     env = {}
@@ -328,10 +348,13 @@ def job_entries(plan: dict, P: dict, names=None) -> list[dict]:
     if P.get("threads"):                          # same variables as scripts/launch.py THREAD_VARS
         env.update({k: str(P["threads"]) for k in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
                                                     "VECLIB_MAXIMUM_THREADS", "NUMEXPR_NUM_THREADS", "HSL_THREADS")})
-    mk = lambda nm, n: {"name": f"{P['mode']}_{nm}", "n": int(n), "env": dict(env),  # noqa: E731
-                        "cmd": [PY, "scripts/run_final.py", "work", "--mode", P["mode"], "--job", nm]}
-    out = [mk(LABELS_JOB, 0)] if names is None or LABELS_JOB in names else []
-    out += [mk(j["name"], j["n_max"]) for j in plan["jobs"] if names is None or j["name"] in names]
+    def mk(nm, n, rss):
+        return {"name": f"{P['mode']}_{nm}", "n": int(n), "env": dict(env), "rss_gb": rss[0], "rss_cap_gb": rss[1],
+                "cmd": [PY, "scripts/run_final.py", "work", "--mode", P["mode"], "--job", nm]}
+    lab = float((P.get("compute") or {}).get("labels_job_rss_gb", 4.0))
+    out = [mk(LABELS_JOB, 0, (lab, max(lab * 1.5, 6.0)))] if names is None or LABELS_JOB in names else []
+    out += [mk(j["name"], j["n_max"], job_rss(P, j["units"])) for j in plan["jobs"]
+            if names is None or j["name"] in names]
     return out
 
 

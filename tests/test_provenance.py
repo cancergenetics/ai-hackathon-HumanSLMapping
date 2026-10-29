@@ -116,7 +116,7 @@ def test_budgets():
     assert max(b["q2_checkpoints"]) == b["q2_max_n"] == 660
     assert b["batch_sizes_scenario"] == [10, 50, 110]
     assert b["m1_hgb_q1_grid"] == [30, 160, 490, 660, 1310, 2627]
-    assert b["m1_hgb_q2_checkpoints"] == {"strategies": [160, 660], "random": [160, 490, 660]}
+    assert b["m1_hgb_q2_checkpoints"] == {"strategies": [160, 490, 660], "random": [160, 490, 660]}   # D10: §4
     assert b["warm_start_checkpoints"] == [220, 330, 440, 490, 660]
 
 

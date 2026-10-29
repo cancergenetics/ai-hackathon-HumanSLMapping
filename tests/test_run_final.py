@@ -53,7 +53,9 @@ def test_plan_matches_config(final_plan):
     pool = P["pool_n"]
     grid = sorted({min(int(n), pool) for n in bud["random_grid"]})
     for n in grid:                                                 # Q1: every grid budget, R_r (pool max: R_by_n)
-        R = cfg["random"]["R_by_n"].get(n, cfg["random"]["R_by_n"].get(2627, R_r)) if n == pool else R_r
+        rb = {min(int(k), pool): int(v) for k, v in cfg["random"]["R_by_n"].items()}
+        R = rb.get(n, R_r)
+        assert R == (R_r if n <= 660 else (5 if n == pool else 10))   # D10
         for pk in cfg["random"]["predictors"]:
             assert sorted(u.traj for u in U if u.cid == "R0" and u.n == n and u.pred == pk) == list(range(R))
     m1 = sorted({min(int(n), pool) for n in bud["m1_hgb_q1_grid"]})
@@ -85,6 +87,9 @@ def test_jobs_are_single_trajectory_and_size_classed(final_plan):
     jobs = F.job_entries(plan, P)
     assert jobs[0]["name"] == f"final_{F.LABELS_JOB}"
     assert all(j["env"].get("HSL_FINAL") == "1" for j in jobs)
+    assert all(j["rss_gb"] > 0 and j["rss_cap_gb"] >= j["rss_gb"] for j in jobs)
+    big = [j for j in jobs if j["n"] >= 1970]
+    assert big and all(j["rss_cap_gb"] >= config.protocol()["compute"]["rss_cap_gb_alone"] for j in big)
     _, Pd = F.mode_params("dryrun")
     jd = F.job_entries(F.build_plan(cfg, Pd), Pd)
     assert not any("HSL_FINAL" in j["env"] for j in jd)

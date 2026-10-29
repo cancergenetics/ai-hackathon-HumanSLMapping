@@ -763,61 +763,73 @@ def cost_projection() -> int:
     sel_t = {k: float(np.median(v)) for k, v in sel_t.items()}
     roles = {cid: d["role"] for cid, d in plan["arms"].items()}
     over = 15.0                                              # per-job process start + bundle + E_fixed build (s)
-    def build(how):
+    g = P["compute"]["gate"]
+    alone_n = int(config.protocol()["compute"]["alone_min_n"])
+    m1_q1_trim = {30, 1310}                                  # §12 trigger list (m1_hgb Q1-only budgets)
+
+    def build(how, keep=lambda c, n, pk: True):
         jobs, unit_rows = [], []
         for j in plan["jobs"]:
+            us = [u for u in j["units"] if keep(u[0], int(u[2]), u[3])]
+            if not us:
+                continue
             T = over + sel_t.get(roles[j["cid"]], 0.0)
-            R = 0.0
-            flags = set()
-            for c, r, n, pk, e in j["units"]:
-                t, rss, hw = est(pk, int(n), how)
+            for c, r, n, pk, e in us:
+                t, _, _ = est(pk, int(n), how)
                 t *= scale_T
                 T += t
-                R = max(R, rss * (1.1 if hw == "EXTRAPOLATED" else 1.0))
-                flags.add(hw)
                 unit_rows.append({"role": roles[c], "pred": pk, "n": int(n), "t": t, "est": how})
             jobs.append({"name": j["name"], "role": roles[j["cid"]], "group": j["group"], "cls": j["cls"], "t": T,
-                         "rss": R + 1.0, "extrap": "EXTRAPOLATED" in flags})
+                         "rss": F.job_rss(P, us)[0], "big": max(int(u[2]) for u in us) >= alone_n})
         return jobs, unit_rows
 
-
-    def simulate(jobs, k, ram, alone_serial):
-        tq = sorted(jobs, key=lambda x: {"small": 0, "large": 1, "alone": 2}[x["cls"]])
-        running, t, queue = [], 0.0, list(tq)
+    def simulate(jobs, policy, budget=None):
+        """Event simulation of launch.py in plan order. 'gate' = D10 memory gate (<= max_jobs, <= max_big jobs at
+        n >= 1970, budget - sum(running hints) >= hint + headroom); 'old4' = 4 jobs, n >= 1970 alone, 20 GB."""
+        running, t, queue = [], 0.0, list(jobs)
         while queue or running:
-            started = True
-            while queue and started:
-                started = False
+            while queue:
                 j = queue[0]
                 busy = sum(x["rss"] for x in running)
-                is_alone = alone_serial and (j["cls"] == "alone" or any(x["cls"] == "alone" for x in running))
-                if (not running) or (len(running) < k and busy + j["rss"] <= ram and not is_alone):
+                if policy == "gate":
+                    ok = (len(running) < int(g["max_jobs"])
+                          and not (j["big"] and sum(x["big"] for x in running) >= int(g["max_big"]))
+                          and float(budget or g["budget_gb"]) - busy >= j["rss"] + float(g["headroom_gb"]))
+                else:
+                    ok = (len(running) < 4 and busy + j["rss"] <= 20.0
+                          and not (j["cls"] == "alone" or any(x["cls"] == "alone" for x in running)))
+                if not running or ok:
                     running.append({**j, "end": t + j["t"]})
                     queue.pop(0)
-                    started = True
+                else:
+                    break
             nxt = min(x["end"] for x in running)
             t = nxt
             running = [x for x in running if x["end"] > nxt]
         return t / 3600
 
     def summarise(label, jobs):
-        jh = sum(x["t"] for x in jobs) / 3600
-        return {"scenario": label, "jobs": len(jobs), "job_hours": jh,
-                **{f"wall_h_k{k}_{'alone' if a else 'ram'}": simulate(jobs, k, 20.0, a) for k in (3, 4)
-                   for a in (True, False)}}
+        return {"scenario": label, "jobs": len(jobs), "job_hours": sum(x["t"] for x in jobs) / 3600,
+                "wall_h_gate": simulate(jobs, "gate"), "wall_h_gate16": simulate(jobs, "gate", 16.0),
+                "wall_h_gate20": simulate(jobs, "gate", 20.0), "wall_h_old4": simulate(jobs, "old4"),
+                "mean_conc_gate": sum(x["t"] for x in jobs) / 3600 / max(simulate(jobs, "gate"), 1e-9)}
 
+    variants = [
+        ("D10 plan as configured", lambda c, n, pk: True),
+        ("without the reference predictor", lambda c, n, pk: pk != "ref"),
+        ("§12 trims: m1_hgb Q1 {30, 1310} and batch 50 dropped",
+         lambda c, n, pk: not ((pk == "m1_hgb" and c == "R0" and n in m1_q1_trim) or c.endswith("__b50"))),
+        ("both of the above", lambda c, n, pk: pk != "ref" and not (
+            (pk == "m1_hgb" and c == "R0" and n in m1_q1_trim) or c.endswith("__b50"))),
+    ]
     scen, uds = [], []
     for how in ("calibrated", "loaded"):
-        jobs, unit_rows = build(how)
-        uds.append(pd.DataFrame(unit_rows))
         lab = {"calibrated": "1-job speed (lower bound)", "loaded": "P1 loaded speed (upper bound)"}[how]
-        scen.append(summarise(f"{lab}: as configured", jobs))
-        big = [x for x in jobs if x["role"] == "random" and x["cls"] != "small" and x["group"] == "main"]
-        for Rk in (10, 5):
-            keep = [x for x in jobs if not (x in big and int(x["name"].split("_r")[1].split("_")[0]) >= Rk)]
-            scen.append(summarise(f"{lab}: random n > 660 at R = {Rk}", keep))
-        no_ref = [x for x in keep if x["group"] != "ref"]
-        scen.append(summarise(f"{lab}: random n > 660 at R = 5 and no reference predictor", no_ref))
+        for vl, keep in variants:
+            jobs, unit_rows = build(how, keep)
+            if vl == variants[0][0]:
+                uds.append(pd.DataFrame(unit_rows))
+            scen.append(summarise(f"{lab}: {vl}", jobs))
     ud = pd.concat(uds)
     by_arm = ud.groupby(["est", "role", "pred"]).agg(units=("t", "size"),
                                                       job_h=("t", lambda v: v.sum() / 3600)).reset_index()
@@ -833,8 +845,8 @@ def cost_projection() -> int:
              f"measured n: power-law fit (time) / linear fit (RSS) over n >= max/3 (flagged). Scaled × {scale_T:.2f} (= |T| {P['n_targets']} / "
              f"|dev1 targets| {Pd['n_targets']}) for the larger prediction grid. Selection per trajectory = dry-run "
              f"median by arm role (full trajectories to 660): " + ", ".join(f"{k} {v:.0f} s" for k, v in sel_t.items())
-             + f". Per-job overhead {over:.0f} s. Peak RSS per job = max over its units (+1 GB process; +10% if "
-               "extrapolated).", "",
+             + f". Per-job overhead {over:.0f} s. Job memory = the launch.py `rss_gb` hint (finalists.yaml compute: "
+               "fitted on measured peak RSS, scaled for |T|), the same number the gate uses.", "",
              f"Plan: {plan['n_units']} units in {len(plan['jobs'])} jobs (+ labels job).", "",
              "Dry-run / P1 speed ratios per predictor: " + ", ".join(f"{k} {v:.2f}" for k, v in factors.items()) + ".", "",
              "## Units and job-hours by arm role × predictor (lower / upper bound)", "",
@@ -846,22 +858,26 @@ def cost_projection() -> int:
     lines += ["", f"Totals in units: {uds[0].t.sum() / 3600:.1f} (1-job speed) to {uds[1].t.sum() / 3600:.1f} (loaded) "
               f"job-h, + {len(plan['jobs']) * over / 3600:.1f} h job overhead + selection "
               f"{sum(sel_t.get(roles[j['cid']], 0) for j in plan['jobs']) / 3600:.1f} h.", "",
-              "## Wall-clock (event simulation of the launch.py queue; 20 GB RAM cap)", "",
-              "`alone` = protocol rule (n ≥ 1970 runs alone); `ram` = n ≥ 1970 jobs share the machine within the RAM cap "
-              "(as P1 batch6 did, D-log 2026-10-29).", "",
-              "| scenario | jobs | job-h | wall h, 3 jobs (alone) | 3 jobs (ram) | 4 jobs (alone) | 4 jobs (ram) | > 10 h? |",
-              "|---|---|---|---|---|---|---|---|"]
+              "## Wall-clock (event simulation of the launch.py queue in plan order)", "",
+              f"`gate` = D10 memory gate: ≤ {g['max_jobs']} jobs, ≤ {g['max_big']} jobs at n ≥ {alone_n}, start only if "
+              f"{g['budget_gb']:.0f} GB (memory available to us; other processes hold ~12 GB) minus the running jobs' "
+              f"hints ≥ hint + {g['headroom_gb']:.0f} GB. `old` = previous policy for comparison (4 jobs, n ≥ "
+              f"{alone_n} alone, 20 GB). CPU contention at 6 jobs is not modelled beyond the loaded-speed bound "
+              "(P1 rows ran up to 4 jobs on a shared machine).", "",
+              "| scenario | jobs | job-h | wall h, gate 12 GB (mean jobs running) | gate 16 GB | gate 20 GB | old, 4 jobs | "
+              "> 10 h at 12 GB? |", "|---|---|---|---|---|---|---|---|"]
     for _, r in sc.iterrows():
-        best = min(r.wall_h_k3_ram, r.wall_h_k4_ram, r.wall_h_k3_alone, r.wall_h_k4_alone)
-        lines.append(f"| {r.scenario} | {r.jobs} | {r.job_hours:.1f} | {r.wall_h_k3_alone:.1f} | {r.wall_h_k3_ram:.1f} | "
-                     f"{r.wall_h_k4_alone:.1f} | {r.wall_h_k4_ram:.1f} | {'YES' if best > 10 else 'no'} |")
+        lines.append(f"| {r.scenario} | {r.jobs} | {r.job_hours:.1f} | {r.wall_h_gate:.1f} ({r.mean_conc_gate:.1f}) | "
+                     f"{r.wall_h_gate16:.1f} | {r.wall_h_gate20:.1f} | {r.wall_h_old4:.1f} | "
+                     f"{'YES' if r.wall_h_gate > 10 else 'no'} |")
     lines += ["", "## Measured per-unit times used (s, before × T scaling) and peak RSS (GB)", "",
               "| source | predictor | n | median s | × T | max RSS | k |", "|---|---|---|---|---|---|---|"]
     for _, r in tb[tb.pred.isin(["pstar", "ref", "m1_hgb", "stack_lr"])].iterrows():
         lines.append(f"| {r.src} | {r.pred} | {r.n} | {r.t:.1f} | {r.t_final_scaled:.1f} | {_f(r.rss, 2)} | {r.k} |")
     ex = sorted({(u["pred"], u["n"]) for u in unit_rows if est(u["pred"], u["n"])[2] == "EXTRAPOLATED"})
-    rss_alone = max((x["rss"] for x in jobs if x["cls"] == "alone"), default=float("nan"))
-    lines += ["", f"Largest projected job RSS (pool max, extrapolated): {rss_alone:.1f} GB."]
+    jobs0, _ = build("calibrated")
+    rss_alone = max((x["rss"] for x in jobs0 if x["cls"] == "alone"), default=float("nan"))
+    lines += ["", f"Largest job memory hint (pool max; RSS extrapolated beyond n = 2103): {rss_alone:.1f} GB."]
     # score step (single process): one [1 + B] vector per prediction file + strata/two-way extras; measured 0.86 s per
     # B = 2000 vector on dev1 (748k cells), scaled by cells (E_fixed 999k); two-way 0.019 s per replicate (dev1)
     n_vec = plan["n_units"] + 6 * 2 * (len(cfg["finalists"]) * P["R_s"] + P["R_r"])
