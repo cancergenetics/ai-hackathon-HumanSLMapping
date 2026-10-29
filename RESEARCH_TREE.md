@@ -14,6 +14,9 @@ arbitrary screened set, runtime vs. number screened, data characterisation), in 
 then DESIGN.md and up to three review rounds.
 
 ## Decision log
+- 2026-10-29 D8: P* frozen after P2 (stack_lr_wr2_lb). Old P* (stack_lr_wr2) results at n ≤ 1640 are kept as the
+  reference-predictor sensitivity; every downstream curve (pilot, universe, n ≥ 1970, P3, P4) uses the frozen P*. The
+  25% universe level is un-deferred (P2 freed the CPU). New-P* reruns start only after the independent review passes.
 - 2026-10-29 D1: Test split drawn preferentially from the upstream lockbox (upstream tuned on non-lockbox rows).
 - 2026-10-29 D7: User freed disk (~500 GB+). Disk policy relaxed going forward: prediction vectors may be saved for all
   predictors (useful for baseline bootstraps and independent rescoring); not retroactive (no regeneration of deleted
@@ -92,7 +95,12 @@ then DESIGN.md and up to three review rounds.
         ranked among themselves, mapped onto the on-array score distribution) for H/F/C; R1 random SMF tertile for
         off-array; cap max(2, ⌈b/k⌉); M λ = 0.3·mean diag. All strategies within ±5 pp of the 19.5% off-array base on
         dev1; 267 tests pass. PI checked the one edited reviewer test: reference updated to the new spec, not weakened.
-- [~] P2 predictor development (n ≤ 330; gate per DESIGN §8) → freeze P*
+- [x] P2 predictor development (n ≤ 330; gate per DESIGN §8) → freeze P*
+  - [!] P* frozen = stack_lr_wr2_lb (stack_lr_wr2 + array-side dense ε degree + EB array-degree prior + w_gi=n/(n+300)):
+    mean rel. gain +4.45% at n∈{30,160,330} (3/3 splits CI>0 at 160; re-split +4.1%; +1.1% at 660); 10 configs (cap),
+    4 passed. Oracle decomposition: low-n loss is degree estimation (oracle query degree +92% at n=30, inadmissible).
+    Commit c1154c7; results/p2/summary.md. Independent review running (docs/reviews/p2_predictor_review.md).
+  - [ ] Re-run power pilot + universe subsampling (50% and 25%) + random curves with frozen P* (DESIGN §9), after review
 - [ ] M4 Q1: performance vs. fraction screened (random)
 - [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
 - [ ] M6 Q3: translation to HAP1 (query numbers, choice of query lines, role of prediction)
