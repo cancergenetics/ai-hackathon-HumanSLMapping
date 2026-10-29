@@ -108,7 +108,13 @@ then DESIGN.md and up to three review rounds.
       Under the frozen ρ = 0 rule, Q2 claims are bounds only (V_Q(Δ) 4.5e-6 ≫ (g/3.5)²); the shared-weight sensitivity
       gives R_s ≈ 35–39. V_Q(Δ) is measured directly in P4 and R is fixed at the freeze.
     - [~] Universe subsampling with frozen P* (50%, 25%); [ ] n 820–1640 (batch5); [ ] n ≥ 1970 alone (batch6, held)
-- [~] P3 oracle ceilings (go/no-go) → P4 strategies on dev (agent launched 2026-10-29, 1×2 until universe drains)
+- [x] P3 oracle ceilings → GO (C, M kept). Commit fb18bb0, results/p3/summary.md.
+  - [!] Greedy oracle (dev1, in-sample): s160 0.0698 vs r160 0.0416, G = 2.05 [1.55, 2.75]. Upper bound only, because it
+    selects on the scored cells; a held-out-half version is queued.
+  - [!] Hub-first oracle (true query degree): pooled G = 0.49 [0.27, 0.72]; split-dependent (dev1 0.02, dev2 0.69,
+    dev3 0.64). Its top picks are 60% off-array (base rate 19.5%, D5 yeast artefact), so on-array and E_TT strata are requested.
+  - [x] §11 end-to-end controls: shuffled labels → 1.05× prevalence; back door → 1.000. Seed p3_e2e_control_seed appended.
+- [~] P4 strategies on dev (R1, H, H-static, F r4/8/16, F-static, C, M + λ screen; ≥3 traj/split), 2×2 threads
 - [ ] M4 Q1: performance vs. fraction screened (random)
 - [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
 - [ ] M6 Q3: translation to HAP1 (query numbers, choice of query lines, role of prediction)
