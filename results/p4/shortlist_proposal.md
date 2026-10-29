@@ -178,3 +178,28 @@ shortlist was final (M__det dev2, M__ws220 one trajectory per split).
      mechanism should be verified before the report claims it.
 3. **Every knob and the ranking were chosen on the same 3 dev splits** (§8 as designed). Expect some shrinkage on T,
    as the λ screen illustrates.
+
+
+## Review addendum (PI, 2026-10-29; independent review docs/reviews/p4_review.md: ACCEPT WITH FIXES)
+- **Leakage.** Stored H, C and F_r16 selections are bit-identical under poisoning of D_val rows, D_val/test columns,
+  unscreened rows and D_val SMF. The positive controls change the selections.
+- **Mechanism (replaces §2's hypothesis about H beating the hub oracle).** Every adaptive arm, including C and M, which
+  model no degree, screens moderately SL-rich genes: about 1.5–1.65× random's degree.
+  - AUPRC tracks SLs revealed (Spearman 0.80–0.89 across trajectories).
+  - The true-degree oracle overshoots to extreme hubs (37% off-array), and its gain sits on off-array target rows.
+  - The P* gain arrives through each on-array target's own column and the GI kernel: +35–44% on on-array target rows
+    vs +5–12% on off-array rows. B1 alone gets worse.
+  - These are pairs involving a screened gene, observed by design, and every HAP1 gene has such a column. Phrase it as
+    "screens SL-richer, not maximal, genes", not as "beats a ceiling".
+- **Oracles.** Both are references, not ceilings (see results/p3/summary.md addendum).
+- **The minimal-features scenario is "no AP-MS".** Only AP-MS is removed. Rebuilding the clusters without AP-MS changes
+  H__min by −2.5/+0.9/+1.0%.
+- **Deterministic runs of C and F are not off-array-neutral.** At temperature 0 the best off-array gene sits strictly
+  below the on-array maximum after route calibration. Do not interpret deterministic vs randomised for C/F.
+- **The C/M slot is a near-tie** (C +29.9% vs M_lam0.03 +28.5%), shaped by a one-trajectory λ screen. C was chosen by
+  the §8 rule plus PI judgement: M never picks off-array genes, a yeast artefact.
+- **Per-split ranges.** The 3-split means lean on dev2: H +19.7/+52.5/+26.0%, C +19.7/+44.6/+25.6%,
+  F_r16 +14.7/+44.4/+24.8%. Dev1 CIs for H and F_r16 touch 0. Expect shrinkage on T.
+- **Predictor robustness (review).** On the stored selections the gains hold with stack_lr_wr2 (H +21/+57/+29%) and
+  with m1_hgb on dev1 (H +21%, CI excludes 0).
+- **Freeze.** F-static is frozen at r = 16, matching the finalist. The dev F-static run used r = 8.

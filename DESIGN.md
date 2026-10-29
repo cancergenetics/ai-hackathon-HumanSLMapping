@@ -334,3 +334,14 @@ columns (strata reported); T not blind for upstream predictors (declared); rando
 - v2 (2026-10-29): round-1 revisions (§14).
 - v3 (2026-10-29): round-2 revisions (§15).
 - v3.1 (2026-10-29): round-3 consistency edits (docs/reviews/design_r3_consistency.md, all accepted). Design frozen.
+- **Declared protocol deviations (post-freeze of design, pre-freeze of finalists):**
+  - (i) After P2: freeze-hash list extended with config/predictor.yaml and src/hsl/predictors/*.py.
+  - (ii) D9: R_s = 20 and R_r = 40, set after P4 dev results existed.
+    - The frozen ρ = 0 pilot rule (§7.1) gave no attainable R, because V_Q alone exceeded (g/3.5)².
+    - The only finite R the pilot reported, R_s ≈ 35–39, came from a ρ_boot sensitivity. A strict reading of §5
+      ('may only go up') would take it as the floor.
+    - We deviate because the P4-measured V_Q(Δ) is about 25× the target SE², and the SE is flat in R
+      (0.0038 at R_s = 20 vs 0.0037 at 40).
+    - A lower R cannot favour strategies over random: it widens CIs and leaves the estimands unchanged.
+    - Q2 claims are phrased as bounds (§7.1).
+    - Recorded per docs/reviews/p4_review.md §4.

@@ -67,3 +67,13 @@ Strata (E_AO = array-only columns, E_VV = on-array D_val columns) and runtime pe
 
 Engine check: unit-weight replicate-engine AP equals the stored harness AUPRC (|diff| ≤ 1e-9) for 296 prediction files.
 
+
+
+## Review addendum (PI, 2026-10-29; docs/reviews/p4_review.md)
+Both oracles are **reference selectors, not ceilings**:
+- **Hub-first oracle (true query degree).** It reveals +283% SLs vs random at n = 160, yet it loses to adaptive H. Its
+  gain sits on off-array target rows (the D5 yeast artefact). H's own selection machinery, given the true degree,
+  also underperforms H: 0.043/0.060/0.053 vs 0.050/0.066/0.057 on dev1–3.
+- **Held-out greedy oracle (G = 0.61).** It is a reference built from a different, noisier selection signal (half the
+  D_val queries). It is not an upper bound on attainable G.
+- **In-sample greedy oracle (G = 2.05).** It is not attainable.

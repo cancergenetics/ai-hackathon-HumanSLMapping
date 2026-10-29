@@ -1,0 +1,9 @@
+{"arm": "H__min", "split": "dev1", "traj": 0, "ari": 0.3832920247986217, "auprc_noapms_clusters": 0.048762430345871945, "auprc_stored_min": 0.0489710838946319, "overlap160": 88, "first_diff": 3}
+{"arm": "H__min", "split": "dev1", "traj": 1, "ari": 0.3832920247986217, "auprc_noapms_clusters": 0.047613518470458846, "auprc_stored_min": 0.04756243710201065, "overlap160": 81, "first_diff": 2}
+{"arm": "H__min", "split": "dev1", "traj": 2, "ari": 0.3832920247986217, "auprc_noapms_clusters": 0.04607800239540166, "auprc_stored_min": 0.049583065920570046, "overlap160": 98, "first_diff": 2}
+{"arm": "H__min", "split": "dev2", "traj": 0, "ari": 0.3832920247986217, "auprc_noapms_clusters": 0.06372276040173935, "auprc_stored_min": 0.06518475575279793, "overlap160": 89, "first_diff": 5}
+{"arm": "H__min", "split": "dev2", "traj": 1, "ari": 0.3832920247986217, "auprc_noapms_clusters": 0.06775182562055082, "auprc_stored_min": 0.062237258724483296, "overlap160": 71, "first_diff": 3}
+{"arm": "H__min", "split": "dev2", "traj": 2, "ari": 0.3832920247986217, "auprc_noapms_clusters": 0.06356782472474361, "auprc_stored_min": 0.0657695075736088, "overlap160": 71, "first_diff": 2}
+{"arm": "H__min", "split": "dev3", "traj": 0, "ari": 0.3832920247986217, "auprc_noapms_clusters": 0.05579660981658886, "auprc_stored_min": 0.05668037338038933, "overlap160": 94, "first_diff": 3}
+{"arm": "H__min", "split": "dev3", "traj": 1, "ari": 0.3832920247986217, "auprc_noapms_clusters": 0.05945553797332704, "auprc_stored_min": 0.05779205040778835, "overlap160": 109, "first_diff": 2}
+{"arm": "H__min", "split": "dev3", "traj": 2, "ari": 0.3832920247986217, "auprc_noapms_clusters": 0.056776928637434554, "auprc_stored_min": 0.05591468192740843, "overlap160": 99, "first_diff": 3}

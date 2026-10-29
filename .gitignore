@@ -12,3 +12,10 @@ results/runtime_benchmark/jobs/
 /results/p2/boot/
 /results/p3/boot/
 /results/p4/boot/
+# final evaluation (DESIGN §10): lock + working files must be ignored so the tree stays clean during the run
+# (views.final_bundle refuses a dirty tree); scripts/score_final.py writes the committable outputs next to run/.
+/results/final/.lock
+/results/final/run/
+/results/final_dryrun/.lock
+/results/final_dryrun/run/
+/results/review_p4/boot/
