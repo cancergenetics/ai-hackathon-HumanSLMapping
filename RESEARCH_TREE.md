@@ -14,17 +14,29 @@ arbitrary screened set, runtime vs. number screened, data characterisation), in 
 then DESIGN.md and up to three review rounds.
 
 ## Decision log
+- 2026-10-29 D1: Test split drawn preferentially from the upstream lockbox (upstream tuned on non-lockbox rows).
+- 2026-10-29 D2: Evaluation unit = directed cell (t,a) with its own label; AB/BA not merged (κ 0.14, merging would
+  change the label). Primary set E_fixed is strategy-invariant so hub-selection cannot shrink the evaluation set.
 - 2026-10-29 D0: Do not copy upstream data (11 GB; 38 GB free disk). Read upstream processed data in place; any code
   that could write into YEAST_SLs is vendored/redirected. A stamp file (`.yeast_readonly_stamp`) plus upstream
   `git status` are checked at each milestone to prove YEAST_SLs was not modified.
 
 ## Tree
-- [~] M0 Setup: repo, PROMPT.md, tree, LESSONS, DATA.md skeleton
-- [ ] M1 Literature + reconnaissance
-  - [ ] LITERATURE.md (yeast SGA/GI maps, HAP1 GI screens incl. Billmann et al. 2026, SL prediction, active learning / experimental design for matrix completion, human-analogue feature datasets)
-  - [ ] Upstream method recon: API, runtime scaling, data characterisation
-- [ ] M2 Fixed test split (20% query genes, stratified by #strong SLs) — before any development
-- [ ] M3 DESIGN.md + review rounds (≤3)
+- [x] M0 Setup: repo, PROMPT.md, tree, LESSONS, DATA.md; uv env; vendored ysl (third_party/ysl, path patches only); write guard hsl.guard
+- [x] M1 Literature + reconnaissance
+  - [x] LITERATURE.md (606 lines, 122 refs). Key: Billmann 2026 = 222 HAP1 query KOs (298 screens), TKOv3, qGI
+        |qGI|>0.3 FDR<0.1, 47k negative GIs, <5% of pairs covered; queries chosen for functional diversity, not
+        iteratively. HAP1 negative density 1.20% ≈ yeast strong-SL prevalence 1.1% → our label ≈ HAP1 standard negative.
+        No prior iterative model-guided query selection for GI maps (closest: IterPert, BATCHIE, GeneDisco, adaptive
+        column sampling). Yeast 5%/20% ≈ 164/657 queries; HAP1 equivalents depend on scaling assumption (count vs fraction).
+  - [x] Upstream recon (docs/recon.md): arbitrary splits via hsl.upstream.make_view/run_method. S1: 3,283 queries,
+        3,827 arrays, 2,652 both, 1,175 array-only, 631 query-only; prevalence 0.0114; top 10% queries hold 34% of SLs;
+        AB/BA agreement weak (P(BA SL|AB SL)=0.145, κ 0.14). Runtime (s) n=30/650/1300: stack_lr 1.6/4.6/8.9,
+        stack_lr_wr2 14/25/59, m1_hgb 89/139/234; m1_hgb needs prop_folds=5 at n=10; n=2600 >6 GB.
+- [x] M2 Fixed test split: 656 test / 2,627 dev pool (config/split/), stratified (KS p=0.999), 96.5% from upstream lockbox
+- [~] M3 DESIGN.md + review rounds (≤3)
+  - [x] DESIGN v1: primary eval set E_fixed = test rows × arrays never screenable (A \ D), strategy-invariant
+  - [~] Review round 1: external PI, statistics, data/leakage, algorithms/compute, prior work, AI-agent failure modes, HAP1 domain
 - [ ] M4 Q1: performance vs. fraction screened (random)
 - [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
 - [ ] M6 Q3: translation to HAP1 (query numbers, choice of query lines, role of prediction)
