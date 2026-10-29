@@ -3,8 +3,9 @@ across k-means clusters; trajectory r = seeded permutation of the within-bin ord
 (round 0), from external features and array SMF only; never reads screened rows.
 
   SMF bin: tertile of the candidate's array SMF; edges = tertiles of all non-NaN array SMF values of the view (the
-           library). Off-array candidates have no SMF: they are routed to an external-only ridge prediction of SMF
-           (fitted on the on-array pool genes; inputs = degree-model external inputs) — no missingness stratum.
+           library). Off-array candidates have no SMF: each is assigned an SMF tertile uniformly at random from the
+           trajectory's selection stream (review R1-1: a ridge-imputed SMF regresses to the mean and put 347/410
+           off-array genes in one tertile, halving their share). No missingness stratum.
   abundance bin: tertile among the round-0 candidates (missing abundance -> median).
   clusters: k-means (k = protocol kmeans_k, cluster_seed) on the external-kernel embedding of the VISIBLE universe
            (candidates ∪ screened ∪ visible arrays: non-test genes; dev: also excluding D_val) —
@@ -16,7 +17,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from hsl.strategies import base, degree, kernels
+from hsl.strategies import base, kernels
 
 
 class Billmann(base.Selector):
@@ -26,10 +27,11 @@ class Billmann(base.Selector):
 
     def reset(self, candidates, rng) -> None:
         super().reset(candidates, rng)
-        self._order, self._pos = None, 0
+        self._order, self._pos, self._rng = None, 0, rng
 
-    def bins(self, view) -> tuple[np.ndarray, np.ndarray]:
-        """(bin id per candidate, cluster per candidate)."""
+    def bins(self, view, rng=None) -> tuple[np.ndarray, np.ndarray]:
+        """(bin id per candidate, cluster per candidate). Off-array SMF tertiles are drawn from `rng` (default: the
+        selection stream given to reset())."""
         sp = base.knobs()["spec"]
         ns, na = int(sp["n_smf_bins"]), int(sp["n_abund_bins"])
         cand = np.asarray(view.candidates, dtype=str)
@@ -37,22 +39,15 @@ class Billmann(base.Selector):
         feats = self._feats.get(view, pool)
         smf = base.candidate_smf(view)
         off = ~np.isfinite(smf)
-        if off.any():
-            Xe = degree.external_inputs(feats)
-            pcol = degree._cols_of(view, pool)
-            smf_all = np.asarray(view.array_smf, dtype=np.float64)
-            on_p = pcol >= 0
-            ytr = smf_all[pcol[on_p]]
-            ok = np.isfinite(ytr)
-            a, b = degree._standardise(Xe[on_p][ok], Xe[np.searchsorted(pool, cand[off])])
-            smf = smf.copy()
-            smf[off] = degree.Ridge().fit(a, ytr[ok]).predict(b)
+        rng = self._rng if rng is None else rng
         ref = np.asarray(view.array_smf, dtype=np.float64)
         e_s = np.nanquantile(ref, np.arange(1, ns) / ns)
         ab = base.abundance(feats)[np.searchsorted(pool, cand)]
         ab = np.where(np.isfinite(ab), ab, np.nanmedian(ab))
         e_a = np.quantile(ab, np.arange(1, na) / na)
-        b_s = np.searchsorted(e_s, smf, side="right")
+        b_s = np.searchsorted(e_s, np.where(off, 0.0, smf), side="right")
+        if off.any():
+            b_s[off] = rng.integers(0, ns, int(off.sum()))
         b_a = np.searchsorted(e_a, ab, side="right")
         U, lab = kernels.visible_clusters(view, lambda v, g: self._feats.get(v, g))
         cl = lab[np.searchsorted(U, cand)]
@@ -60,7 +55,7 @@ class Billmann(base.Selector):
 
     def order(self, view, rng) -> list:
         cand = np.asarray(view.candidates, dtype=str)
-        b, cl = self.bins(view)
+        b, cl = self.bins(view, rng)
         queues = []
         for h in range(int(b.max()) + 1 if len(b) else 0):
             idx = np.flatnonzero(b == h)

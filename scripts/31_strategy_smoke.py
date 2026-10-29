@@ -3,7 +3,7 @@
 strategy arm (R1, H, H-static, F, F-static, C, M) on dev split 1 to n = 100 with predictor stack_lr evaluated at
 n = 30, 60, 100 on E_fixed_dev. Trajectory seed = SeedSequence(strategy_smoke_seed).spawn(1)[0] (disjoint from the
 dev/final trajectory bases). ≤ 2 threads. Output: results/strategies/smoke_trajectories.{json,md}; trajectory logs and
-LEDGER lines (arm = smoke_<strategy>) via the harness.
+LEDGER lines (arm = smoke_<strategy>) via the harness; per-round selector diagnostics next to each trajectory log.
 
     .venv/bin/python scripts/31_strategy_smoke.py
 """
@@ -36,14 +36,16 @@ def main():
     for name in strategies.ARMS:
         t0 = time.perf_counter()
         sel = strategies.make(name)
-        log = H.Trajectory(sel, "dev1", seed, 0, arm=f"smoke_{name}", checkpoints=CHECKPOINTS,
-                           max_n=max(CHECKPOINTS), predictors=PREDICTORS).run()
+        log = strategies.run_trajectory(H.Trajectory(sel, "dev1", seed, 0, arm=f"smoke_{name}",
+                                                     checkpoints=CHECKPOINTS, max_n=max(CHECKPOINTS),
+                                                     predictors=PREDICTORS))
         sel_s = [r["select_s"] for r in log["rounds"]]
         out["arms"][name] = {
             "traj_id": log["traj_id"],
             "auprc": {n: d["stack_lr"]["metrics"]["E_fixed_dev"]["auprc"] for n, d in log["checkpoints"].items()},
             "select_s_mean": float(np.mean(sel_s)), "select_s_max": float(np.max(sel_s)),
             "phases": [d.get("phase") for d in sel.diagnostics],
+            "selector_diagnostics_file": log.get("selector_diagnostics_file"),
             "n_offarray_picked": int(sum(1 for g in log["selected"] if g not in on_array)),
             "wall_s": time.perf_counter() - t0}
         print(name, json.dumps(out["arms"][name]["auprc"]), f"sel {np.mean(sel_s):.2f}s/round", flush=True)

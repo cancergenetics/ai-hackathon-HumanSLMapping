@@ -37,3 +37,26 @@ def make(name: str, **overrides) -> Selector:
     sel = cls(**{**fixed, **overrides})
     sel.name = name
     return sel
+
+
+def run_trajectory(traj) -> dict:
+    """`harness.Trajectory(...).run()` plus the selector's per-round diagnostics (phase, picks, their first-pick gains
+    and ranks, predicted logit q̂ of the picks, off-array flags, cluster cap, GCV λ's, fills at random, ...) written to
+    `<trajectory dir>/<traj_id>.selector.json` next to the trajectory log (harness.py is frozen; review L-1). Feeds the
+    Q3 'choice of queries' profiling."""
+    import json
+
+    from hsl import harness
+    log = traj.run()
+    sel = traj.selector
+    diag = [{("round" if k == "_r" else k): v for k, v in d.items()} for d in getattr(sel, "diagnostics", [])]
+    if traj.write_log:
+        d = harness.TRAJ_DIR / traj.split
+        d.mkdir(parents=True, exist_ok=True)
+        p = d / f"{log['traj_id']}.selector.json"
+        p.write_text(json.dumps({"traj_id": log["traj_id"], "selector": getattr(sel, "name", type(sel).__name__),
+                                 "params": getattr(sel, "params", {}), "rounds": diag}, indent=1,
+                                default=harness._json_default))
+        log["selector_diagnostics_file"] = str(p)
+    log["selector_diagnostics"] = diag
+    return log

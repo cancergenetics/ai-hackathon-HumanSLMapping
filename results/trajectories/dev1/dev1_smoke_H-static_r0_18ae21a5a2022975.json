@@ -1,0 +1,411 @@
+{
+ "traj_id": "dev1_smoke_H-static_r0_18ae21a5a2022975",
+ "arm": "smoke_H-static",
+ "split": "dev1",
+ "traj_index": 0,
+ "traj_seed": {
+  "entropy": "1110313",
+  "spawn_key": [
+   0
+  ]
+ },
+ "model_seed": 3728116341,
+ "batch_size": 10,
+ "max_n": 100,
+ "s0_n": 0,
+ "selector_params": {
+  "deterministic": false,
+  "top_k": 20,
+  "static": true,
+  "knobs_sha": "8f5aa4f1f93d"
+ },
+ "static": true,
+ "rounds": [
+  {
+   "round": 0,
+   "n_before": 0,
+   "picks": [
+    "YLR061W",
+    "YLR448W",
+    "YBL072C",
+    "YPR080W",
+    "YBR181C",
+    "YGR192C",
+    "YHR193C",
+    "YER178W",
+    "YPL106C",
+    "YJR077C"
+   ],
+   "view_s": 0.02217033295892179,
+   "select_s": 0.03206095797941089
+  },
+  {
+   "round": 1,
+   "n_before": 10,
+   "picks": [
+    "YHR203C",
+    "YJR145C",
+    "YOR182C",
+    "YPR069C",
+    "YDR388W",
+    "YPR191W",
+    "YDL136W",
+    "YKL009W",
+    "YDL192W",
+    "YBR221C"
+   ],
+   "view_s": 0.02256041602231562,
+   "select_s": 0.008179042022675276
+  },
+  {
+   "round": 2,
+   "n_before": 20,
+   "picks": [
+    "YNL302C",
+    "YDL061C",
+    "YGR148C",
+    "YNL069C",
+    "YPR074C",
+    "YDR378C",
+    "YJL138C",
+    "YPL239W",
+    "YBR082C",
+    "YKR059W"
+   ],
+   "view_s": 0.023098915815353394,
+   "select_s": 0.009028291795402765
+  },
+  {
+   "round": 3,
+   "n_before": 30,
+   "picks": [
+    "YHR174W",
+    "YGR214W",
+    "YGR027C",
+    "YJR139C",
+    "YLL045C",
+    "YER177W",
+    "YGL147C",
+    "YDR074W",
+    "YOR136W",
+    "YLR342W"
+   ],
+   "view_s": 0.02255404111929238,
+   "select_s": 0.008674000157043338
+  },
+  {
+   "round": 4,
+   "n_before": 40,
+   "picks": [
+    "YML063W",
+    "YMR143W",
+    "YLR150W",
+    "YML001W",
+    "YFR031C-A",
+    "YOL041C",
+    "YGL202W",
+    "YCR028C-A",
+    "YLR038C",
+    "YDL185W"
+   ],
+   "view_s": 0.024485667003318667,
+   "select_s": 0.00784029089845717
+  },
+  {
+   "round": 5,
+   "n_before": 50,
+   "picks": [
+    "YLR048W",
+    "YDR158W",
+    "YDR385W",
+    "YIL069C",
+    "YGL031C",
+    "YDR127W",
+    "YBR031W",
+    "YML008C",
+    "YPL262W",
+    "YLR330W"
+   ],
+   "view_s": 0.023280041990801692,
+   "select_s": 0.0078103330451995134
+  },
+  {
+   "round": 6,
+   "n_before": 60,
+   "picks": [
+    "YBR026C",
+    "YER131W",
+    "YDR101C",
+    "YGR085C",
+    "YOR234C",
+    "YOR096W",
+    "YML081C-A",
+    "YLR449W",
+    "YGL253W",
+    "YDR496C"
+   ],
+   "view_s": 0.02320354082621634,
+   "select_s": 0.008142250124365091
+  },
+  {
+   "round": 7,
+   "n_before": 70,
+   "picks": [
+    "YMR243C",
+    "YER102W",
+    "YNL147W",
+    "YBR009C",
+    "YAL012W",
+    "YPL225W",
+    "YGL167C",
+    "YOR065W",
+    "YML026C",
+    "YGL195W"
+   ],
+   "view_s": 0.022828291868790984,
+   "select_s": 0.00841954187490046
+  },
+  {
+   "round": 8,
+   "n_before": 80,
+   "picks": [
+    "YBR048W",
+    "YGL148W",
+    "YHL033C",
+    "YNL153C",
+    "YPL226W",
+    "YLR044C",
+    "YLR056W",
+    "YLR410W",
+    "YDL083C",
+    "YNL071W"
+   ],
+   "view_s": 0.024856375064700842,
+   "select_s": 0.008527874946594238
+  },
+  {
+   "round": 9,
+   "n_before": 90,
+   "picks": [
+    "YGR118W",
+    "YLR384C",
+    "YLR367W",
+    "YER052C",
+    "YER156C",
+    "YJR060W",
+    "YBR283C",
+    "YFR032C-A",
+    "YGR208W",
+    "YMR183C"
+   ],
+   "view_s": 0.022689000004902482,
+   "select_s": 0.007953082909807563
+  }
+ ],
+ "checkpoints": {
+  "30": {
+   "stack_lr": {
+    "run_id": "dev1_stack_lr_n30_15a71b225c8f0e43",
+    "metrics": {
+     "E_fixed_dev": {
+      "n_cells": 748157,
+      "n_pos": 6755,
+      "prevalence": 0.009028853569504796,
+      "auprc": 0.029709795387404966,
+      "lift": 3.290539065529939,
+      "macro_auprc": 0.055616076256442694,
+      "macro_n_used": 506,
+      "macro_n_zero_pos": 20,
+      "auroc": 0.712184540917318,
+      "p_at_10": 0.04600760456273764,
+      "p_at_50": 0.05060836501901141,
+      "auprc_AO": 0.028508289972213476,
+      "prev_AO": 0.007967594907038623,
+      "auprc_VV": 0.03211736673142558,
+      "prev_VV": 0.011896867422180433
+     }
+    },
+    "runtime_s": {
+     "view_s": 0.004844167036935687,
+     "fit_predict_s": 0.56793316709809,
+     "eset_s": 0.008739375043660402,
+     "save_s": 0.013768542092293501,
+     "score_s": 0.9119421660434455,
+     "total_s": 1.5464929579757154
+    }
+   }
+  },
+  "60": {
+   "stack_lr": {
+    "run_id": "dev1_stack_lr_n60_adedf36f81d417ca",
+    "metrics": {
+     "E_fixed_dev": {
+      "n_cells": 748157,
+      "n_pos": 6755,
+      "prevalence": 0.009028853569504796,
+      "auprc": 0.032418490604223464,
+      "lift": 3.5905434011819417,
+      "macro_auprc": 0.06250352194305109,
+      "macro_n_used": 506,
+      "macro_n_zero_pos": 20,
+      "auroc": 0.7256958547523575,
+      "p_at_10": 0.055893536121673,
+      "p_at_50": 0.05193916349809886,
+      "auprc_AO": 0.03204422176326727,
+      "prev_AO": 0.007967594907038623,
+      "auprc_VV": 0.03345692568056884,
+      "prev_VV": 0.011896867422180433
+     }
+    },
+    "runtime_s": {
+     "view_s": 0.005447416100651026,
+     "fit_predict_s": 0.9181306250393391,
+     "eset_s": 0.008451666915789247,
+     "save_s": 0.009552332805469632,
+     "score_s": 0.917503584176302,
+     "total_s": 1.898136792005971
+    }
+   }
+  },
+  "100": {
+   "stack_lr": {
+    "run_id": "dev1_stack_lr_n100_91db59ff5f693568",
+    "metrics": {
+     "E_fixed_dev": {
+      "n_cells": 748157,
+      "n_pos": 6755,
+      "prevalence": 0.009028853569504796,
+      "auprc": 0.035505445249202405,
+      "lift": 3.9324422503786125,
+      "macro_auprc": 0.07033477220142946,
+      "macro_n_used": 506,
+      "macro_n_zero_pos": 20,
+      "auroc": 0.732098822150526,
+      "p_at_10": 0.06653992395437262,
+      "p_at_50": 0.05190114068441065,
+      "auprc_AO": 0.03474909556224552,
+      "prev_AO": 0.007967594907038623,
+      "auprc_VV": 0.03697759799879154,
+      "prev_VV": 0.011896867422180433
+     }
+    },
+    "runtime_s": {
+     "view_s": 0.006165333092212677,
+     "fit_predict_s": 1.2850780829321593,
+     "eset_s": 0.008737166877835989,
+     "save_s": 0.009479749947786331,
+     "score_s": 0.9366087920498103,
+     "total_s": 2.2906810001004487
+    }
+   }
+  }
+ },
+ "git": {
+  "head": "bbe68321ae4834ac636b57939052afbf4810c46b",
+  "dirty": true,
+  "diff_sha256": "4b0dd7adbe3a3a05f59293a47f4e865719f5763985313b2d8b5b1c3ce68c8d59"
+ },
+ "selected": [
+  "YLR061W",
+  "YLR448W",
+  "YBL072C",
+  "YPR080W",
+  "YBR181C",
+  "YGR192C",
+  "YHR193C",
+  "YER178W",
+  "YPL106C",
+  "YJR077C",
+  "YHR203C",
+  "YJR145C",
+  "YOR182C",
+  "YPR069C",
+  "YDR388W",
+  "YPR191W",
+  "YDL136W",
+  "YKL009W",
+  "YDL192W",
+  "YBR221C",
+  "YNL302C",
+  "YDL061C",
+  "YGR148C",
+  "YNL069C",
+  "YPR074C",
+  "YDR378C",
+  "YJL138C",
+  "YPL239W",
+  "YBR082C",
+  "YKR059W",
+  "YHR174W",
+  "YGR214W",
+  "YGR027C",
+  "YJR139C",
+  "YLL045C",
+  "YER177W",
+  "YGL147C",
+  "YDR074W",
+  "YOR136W",
+  "YLR342W",
+  "YML063W",
+  "YMR143W",
+  "YLR150W",
+  "YML001W",
+  "YFR031C-A",
+  "YOL041C",
+  "YGL202W",
+  "YCR028C-A",
+  "YLR038C",
+  "YDL185W",
+  "YLR048W",
+  "YDR158W",
+  "YDR385W",
+  "YIL069C",
+  "YGL031C",
+  "YDR127W",
+  "YBR031W",
+  "YML008C",
+  "YPL262W",
+  "YLR330W",
+  "YBR026C",
+  "YER131W",
+  "YDR101C",
+  "YGR085C",
+  "YOR234C",
+  "YOR096W",
+  "YML081C-A",
+  "YLR449W",
+  "YGL253W",
+  "YDR496C",
+  "YMR243C",
+  "YER102W",
+  "YNL147W",
+  "YBR009C",
+  "YAL012W",
+  "YPL225W",
+  "YGL167C",
+  "YOR065W",
+  "YML026C",
+  "YGL195W",
+  "YBR048W",
+  "YGL148W",
+  "YHL033C",
+  "YNL153C",
+  "YPL226W",
+  "YLR044C",
+  "YLR056W",
+  "YLR410W",
+  "YDL083C",
+  "YNL071W",
+  "YGR118W",
+  "YLR384C",
+  "YLR367W",
+  "YER052C",
+  "YER156C",
+  "YJR060W",
+  "YBR283C",
+  "YFR032C-A",
+  "YGR208W",
+  "YMR183C"
+ ],
+ "peak_rss_gb": 1.9686737060546875
+}

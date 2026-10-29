@@ -10,11 +10,19 @@ spec:
   n_smf_bins: 3                    # R1: SMF tertiles
   n_abund_bins: 3                  # R1: abundance tertiles
 
+# Off-array routing must not act as a score term in either direction (DESIGN §1; decisions D5, review F-1/C-1).
+# 'quantile' = ROUTE-STRATIFIED: wherever off-array candidates are scored by a different route than on-array ones
+# (H/F q̂: external submodel; H prior: abundance only; F: KRR embedding; C: no GI kernel part), each off-array gene's
+# percentile among the off-array genes (remaining, within a batch) under its own route is mapped to that quantile of
+# the on-array genes' scores/gains. Comparing off-array genes with on-array genes on a common route drifts along a
+# trajectory (the best off-array genes on that route are taken first) and gave 6–12% off-array picks vs a 19.5% base.
+# 'none' = raw route scores (diagnostics/brute-force tests only). Checked on null toys (tests) and dev1
+# (results/strategies/offarray_share.md).
+offarray_calibration: quantile
+
 degree_model:                      # shared query-degree model q̂ (H, F)
   ridge_lambda_rel: {log10_min: -4.0, log10_max: 3.0, n: 36}   # GCV grid, λ = n_train · 10^x (standardised inputs)
   min_train_on_array: 10           # fewer on-array screened rows -> external-only model for every candidate
-  offarray_calibration: quantile   # off-array route mapped onto the on-array score distribution (see degree.py);
-                                   # 'none' = raw route scores (lets routing act as an off-array score term)
   features:                        # whitelisted gene_features columns (hsl.features); null omits an input
                                    # (abundance required; HAP1-minimal scenario: apms_degree: null)
     abundance: log10_ppm_mueller2020
@@ -41,6 +49,11 @@ C:
   normalize: false                 # cosine-normalise the mk kernel before facility location
 
 M:
-  lam: 10.0                        # GP noise λ = lam · w_gi (upstream lam_mode 'gi', lam = 10)
+  # GP noise λ = lam · w_gi = lam · mean diag K_SS (the GI scaling makes mean ‖z_s‖² = w_gi). Review M-1: the fold-in's
+  # lam = 10 swamps K_SS (median eigenvalue ≈ 0.3 on dev1), so M ≈ prior variance ‖c_g‖² (Spearman 0.998).
+  # Dev default 0.3 ≈ the median K_SS eigenvalue (noise floor); Spearman with the prior variance on dev1
+  # (n = 30/160/660): 0.94/0.98/0.985 — still high, because screened profiles span little of the candidates'
+  # column profiles (inherent to the GI kernel). P4 grid {0.03, 0.3, 3}.
+  lam: 0.3
 
 R1: {}

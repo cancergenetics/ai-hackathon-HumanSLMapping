@@ -112,22 +112,83 @@ def candidate_smf(view) -> np.ndarray:
 
 def capped_update(clusters: np.ndarray, cap: int, inner=None):
     """`update` callback for harness.randomised_greedy: optional inner gain refresh, then ≤ `cap` picks per cluster
-    per batch (cluster −1 = unclustered, never capped)."""
+    per batch (cluster −1 = unclustered, never capped). When every remaining candidate sits in a full cluster, a new
+    cap cycle starts (counts reset) instead of leaving the batch to be filled at random."""
     clusters = np.asarray(clusters)
     counts: dict = {}
-    full: list = []
+    st = {"g": None, "picked": [], "cycles": 0}
 
     def upd(g, i):
-        g = np.array(inner(g, i) if inner is not None else g, dtype=np.float64)
+        if inner is not None:
+            raw = np.array(inner(g, i), dtype=np.float64)
+        else:                                   # no refresh: keep the unmasked first-pick gains ourselves
+            if st["g"] is None:
+                st["g"] = np.array(g, dtype=np.float64)
+            raw = st["g"].copy()
+        st["picked"].append(i)
         c = int(clusters[i])
         if c >= 0:
             counts[c] = counts.get(c, 0) + 1
-            if counts[c] >= cap:
-                full.append(c)
-        if full:
-            g[np.isin(clusters, full)] = -np.inf
-        return g
+        full = [cl for cl, n in counts.items() if n >= cap]
+        if not full:
+            return raw
+        out = raw.copy()
+        out[np.isin(clusters, full)] = -np.inf
+        rest = np.ones(len(raw), dtype=bool)
+        rest[st["picked"]] = False
+        if not np.isfinite(out[rest]).any() and np.isfinite(raw[rest]).any():
+            counts.clear()
+            st["cycles"] += 1
+            return raw
+        return out
+    upd.state = st
     return upd
+
+
+def batch_cap(k: int, clusters) -> int:
+    """Per-batch cluster cap: max(protocol cluster_cap_per_batch, ceil(k / #clusters among the candidates))."""
+    n_cl = max(len(np.unique(np.asarray(clusters)[np.asarray(clusters) >= 0])), 1)
+    return int(max(int(protocol_selector()["cluster_cap_per_batch"]), -(-int(k) // n_cl)))
+
+
+def offarray_calibration(override: str | None = None) -> bool:
+    """Route calibration mode (config/strategies.yaml `offarray_calibration`, DESIGN §1 / D5): 'quantile' | 'none'."""
+    mode = str(override if override is not None else knobs().get("offarray_calibration", "quantile"))
+    if mode not in ("quantile", "none"):
+        raise ValueError(f"offarray_calibration {mode!r}")
+    return mode == "quantile"
+
+
+def quantile_map(main_on: np.ndarray, route_on: np.ndarray, route_off: np.ndarray) -> np.ndarray:
+    """Off-array scores on the on-array scale: percentile of route_off within route_on (mid-rank; NaN -> median)
+    mapped to the same quantile of main_on."""
+    p = midrank_pct(route_off, route_on)
+    p = np.clip(np.where(np.isfinite(p), p, 0.5), 0.0, 1.0)
+    return np.quantile(np.asarray(main_on, dtype=np.float64), p)
+
+
+def calibrate_routes(g_main: np.ndarray, g_alt, on: np.ndarray, exclude=None) -> np.ndarray:
+    """Route calibration of gains; off-array genes get a quantile of the on-array main-route gains.
+    g_alt given (D5 style): the quantile matching their percentile among ON-array genes under a COMMON alternative
+      route `g_alt` (defined for every candidate).
+    g_alt None ('within route'): the quantile matching their percentile among the OFF-array genes under their own
+      route, i.e. off-array gains are forced onto the on-array gain distribution (route-stratified; used where the
+      common-route comparison drifts along a trajectory, see coverage.py).
+    `exclude` (bool) drops genes (e.g. already picked in this batch) from the references."""
+    g = np.array(g_main, dtype=np.float64, copy=True)
+    on = np.asarray(on, dtype=bool)
+    off = ~on
+    keep = np.isfinite(g) if exclude is None else np.isfinite(g) & ~np.asarray(exclude, dtype=bool)
+    ref = on & keep
+    if g_alt is None:
+        ref_off = off & keep
+        if ref.sum() >= 2 and ref_off.sum() >= 1:
+            g[off] = quantile_map(g[ref], g_main[ref_off], g_main[off])
+        return g
+    ref &= np.isfinite(g_alt)
+    if ref.sum() >= 2 and off.any():
+        g[off] = quantile_map(g[ref], np.asarray(g_alt)[ref], np.asarray(g_alt)[off])
+    return g
 
 
 # ============================================================================ base selector
@@ -147,11 +208,13 @@ class Selector:
                        "knobs_sha": knobs_sha()}               # strategies.yaml enters the trajectory id
         self.diagnostics: list = []
         self._feats = FeatureCache()
+        self._g0 = self._qhat = None
 
     # ---- harness protocol
     def reset(self, candidates, rng) -> None:
         self.diagnostics = []
         self._round = 0
+        self._g0 = self._qhat = None
 
     def select(self, view, k: int, rng) -> list:
         t0 = time.perf_counter()
@@ -165,7 +228,22 @@ class Selector:
             idx += [int(i) for i in fill]
         if len(set(idx)) != len(idx):
             raise AssertionError(f"{self.name}: duplicate picks")
-        self._diag(round=getattr(self, "_round", 0), n_screened=int(view.n_screened), select_s=time.perf_counter() - t0)
+        on = np.asarray(view.candidate_col) >= 0
+        rec = {"picks": [str(cand[i]) for i in idx], "picks_offarray": [bool(not on[i]) for i in idx],
+               "offarray_share_candidates": float((~on).mean()) if len(on) else None}
+        g0 = getattr(self, "_g0", None)
+        if g0 is not None and len(g0) == len(cand):         # first-pick gains / scores of this round
+            g0 = np.asarray(g0, dtype=np.float64)
+            order = np.lexsort((np.arange(len(g0)), -g0))
+            rank = np.empty(len(g0), dtype=np.int64)
+            rank[order] = np.arange(len(g0))
+            rec.update(picks_gain0=[float(g0[i]) for i in idx], picks_rank0=[int(rank[i]) for i in idx])
+        q = getattr(self, "_qhat", None)
+        if q is not None and len(q) == len(cand):           # predicted logit query-degree q̂ of the picks
+            rec["picks_qhat_logit"] = [float(q[i]) for i in idx]
+        self._g0 = self._qhat = None
+        self._diag(round=getattr(self, "_round", 0), n_screened=int(view.n_screened),
+                   select_s=time.perf_counter() - t0, **rec)
         self._round = getattr(self, "_round", 0) + 1
         return [str(cand[i]) for i in idx]
 
@@ -177,10 +255,17 @@ class Selector:
         self.diagnostics[-1].update(kw)
 
     def _greedy(self, gains, k, rng, clusters=None, inner=None) -> list:
-        cap = int(protocol_selector()["cluster_cap_per_batch"])
-        upd = capped_update(clusters, cap, inner) if clusters is not None else inner
-        return harness.randomised_greedy(gains, k, rng, top_k=self.top_k, deterministic=self.deterministic,
-                                         update=upd)
+        self._g0 = np.array(gains, dtype=np.float64, copy=True)
+        upd = inner
+        if clusters is not None:
+            cap = batch_cap(k, clusters)
+            upd = capped_update(clusters, cap, inner)
+            self._diag(cluster_cap=cap)
+        out = harness.randomised_greedy(gains, k, rng, top_k=self.top_k, deterministic=self.deterministic,
+                                        update=upd)
+        if clusters is not None:
+            self._diag(cap_cycles=int(upd.state["cycles"]))
+        return out
 
     def _choose(self, view, k, rng) -> list:          # pragma: no cover
         raise NotImplementedError

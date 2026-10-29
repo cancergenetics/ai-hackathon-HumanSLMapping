@@ -6,8 +6,8 @@
 * Edge cases: n = 29/30 switch, all candidates off-array, pool exhaustion, batch remainder, static variants ignore
   screened-row content.
 * Off-array routing (DESIGN §1, decision D5): in a NULL world genes are exchangeable, so routing a gene to another
-  submodel because it lacks a column must not change its selection probability. Known failures are xfail(strict):
-  they flip to XPASS (and fail the suite) once fixed, so the marker must then be removed.
+  submodel because it lacks a column must not change its selection probability. The review's strict xfails (F-1,
+  C-1, R1-1, B-1) were removed once fixed (route calibration in F/C, random SMF tertile in R1, batch-scaled cap).
 """
 from __future__ import annotations
 
@@ -137,8 +137,9 @@ def test_degree_model_matches_independent_reimplementation():
     a2[:, 1], b2[:, 1] = (tr[:, 1] - smf.mean()) / smf.std(), (te[:, 1] - smf.mean()) / smf.std()
     ext_pred = out.copy()
     out[on_g] = _ridge_bf(a2, y[on_s], b2)
-    # quantile calibration of the off-array route (D5)
-    r = np.sort(ext_pred[on_g])
+    # quantile calibration of the off-array route (D5, route-stratified after the review: percentile among the
+    # OFF-array genes under their own route, mapped onto the on-array scores)
+    r = np.sort(ext_pred[~on_g])
     pct = (np.searchsorted(r, ext_pred[~on_g], "left") + np.searchsorted(r, ext_pred[~on_g], "right")) / (2 * len(r))
     out[~on_g] = np.quantile(out[on_g], pct)
     pool = base.pool_of(v)
@@ -388,20 +389,14 @@ def test_null_world_offarray_share_at_base_rate(name):
     _check_base_rate(name)
 
 
-@pytest.mark.xfail(strict=True, reason="REVIEW F-1: F's KRR route for off-array candidates is a de-facto off-array "
-                                       "score term (0% off-array picks after the switch in a null world)")
 def test_null_world_offarray_share_F():
     _check_base_rate("F")
 
 
-@pytest.mark.xfail(strict=True, reason="REVIEW C-1: C's GI part exists only for on-array candidates, so off-array "
-                                       "genes are never picked once S has on-array rows (null world)")
 def test_null_world_offarray_share_C():
     _check_base_rate("C")
 
 
-@pytest.mark.xfail(strict=True, reason="REVIEW R1-1: ridge-imputed SMF puts (nearly) all off-array candidates in one "
-                                       "SMF tertile, so the bin round-robin under-samples them")
 def test_R1_offarray_spread_over_smf_tertiles():
     fr = []
     for s in range(6):
@@ -424,9 +419,6 @@ def test_M_round0_may_contain_offarray_genes_spec_note():
     assert seen == rnd
 
 
-@pytest.mark.xfail(strict=True, reason="REVIEW B-1: the fixed per-batch cluster cap (2 x n_clusters slots) cannot fill "
-                                       "large batches (§6.3 batch 110 / one-shot 330, 660 with k = 100 clusters); the "
-                                       "remainder is filled at random by Selector.select")
 @pytest.mark.parametrize("name", ["H", "F", "H-static", "F-static"])
 def test_large_batch_not_filled_at_random(name):
     w = ToyWorld(56, "hub")                         # 10 clusters -> cap admits 20 genes per batch

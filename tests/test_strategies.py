@@ -388,10 +388,15 @@ def test_C_gains_match_bruteforce_facility_location():
     w = ToyWorld(803, "cluster")
     S = list(np.random.default_rng(3).choice(w.queries, 20, replace=False))
     v = w.view(S)
-    c = strategies.make("C")
+    c = strategies.make("C", offarray_calibration="none")       # raw objective; calibration checked below
     c.reset(v.candidates, np.random.default_rng(0))
     Kcc, Kcs = c.kernel_blocks(v)
     gains, update = c._state(v)
+    cal = strategies.make("C")
+    cal.reset(v.candidates, np.random.default_rng(0))
+    on = v.candidate_col >= 0
+    gc = cal.gains(v)
+    assert np.array_equal(gc[on], gains()[on]) and not np.array_equal(gc[~on], gains()[~on])
 
     def F(extra):
         cols = [Kcs] + [Kcc[:, [j]] for j in extra]
@@ -457,3 +462,47 @@ def test_offarray_share_of_H_picks_matches_base_rate():
     base_rate = 40 / 240
     se = np.sqrt(base_rate * (1 - base_rate) / (60 * 8))
     assert abs(np.mean(shares) - base_rate) < 4 * se, (np.mean(shares), base_rate)
+
+
+def test_F_calibration_touches_only_offarray_gains():
+    w = ToyWorld(804, "hub")
+    v = w.view(list(np.random.default_rng(4).choice(w.queries, 50, replace=False)))
+    on = v.candidate_col >= 0
+    raw, cal = strategies.make("F", offarray_calibration="none"), strategies.make("F")
+    for s_ in (raw, cal):
+        s_.reset(v.candidates, np.random.default_rng(0))
+    gr, gc = raw.gains(v), cal.gains(v)
+    assert np.allclose(gr[on], gc[on]) and not np.allclose(gr[~on], gc[~on])
+
+
+@pytest.mark.parametrize("name", ["F", "C", "R1", "H", "H-static", "F-static", "C-static"])
+def test_null_world_offarray_share_all(name):
+    """Acceptance (PI, DESIGN §1/D5): exchangeable genes -> off-array share of picks within ±5 pp of the base rate."""
+    sh = []
+    for s in range(10):
+        w = ToyWorld(7300 + s, "null")
+        sh += [g not in w.col for g in run_toy(w, strategies.make(name), s, 80)]
+    assert abs(np.mean(sh) - 40 / 240) < 0.05, (name, np.mean(sh))
+
+
+def test_run_trajectory_writes_selector_diagnostics(tmp_path, monkeypatch):
+    """The wrapper writes per-round diagnostics (picks, gains, q̂) next to the trajectory log (harness untouched)."""
+    import json
+    calls = {}
+
+    class FakeTraj:
+        split, write_log = "devX", True
+        selector = strategies.make("H")
+
+        def run(self):
+            w = ToyWorld(805, "hub")
+            run_toy(w, self.selector, 0, 40)
+            calls["ran"] = True
+            return {"traj_id": "devX_H_r0_test"}
+    monkeypatch.setattr(harness, "TRAJ_DIR", tmp_path)
+    log = strategies.run_trajectory(FakeTraj())
+    d = json.loads((tmp_path / "devX" / "devX_H_r0_test.selector.json").read_text())
+    assert calls["ran"] and len(d["rounds"]) == 4 and log["selector_diagnostics_file"]
+    r3 = d["rounds"][3]
+    assert r3["phase"] == "model" and len(r3["picks_qhat_logit"]) == 10 and len(r3["picks_gain0"]) == 10
+    assert all(isinstance(x, bool) for x in r3["picks_offarray"])

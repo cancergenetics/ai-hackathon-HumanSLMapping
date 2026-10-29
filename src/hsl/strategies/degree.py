@@ -10,12 +10,15 @@ Fitted (n ≥ switch): Gaussian ridge (intercept unpenalised, λ by GCV) on y_s 
   external-only submodel (same response, external inputs only) fitted on all screened rows.
 Inputs are standardised on the training rows (SMF: on all non-NaN array SMF values of the view); remaining NaN -> 0
 (= the training mean) after standardisation. No missingness indicator enters any model.
-Route calibration (knob degree_model.offarray_calibration, default 'quantile'): the two routes have different score
-  distributions (e.g. 2·pct(abundance) has twice the variance of pct(1 − SMF) + pct(abundance); a shrunk full model
-  vs a less-shrunk external submodel), so un-calibrated routing makes off-array status a de-facto score term (DESIGN
-  §1; off-array yeast genes are truly richer in SLs). 'quantile': an off-array gene's percentile among the ON-array
-  genes of the scored set under its own route (abundance for the prior, the external submodel for the fitted model)
-  is mapped to the same quantile of the on-array genes' main-route scores. 'none' = scores as computed.
+Route calibration (knob offarray_calibration, default 'quantile'; decision D5, strategy review): the two routes
+  have different score distributions (2·pct(abundance) has twice the variance of pct(1 − SMF) + pct(abundance); a
+  shrunk full model vs a less-shrunk external submodel), so un-calibrated routing makes off-array status a de-facto
+  score term (DESIGN §1; off-array yeast genes are truly richer in SLs). 'quantile' = ROUTE-STRATIFIED: each
+  off-array gene's percentile among the off-array genes of the scored set under its own route (abundance for the
+  prior, the external submodel for the fitted model) is mapped to that quantile of the on-array genes' scores. The
+  first D5 version referenced on-array genes under the common external route; along a trajectory that reference
+  drifts (the best off-array genes on the external route are picked first, the on-array ones are picked on the full
+  model), giving 6–12% off-array picks vs a 19.5% base on dev1 (results/strategies/offarray_share.md).
 """
 from __future__ import annotations
 
@@ -146,23 +149,15 @@ def prior_scores(view, genes, feats_pool, pool) -> np.ndarray:
     ps = np.where(np.isfinite(ps), ps, 0.5)
     out = np.where(on, ps + pa, 2.0 * pa)
     if _calibrate_routes() and on.any() and (~on).any():
-        out[~on] = quantile_map(out[on], ab_pool[pos][on], ab_pool[pos][~on])
+        out[~on] = quantile_map(out[on], ab_pool[pos][~on], ab_pool[pos][~on])
     return out
 
 
 def _calibrate_routes() -> bool:
-    mode = str(base.knobs()["degree_model"].get("offarray_calibration", "quantile"))
-    if mode not in ("quantile", "none"):
-        raise ValueError(f"offarray_calibration {mode!r}")
-    return mode == "quantile"
+    return base.offarray_calibration()
 
 
-def quantile_map(main_on: np.ndarray, route_on: np.ndarray, route_off: np.ndarray) -> np.ndarray:
-    """Off-array scores on the on-array scale: percentile of route_off within route_on (mid-rank; NaN -> median)
-    mapped to the same quantile of main_on."""
-    p = base.midrank_pct(route_off, route_on)
-    p = np.clip(np.where(np.isfinite(p), p, 0.5), 0.0, 1.0)
-    return np.quantile(np.asarray(main_on, dtype=np.float64), p)
+quantile_map = base.quantile_map
 
 
 def _cols_of(view, genes) -> np.ndarray:
@@ -210,7 +205,7 @@ def fit_predict(view, genes, feats_pool, pool) -> tuple[np.ndarray, dict]:
         info["lam_full"] = m.lam
         info["coef_full"] = np.round(m.beta, 4).tolist()
         if _calibrate_routes() and on_G.any() and (~on_G).any():
-            out[~on_G] = quantile_map(out[on_G], ext_pred[on_G], ext_pred[~on_G])
+            out[~on_G] = quantile_map(out[on_G], ext_pred[~on_G], ext_pred[~on_G])
     return out, info
 
 

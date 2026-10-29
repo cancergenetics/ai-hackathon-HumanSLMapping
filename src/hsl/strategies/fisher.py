@@ -17,7 +17,14 @@ Cold start (n < h_switch_n, incl. S = ∅) and F-static (always): p̂ ≡ const,
   reads screened rows.
 r = 1 (u ≡ 1): gains are monotone in q̂_g, i.e. exactly H's ordering (built-in ablation); in the cold start the r = 1
   objective is constant, so F(r = 1) uses H's prior there (and F-static(r = 1) = H-static).
-Batch cap ≤ cluster_cap_per_batch genes per cluster, as H.
+Off-array route calibration (review F-1; knob offarray_calibration): the KRR route systematically yields smaller
+  u_gᵀM_x⁻¹u_g than the B·v route (a route-swap control moves on-array genes from the base share to ~1%), i.e. it
+  acts as an off-array score term (DESIGN §1). With 'quantile' (route-stratified, as H and C), each off-array gene's
+  gain is replaced by the quantile of the ON-array candidates' gains matching its percentile among the remaining
+  OFF-array candidates' gains; recomputed after every pick of the batch (picked genes leave both references). A
+  common-route variant (KRR route for every candidate) was tried and drifts low along F's trajectory (0.09–0.12 vs
+  base 0.19 on dev1). On-array gains and every M_x update are unchanged.
+Batch cap as H (hsl.strategies.base.batch_cap).
 """
 from __future__ import annotations
 
@@ -35,7 +42,9 @@ class Fisher(base.Selector):
         self.r = int(cfg["r"] if r is None else r)
         self.krr_lam = float(kw.pop("krr_lam", cfg["krr_lam"]))
         self.b_ridge = float(kw.pop("b_ridge", cfg["b_ridge"]))
-        super().__init__(static=bool(static), r=self.r, krr_lam=self.krr_lam, b_ridge=self.b_ridge, **kw)
+        self.calibrate = base.offarray_calibration(kw.pop("offarray_calibration", None))
+        super().__init__(static=bool(static), r=self.r, krr_lam=self.krr_lam, b_ridge=self.b_ridge,
+                         offarray_calibration="quantile" if self.calibrate else "none", **kw)
         self.static = bool(static)
         if self.static:
             self.name = "F-static"
@@ -99,13 +108,14 @@ class Fisher(base.Selector):
         return {"phase": "cold", "gains": gains, "update": update}
 
     # ------------------------------------------------------------------ fitted phase
-    def embeddings(self, view, feats, pool) -> tuple[np.ndarray, np.ndarray]:
-        """(u_S [n x r], u_C [n_cand x r]) with u = (1, ũ)."""
+    def embeddings(self, view, feats, pool, krr_all: bool = False):
+        """(u_S [n x r], u_C [n_cand x r]) with u = (1, ũ); with krr_all also u_K [n_cand x r]: the external-KRR route
+        for EVERY candidate (same whitening), used as the common route of the off-array calibration."""
         r1 = self.r - 1
         S, cand = np.asarray(view.screened_orfs, dtype=str), np.asarray(view.candidates, dtype=str)
         n, nc = len(S), len(cand)
         if r1 <= 0:
-            return np.ones((n, 1)), np.ones((nc, 1))
+            return (np.ones((n, 1)), np.ones((nc, 1))) + ((np.ones((nc, 1)),) if krr_all else ())
         vis = np.asarray(view.visible_cols)
         import warnings
         from ysl.models import baselines as B, completion as CM
@@ -135,20 +145,28 @@ class Fisher(base.Selector):
             Bt = np.linalg.solve(A + reg * np.eye(r1e), Vs.T @ U[on_s])   # U_on ≈ Vs Bᵀ
             uC[on_c] = (R[:, cpos[on_c]].T @ U) @ Bt
         off = ~on_c
-        if off.any():                                            # external-kernel KRR into the same space
+        uK = None
+        if off.any() or krr_all:                                 # external-kernel KRR into the same space
             K = kernels.external_kernel(view, pool, feats)
-            ps, pc = np.searchsorted(pool, S), np.searchsorted(pool, cand[off])
+            ps, pc = np.searchsorted(pool, S), np.searchsorted(pool, cand)
             Kss = K[np.ix_(ps, ps)]
             lam_k = self.krr_lam * (np.trace(Kss) / max(n, 1) or 1.0)
             alpha = np.linalg.solve(Kss + lam_k * np.eye(n), U)
-            uC[off] = K[np.ix_(pc, ps)] @ alpha
+            uK = K[np.ix_(pc, ps)] @ alpha
+            uC[off] = uK[off]
         allu = np.vstack([uS, uC])
         scale = np.sqrt(np.maximum((allu ** 2).mean(0), 1e-300))
         uS, uC = uS / scale, uC / scale
-        if r1e < r1:                                            # n < r−1 (cannot happen for n ≥ 30, r ≤ 31)
-            uS = np.hstack([uS, np.zeros((n, r1 - r1e))])
-            uC = np.hstack([uC, np.zeros((nc, r1 - r1e))])
-        return np.column_stack([np.ones(n), uS]), np.column_stack([np.ones(nc), uC])
+        uK = uK / scale if uK is not None else None
+
+        def pad(a, m):
+            if a is None:
+                return None
+            if r1e < r1:                                        # n < r−1 (cannot happen for n ≥ 30, r ≤ 31)
+                a = np.hstack([a, np.zeros((m, r1 - r1e))])
+            return np.column_stack([np.ones(m), a])
+        out = (pad(uS, n), pad(uC, nc))
+        return out + ((pad(uK, nc),) if krr_all else ())
 
     def target_cols(self, view) -> np.ndarray:
         """P: on-array candidates' columns ∪ visible columns that are not pool genes (array-only)."""
@@ -175,6 +193,8 @@ class Fisher(base.Selector):
         delta = float(W_s.mean())
         p_c = np.clip(q_c[:, None] * ratio[None, :], lo, hi)
         W_c = p_c * (1 - p_c)                                   # [n_cand x |P|]
+        on = np.asarray(view.candidate_col) >= 0
+        calib = self.calibrate and on.any() and (~on).any() and self.r > 1
         uS, uC = self.embeddings(view, feats, pool)
         r = uS.shape[1]
         outer = np.einsum("si,sj->sij", uS, uS).reshape(len(uS), r * r)
@@ -182,11 +202,13 @@ class Fisher(base.Selector):
         Minv = np.linalg.inv(M)                                  # [|P| x r x r]
         uu = np.einsum("gi,gj->gij", uC, uC).reshape(len(uC), r * r)
         Q = uu @ Minv.reshape(len(P), r * r).T                   # q_gx = u_gᵀ M_x⁻¹ u_g  [n_cand x |P|]
-        st = {"Minv": Minv, "Q": Q}
-        self._diag(n_P=int(len(P)), delta=delta, r=int(r))
+        st = {"Minv": Minv, "Q": Q, "picked": np.zeros(len(uC), dtype=bool)}
+        self._diag(n_P=int(len(P)), delta=delta, r=int(r), offarray_route_calibrated=bool(calib))
+        self._qhat = qlogit
 
         def gains():
-            return np.log1p(W_c * np.maximum(st["Q"], 0)).sum(1)
+            g = np.log1p(W_c * np.maximum(st["Q"], 0)).sum(1)
+            return base.calibrate_routes(g, None, on, exclude=st["picked"]) if calib else g
 
         def update(g, i):
             Minv, Q = st["Minv"], st["Q"]
@@ -195,5 +217,6 @@ class Fisher(base.Selector):
             cross = uC @ b.T                                     # u_hᵀ M_x⁻¹ u_g  [n_cand x |P|]
             st["Q"] = Q - f[None, :] * cross ** 2
             st["Minv"] = Minv - f[:, None, None] * np.einsum("xi,xj->xij", b, b)
+            st["picked"][i] = True
             return gains()
         return {"phase": "fitted", "gains": gains, "update": update, "M": M, "W_c": W_c, "uC": uC}

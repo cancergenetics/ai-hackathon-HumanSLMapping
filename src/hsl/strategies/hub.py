@@ -1,7 +1,12 @@
 """H hub-first and H-static (DESIGN v3.1 §6.2): rank candidates by the predicted query-side SL degree q̂
 (hsl.strategies.degree: unfitted prior for n < h_switch_n, ridge model from then on); randomised greedy (top-k
-uniform) with ≤ cluster_cap_per_batch genes per k-means cluster (hsl.features clusters via view.clusters).
-H-static uses the prior computed once at its first call (round 0) and never reads screened rows."""
+uniform) with a per-batch cluster cap (hsl.strategies.base.batch_cap: max(cluster_cap_per_batch, ⌈k/#clusters⌉)) on the
+hsl.features k-means clusters (view.clusters). H-static uses the prior computed once at its first call (round 0) and
+never reads screened rows.
+Deviation from the DESIGN §6.2 text (decision D5): the prior's off-array score "2·rank(abundance)" is replaced by the
+quantile map of the off-array gene's abundance percentile (among on-array candidates) onto the on-array prior scores,
+and the fitted model's external-submodel scores are mapped the same way (hsl.strategies.degree), because the raw
+routes made off-array status a de-facto score term (DESIGN §1)."""
 from __future__ import annotations
 
 import numpy as np
@@ -39,6 +44,7 @@ class Hub(base.Selector):
             return degree.prior_scores(view, cand, feats, pool), "prior"
         q, info = degree.fit_predict(view, cand, feats, pool)
         self._diag(**{f"qhat_{k}": v for k, v in info.items()})
+        self._qhat = q
         return q, "model"
 
     def gains(self, view) -> np.ndarray:

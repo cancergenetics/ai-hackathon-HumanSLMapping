@@ -1,10 +1,15 @@
 """M max posterior variance (DESIGN v3.1 §6.2; review r2 item 15): pick argmax σ²(g) = k(g, g) − k_gS(K_SS + λI)⁻¹k_Sg
-under the GI-only kernel (the mk GI 'sym' kernel; hsl.strategies.kernels.gi_inputs), λ = lam·w_gi. Within a batch the
+under the GI-only kernel (the mk GI 'sym' kernel; hsl.strategies.kernels.gi_inputs), λ = lam·w_gi = lam · mean diag K_SS
+(config/strategies.yaml M.lam; review M-1). Within a batch the
 picked genes are added as pseudo-observations (σ²(x | S ∪ g) = σ²(x | S) − cov(x, g | S)²/(σ²(g | S) + λ)).
 Round 0 (S = ∅) = the first batch of the R0 permutation of the same trajectory: reset() draws the R0 permutation
 exactly as harness.RandomSelector.reset does from the same selection stream. Off-array candidates (no GI column)
 are never picked by the criterion (gain −inf; count reported in diagnostics). If the GI kernel is degenerate (no
-screened on-array gene), M continues along the R0 permutation (on-array genes only)."""
+screened on-array gene), M continues along the R0 permutation (on-array genes only).
+Documented exceptions to "off-array never picked" (review L-3): (i) round 0 is R0's batch verbatim, so it holds
+off-array genes at the pool rate; (ii) if fewer on-array candidates remain than the batch size, Selector.select fills
+the rest uniformly at random from the remaining candidates (`n_filled_at_random` in the diagnostics). Neither occurs
+in dev/final trajectories to n = 660 except (i). The off-array candidate count is logged every round."""
 from __future__ import annotations
 
 import numpy as np
