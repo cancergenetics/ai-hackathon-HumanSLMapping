@@ -1,0 +1,46 @@
+# Strategy knobs (DESIGN v3.1 §6.2): DEV DEFAULTS. Tuned in P4 on dev only; the frozen values go to
+# config/finalists.yaml at the freeze. Read by hsl.strategies (never hardcoded there). Protocol constants (top-k of the
+# randomised greedy, cluster cap, k-means k, H switch n) stay in config/protocol.yaml.
+#
+# `spec` entries are fixed by the DESIGN text (not tuning knobs); they live here only so code holds no magic numbers.
+spec:
+  shrink_n0: 100                   # ĉ_x = (k_x + n0·π̄_S) / (n_x + n0)        (§6.2 H)
+  response_pseudo: [0.5, 1.0]      # logit((k + a) / (m + b)) response of the degree model
+  p_clip: [1.0e-4, 0.5]            # F: p̂_sx = clip(q̂_s·ĉ_x/π̄_S, lo, hi)
+  n_smf_bins: 3                    # R1: SMF tertiles
+  n_abund_bins: 3                  # R1: abundance tertiles
+
+degree_model:                      # shared query-degree model q̂ (H, F)
+  ridge_lambda_rel: {log10_min: -4.0, log10_max: 3.0, n: 36}   # GCV grid, λ = n_train · 10^x (standardised inputs)
+  min_train_on_array: 10           # fewer on-array screened rows -> external-only model for every candidate
+  offarray_calibration: quantile   # off-array route mapped onto the on-array score distribution (see degree.py);
+                                   # 'none' = raw route scores (lets routing act as an off-array score term)
+  features:                        # whitelisted gene_features columns (hsl.features); null omits an input
+                                   # (abundance required; HAP1-minimal scenario: apms_degree: null)
+    abundance: log10_ppm_mueller2020
+    abundance_fallback: log10_ppm_kulak2014
+    apms_degree: log1p_ppi_degree
+    coexp_degree: coexp_top20_mean
+    conservation: phylo_breadth
+    paralog_count: n_paralogs_wsp  # paralog flag = count > 0
+
+kernels:
+  # external part of the predictor's `mk` kernel (upstream foldin2.MK_RECIPE['kern']); transforms/scales are taken
+  # from foldin2.EXT_KERNELS. Sources through the SelectorView: coex = similarity('coexp'); apmse = similarity('apms');
+  # apms = AP-MS neighbourhood cosine over pool-gene neighbourhoods (derived); esm = cosine of standardised ESM-2 PCs
+  # (gene_features esm_pc*; derived).
+  external: {apmse: 0.5, apms: 0.5, coex: 0.3, esm: 0.1}
+  w_gi: 1.0                        # GI 'sym' part weight (upstream MK_DEFAULTS w_gi)
+
+F:
+  r: 8                             # rank incl. the constant: u = (1, ũ), ũ ∈ R^(r-1); dev grid {4, 8, 16}
+  krr_lam: 1.0                     # external-kernel KRR (off-array candidates): λ = krr_lam · mean diag K_SS
+  b_ridge: 1.0e-6                  # ridge of the (r-1)x(r-1) least-squares map B (relative to trace/(r-1))
+
+C:
+  normalize: false                 # cosine-normalise the mk kernel before facility location
+
+M:
+  lam: 10.0                        # GP noise λ = lam · w_gi (upstream lam_mode 'gi', lam = 10)
+
+R1: {}

@@ -20,3 +20,8 @@ universe_subsample_seed: 610301
 test_fixture_seed: 710303
 # 2026-10-29 (P0, design r2 patch F): k-means (k = 100) clusters on the external-kernel embedding of non-test genes.
 cluster_seed: 810307
+# 2026-10-29 (strategy implementation, DESIGN §6.2): runtime-only draws of random screened sets for the selection
+# runtime table (scripts/30_strategy_runtime.py) and the base of the one-off strategy smoke trajectories
+# (scripts/31_strategy_smoke.py; pipeline proof only, never a decision input). Disjoint from the dev/final bases.
+strategy_runtime_draw_seed: 1010311
+strategy_smoke_seed: 1110313

@@ -1,0 +1,372 @@
+{
+ "split": "dev1",
+ "threads": "2",
+ "machine": "macOS-26.6.2-arm64-arm-64bit",
+ "git": {
+  "head": "cc83ab17ed22cbe921f18dd137466f6deda83684",
+  "dirty": true,
+  "diff_sha256": "770778b540ea3ca03a11a22237f2df18893c4a81a67e59f75932c4e6bddb8d65"
+ },
+ "rows": [
+  {
+   "strategy": "R1",
+   "n": 0,
+   "first_s": 14.427554041147232,
+   "round_s": 0.019642625004053116,
+   "view_s": 0.01574870804324746,
+   "phase": null,
+   "n_candidates": 2101
+  },
+  {
+   "strategy": "H",
+   "n": 0,
+   "first_s": 0.035133583936840296,
+   "round_s": 0.02768175001256168,
+   "view_s": 0.01574870804324746,
+   "phase": "prior",
+   "n_candidates": 2101
+  },
+  {
+   "strategy": "H-static",
+   "n": 0,
+   "first_s": 0.02805579104460776,
+   "round_s": 0.024955666856840253,
+   "view_s": 0.01574870804324746,
+   "phase": "prior_static",
+   "n_candidates": 2101
+  },
+  {
+   "strategy": "F",
+   "n": 0,
+   "first_s": 14.863613209221512,
+   "round_s": 0.030253333039581776,
+   "view_s": 0.01574870804324746,
+   "phase": "cold",
+   "n_candidates": 2101
+  },
+  {
+   "strategy": "F-static",
+   "n": 0,
+   "first_s": 13.821839167037979,
+   "round_s": 0.03848495800048113,
+   "view_s": 0.01574870804324746,
+   "phase": "cold",
+   "n_candidates": 2101
+  },
+  {
+   "strategy": "C",
+   "n": 0,
+   "first_s": 11.051254624966532,
+   "round_s": 0.1298145840410143,
+   "view_s": 0.01574870804324746,
+   "phase": "external_only",
+   "n_candidates": 2101
+  },
+  {
+   "strategy": "M",
+   "n": 0,
+   "first_s": 0.0007621247787028551,
+   "round_s": 0.01736245909705758,
+   "view_s": 0.01574870804324746,
+   "phase": "r0_first_batch",
+   "n_candidates": 2101
+  },
+  {
+   "strategy": "C-static",
+   "n": 0,
+   "first_s": 11.616764042060822,
+   "round_s": 0.13331170892342925,
+   "view_s": 0.01574870804324746,
+   "phase": "static_external",
+   "n_candidates": 2101
+  },
+  {
+   "strategy": "R1",
+   "n": 30,
+   "first_s": 7.640669708140194,
+   "round_s": 0.018511166097596288,
+   "view_s": 0.019392041955143213,
+   "phase": null,
+   "n_candidates": 2071
+  },
+  {
+   "strategy": "H",
+   "n": 30,
+   "first_s": 0.026242166990414262,
+   "round_s": 0.02748458390124142,
+   "view_s": 0.019392041955143213,
+   "phase": "model",
+   "n_candidates": 2071
+  },
+  {
+   "strategy": "H-static",
+   "n": 30,
+   "first_s": 0.028149167075753212,
+   "round_s": 0.026762042194604874,
+   "view_s": 0.019392041955143213,
+   "phase": "prior_static",
+   "n_candidates": 2071
+  },
+  {
+   "strategy": "F",
+   "n": 30,
+   "first_s": 14.875896333018318,
+   "round_s": 0.9049954579677433,
+   "view_s": 0.019392041955143213,
+   "phase": "fitted",
+   "n_candidates": 2071
+  },
+  {
+   "strategy": "F-static",
+   "n": 30,
+   "first_s": 14.766771209193394,
+   "round_s": 0.028657041024416685,
+   "view_s": 0.019392041955143213,
+   "phase": "cold",
+   "n_candidates": 2071
+  },
+  {
+   "strategy": "C",
+   "n": 30,
+   "first_s": 7.958907708059996,
+   "round_s": 0.12991533405147493,
+   "view_s": 0.019392041955143213,
+   "phase": "mk",
+   "n_candidates": 2071
+  },
+  {
+   "strategy": "M",
+   "n": 30,
+   "first_s": 0.0053706669714301825,
+   "round_s": 0.020034166984260082,
+   "view_s": 0.019392041955143213,
+   "phase": "maxvar",
+   "n_candidates": 2071
+  },
+  {
+   "strategy": "C-static",
+   "n": 30,
+   "first_s": 6.483029999770224,
+   "round_s": 0.11146162496879697,
+   "view_s": 0.019392041955143213,
+   "phase": "static_external",
+   "n_candidates": 2071
+  },
+  {
+   "strategy": "R1",
+   "n": 160,
+   "first_s": 6.436823375057429,
+   "round_s": 0.017594415927305818,
+   "view_s": 0.015914499992504716,
+   "phase": null,
+   "n_candidates": 1941
+  },
+  {
+   "strategy": "H",
+   "n": 160,
+   "first_s": 0.024052332853898406,
+   "round_s": 0.030731332954019308,
+   "view_s": 0.015914499992504716,
+   "phase": "model",
+   "n_candidates": 1941
+  },
+  {
+   "strategy": "H-static",
+   "n": 160,
+   "first_s": 0.023043583147227764,
+   "round_s": 0.02431462495587766,
+   "view_s": 0.015914499992504716,
+   "phase": "prior_static",
+   "n_candidates": 1941
+  },
+  {
+   "strategy": "F",
+   "n": 160,
+   "first_s": 9.078617624938488,
+   "round_s": 0.6699579588603228,
+   "view_s": 0.015914499992504716,
+   "phase": "fitted",
+   "n_candidates": 1941
+  },
+  {
+   "strategy": "F-static",
+   "n": 160,
+   "first_s": 7.496859167004004,
+   "round_s": 0.02361166593618691,
+   "view_s": 0.015914499992504716,
+   "phase": "cold",
+   "n_candidates": 1941
+  },
+  {
+   "strategy": "C",
+   "n": 160,
+   "first_s": 7.801433040993288,
+   "round_s": 0.12378329201601446,
+   "view_s": 0.015914499992504716,
+   "phase": "mk",
+   "n_candidates": 1941
+  },
+  {
+   "strategy": "M",
+   "n": 160,
+   "first_s": 0.013966458151116967,
+   "round_s": 0.030206333147361875,
+   "view_s": 0.015914499992504716,
+   "phase": "maxvar",
+   "n_candidates": 1941
+  },
+  {
+   "strategy": "C-static",
+   "n": 160,
+   "first_s": 8.311101832892746,
+   "round_s": 0.10241362499073148,
+   "view_s": 0.015914499992504716,
+   "phase": "static_external",
+   "n_candidates": 1941
+  },
+  {
+   "strategy": "R1",
+   "n": 330,
+   "first_s": 6.506914667086676,
+   "round_s": 0.019876708975061774,
+   "view_s": 0.01907595805823803,
+   "phase": null,
+   "n_candidates": 1771
+  },
+  {
+   "strategy": "H",
+   "n": 330,
+   "first_s": 0.026563124964013696,
+   "round_s": 0.031737790908664465,
+   "view_s": 0.01907595805823803,
+   "phase": "model",
+   "n_candidates": 1771
+  },
+  {
+   "strategy": "H-static",
+   "n": 330,
+   "first_s": 0.021366292145103216,
+   "round_s": 0.024087917059659958,
+   "view_s": 0.01907595805823803,
+   "phase": "prior_static",
+   "n_candidates": 1771
+  },
+  {
+   "strategy": "F",
+   "n": 330,
+   "first_s": 6.562246500048786,
+   "round_s": 0.6189717499073595,
+   "view_s": 0.01907595805823803,
+   "phase": "fitted",
+   "n_candidates": 1771
+  },
+  {
+   "strategy": "F-static",
+   "n": 330,
+   "first_s": 9.390662000048906,
+   "round_s": 0.027486625127494335,
+   "view_s": 0.01907595805823803,
+   "phase": "cold",
+   "n_candidates": 1771
+  },
+  {
+   "strategy": "C",
+   "n": 330,
+   "first_s": 8.299951625056565,
+   "round_s": 0.13236791687086225,
+   "view_s": 0.01907595805823803,
+   "phase": "mk",
+   "n_candidates": 1771
+  },
+  {
+   "strategy": "M",
+   "n": 330,
+   "first_s": 0.03376333322376013,
+   "round_s": 0.05399912502616644,
+   "view_s": 0.01907595805823803,
+   "phase": "maxvar",
+   "n_candidates": 1771
+  },
+  {
+   "strategy": "C-static",
+   "n": 330,
+   "first_s": 5.926652208901942,
+   "round_s": 0.0773071669973433,
+   "view_s": 0.01907595805823803,
+   "phase": "static_external",
+   "n_candidates": 1771
+  },
+  {
+   "strategy": "R1",
+   "n": 660,
+   "first_s": 6.438047291943803,
+   "round_s": 0.022831165930256248,
+   "view_s": 0.016808000160381198,
+   "phase": null,
+   "n_candidates": 1441
+  },
+  {
+   "strategy": "H",
+   "n": 660,
+   "first_s": 0.03220900008454919,
+   "round_s": 0.040943708969280124,
+   "view_s": 0.016808000160381198,
+   "phase": "model",
+   "n_candidates": 1441
+  },
+  {
+   "strategy": "H-static",
+   "n": 660,
+   "first_s": 0.021948124980553985,
+   "round_s": 0.02777908300049603,
+   "view_s": 0.016808000160381198,
+   "phase": "prior_static",
+   "n_candidates": 1441
+  },
+  {
+   "strategy": "F",
+   "n": 660,
+   "first_s": 8.71497470815666,
+   "round_s": 0.5823595831170678,
+   "view_s": 0.016808000160381198,
+   "phase": "fitted",
+   "n_candidates": 1441
+  },
+  {
+   "strategy": "F-static",
+   "n": 660,
+   "first_s": 9.226618708111346,
+   "round_s": 0.027052999939769506,
+   "view_s": 0.016808000160381198,
+   "phase": "cold",
+   "n_candidates": 1441
+  },
+  {
+   "strategy": "C",
+   "n": 660,
+   "first_s": 5.831115166889504,
+   "round_s": 0.12383937509730458,
+   "view_s": 0.016808000160381198,
+   "phase": "mk",
+   "n_candidates": 1441
+  },
+  {
+   "strategy": "M",
+   "n": 660,
+   "first_s": 0.07583374995738268,
+   "round_s": 0.09223370789550245,
+   "view_s": 0.016808000160381198,
+   "phase": "maxvar",
+   "n_candidates": 1441
+  },
+  {
+   "strategy": "C-static",
+   "n": 660,
+   "first_s": 7.898984290892258,
+   "round_s": 0.07219654088839889,
+   "view_s": 0.016808000160381198,
+   "phase": "static_external",
+   "n_candidates": 1441
+  }
+ ]
+}
