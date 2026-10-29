@@ -272,7 +272,8 @@ def run_upstream_protocol(t: RandomTraj, n: int, method: str = PSTAR, n_threads:
         es_up = replace(views.e_unobs(b, split, []), name="E_upstream_dev")
         esets = {"E_fixed": es_fx, "E_upstream_dev": es_up}
         scores = {k: es.scores(Smat).astype(np.float32) for k, es in esets.items()}
-        man["predictions"] = H.save_predictions(run_id, split, scores, esets)
+        if method not in NO_SAVE:
+            man["predictions"] = H.save_predictions(run_id, split, scores, esets)
         metrics = {}
         for k, es in esets.items():
             m = E.summarise(es.y, scores[k], es.rows)

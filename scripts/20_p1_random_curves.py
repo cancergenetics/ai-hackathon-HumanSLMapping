@@ -52,7 +52,8 @@ def cmd_run(a) -> int:
     split = f"dev{a.split}"
     part = PARTS / f"{a.job}.jsonl"
     done = _done(part)
-    preds = a.predictors.split(",")
+    preds = [m for m in a.predictors.split(",") if m]
+    up_methods = [m for m in a.upstream_methods.split(",") if m]
     pool_n = len(views.get_split(split).pool)
     budgets = [pool_n if tok == "max" else int(tok) for tok in a.budgets.split(",") if tok.strip()] \
         if a.budgets else p1.dev_grid(pool_n)
@@ -77,11 +78,13 @@ def cmd_run(a) -> int:
                     fails += 1
                     print(f"[p1] FAIL {split} r{r} n{n} {m}: {type(e).__name__}: {e} ({time.time() - t0:.0f}s)",
                           flush=True)
-            if a.upstream_at and n == a.upstream_at and (split, r, n, p1.PSTAR, "upstream") not in done:
-                row = p1.run_upstream_protocol(t, n)
+            for um in (up_methods if a.upstream_at and n == a.upstream_at else []):
+                if (split, r, n, um, "upstream") in done:
+                    continue
+                row = p1.run_upstream_protocol(t, n, um)
                 row["kind"] = "upstream"
                 p1.append_row(part, row)
-                print(f"[p1] upstream-protocol {split} r{r} n{n}: E_upstream_dev AUPRC "
+                print(f"[p1] upstream-protocol {um} {split} r{r} n{n}: E_upstream_dev AUPRC "
                       f"{row['E_upstream_dev.auprc']:.4f} vs E_fixed_dev {row['E_fixed_dev.auprc']:.4f}", flush=True)
     return min(fails, 255)
 
@@ -136,7 +139,8 @@ def cmd_merge(a) -> int:
         cur = cur.sort_values(["split", "predictor", "perm", "n"])
         cur.to_csv(p1.P1_DIR / "curves.csv", index=False)
     if len(ups):
-        ups.sort_values(["split", "perm", "n"]).to_csv(p1.P1_DIR / "upstream_protocol.csv", index=False)
+        ups.drop_duplicates(["split", "perm", "n", "predictor"], keep="last").sort_values(
+            ["split", "predictor", "perm", "n"]).to_csv(p1.P1_DIR / "upstream_protocol.csv", index=False)
     print(f"curves: {len(cur)} rows; upstream-protocol: {len(ups)} rows")
     return 0
 
@@ -150,6 +154,7 @@ def main(argv=None) -> int:
     r.add_argument("--budgets", default="")
     r.add_argument("--predictors", default=",".join(BASE_PREDICTORS))
     r.add_argument("--upstream-at", type=int, default=0)
+    r.add_argument("--upstream-methods", default=p1.PSTAR)
     r.add_argument("--job", required=True)
     j = sub.add_parser("jobs")
     j.add_argument("--out", required=True)

@@ -393,26 +393,52 @@ def full(a) -> dict:
     if up_path.exists():
         up = pd.read_csv(up_path)
         up = up[up.n == 660]
+        upreds = [m for m in ("stack_lr_wr2", "stack_lr", "B1_array_rate") if m in set(up.predictor)]
         cols = {"E_fixed_dev.auprc": "E_fixed_dev", "E_upstream_dev.auprc": "all measured D_val cells (upstream)",
                 "E_upstream_dev.auprc_recip_available": "reciprocal available",
                 "E_upstream_dev.auprc_x_on_array_no_recip": "on-array, no recip.",
                 "E_upstream_dev.auprc_x_off_array": "off-array", "E_upstream_dev.lift": "lift (upstream set)",
                 "E_upstream_dev.prevalence": "prevalence (upstream set)"}
-        L += ["## Upstream-protocol sanity (dev split 1, n = 660 ≈ 20% of 3,283, P*, R = "
-              f"{len(up)} permutations; mean ± SD)", "",
+        ref = {"stack_lr_wr2": {"E_upstream_dev.auprc": "0.0754 (lift 6.6)",
+                                "E_upstream_dev.auprc_recip_available": "0.126",
+                                "E_upstream_dev.auprc_x_on_array_no_recip": "0.073",
+                                "E_upstream_dev.auprc_x_off_array": "0.058", "E_upstream_dev.prevalence": "0.0115"},
+               "stack_lr": {"E_upstream_dev.auprc": "0.0590 (lift 5.1)", "E_upstream_dev.auprc_recip_available":
+                            "0.117", "E_upstream_dev.auprc_x_on_array_no_recip": "0.051",
+                            "E_upstream_dev.auprc_x_off_array": "0.047"},
+               "B1_array_rate": {"E_upstream_dev.auprc": "0.0430 (lift 3.7)",
+                                 "E_upstream_dev.auprc_recip_available": "0.038",
+                                 "E_upstream_dev.auprc_x_on_array_no_recip": "0.043",
+                                 "E_upstream_dev.auprc_x_off_array": "0.048"}}
+        L += ["## Upstream-protocol sanity (dev split 1, n = 660 ≈ 20% of 3,283; R = 10 permutations; mean ± SD)", "",
               "Upstream protocol = every measured cell of the held-out rows incl. cells whose reciprocal is known "
-              "(array screened); here minus test-gene columns (dev rule) and self pairs.", "",
-              "| set / stratum | ours (dev1, n=660) | upstream S1 dev, 20% (REPORT §3) |", "|---|---|---|"]
-        ref = {"E_upstream_dev.auprc": "0.0754 (lift 6.6)", "E_upstream_dev.auprc_recip_available": "0.126",
-               "E_upstream_dev.auprc_x_on_array_no_recip": "0.073", "E_upstream_dev.auprc_x_off_array": "0.058",
-               "E_upstream_dev.prevalence": "0.0115"}
+              "(array screened); here minus test-gene columns (dev rule) and self pairs. Upstream reference = "
+              "YEAST_SLs REPORT §3 (S1 dev, 20% screened, ~2,600 held-out rows, seeds 0–4).", "",
+              "| set / stratum | " + " | ".join(f"{LABEL[m]} ours | upstream" for m in upreds) + " |",
+              "|---|" + "---|---|" * len(upreds)]
+        res["upstream_protocol"] = {}
         for k, lab in cols.items():
-            if k in up:
-                L.append(f"| {lab} | {fmt(up[k].mean(), up[k].std(ddof=1))} | {ref.get(k, '—')} |")
-        cnt = {k: up[k].iloc[0] for k in up.columns if k.startswith("E_upstream_dev.n_cells")}
-        L += ["", "Cells: " + ", ".join(f"{k.split('n_cells_')[1]} {int(v):,}" for k, v in cnt.items()) +
-              f"; set {int(up['E_upstream_dev.n_cells'].iloc[0]):,} cells.", ""]
-        res["upstream_protocol"] = {k: [float(up[k].mean()), float(up[k].std(ddof=1))] for k in cols if k in up}
+            cells = []
+            for m in upreds:
+                d = up[up.predictor == m]
+                cells += [fmt(d[k].mean(), d[k].std(ddof=1)) if k in d else "—", ref.get(m, {}).get(k, "—")]
+                if k in d:
+                    res["upstream_protocol"].setdefault(m, {})[k] = [float(d[k].mean()), float(d[k].std(ddof=1))]
+            L.append(f"| {lab} | " + " | ".join(cells) + " |")
+        if {"stack_lr_wr2", "stack_lr"} <= set(upreds):
+            a_ = up[up.predictor == "stack_lr_wr2"].set_index("perm")
+            b_ = up[up.predictor == "stack_lr"].set_index("perm")
+            rat = (a_["E_upstream_dev.auprc"] / b_["E_upstream_dev.auprc"]).dropna()
+            ratf = (a_["E_fixed_dev.auprc"] / b_["E_fixed_dev.auprc"]).dropna()
+            L += ["", f"Ratio P*/stack_lr (paired by permutation): upstream-protocol set {rat.mean():.3f} ± "
+                  f"{rat.std(ddof=1):.3f}, E_fixed_dev {ratf.mean():.3f} ± {ratf.std(ddof=1):.3f}; upstream dev "
+                  "1.28 (REPORT §4.3)."]
+            res["upstream_protocol"]["ratio_pstar_stack_lr"] = [float(rat.mean()), float(rat.std(ddof=1))]
+        d0 = up[up.predictor == upreds[0]]
+        cnt = {k: d0[k].iloc[0] for k in d0.columns if k.startswith("E_upstream_dev.n_cells")}
+        L += ["", "Cells (perm 0): " + ", ".join(f"{k.split('n_cells_')[1]} {int(v):,}" for k, v in cnt.items()
+                                                 if "n_cells_" in k) +
+              f"; set {int(d0['E_upstream_dev.n_cells'].iloc[0]):,} cells.", ""]
     L += ["## End-to-end controls (cited, not re-run)", "",
           "`tests/test_harness.py::test_end_to_end_controls_dev1_n100` (slow; P0): shuffled screened labels (ε, P, "
           "labels permuted jointly over the screened block, array SMF permuted) → AUPRC within 0.7–1.3× prevalence; "
