@@ -222,6 +222,10 @@ def run_predictor(spec: RunSpec, method: str, params: dict | None = None, seeds:
 def save_predictions(run_id: str, split: views.Split, scores: dict, esets: dict) -> dict:
     """float32 scores on evaluation cells (results/predictions/<split>/<run_id>.npz); the cell index of each ESet is
     written once (results/predictions/_cells/<eset digest>.npz: targets, rows, cols)."""
+    import shutil
+    free_gb = shutil.disk_usage(PRED_DIR.parent if PRED_DIR.parent.exists() else paths.PROJECT_ROOT).free / 2**30
+    if free_gb < 10:
+        raise OSError(f"refusing to save predictions: only {free_gb:.1f} GB free (< 10 GB guard)")
     out = {}
     d = PRED_DIR / split.name
     d.mkdir(parents=True, exist_ok=True)
@@ -324,7 +328,8 @@ class Trajectory:
         if not np.isin(S, pool).all() or len(set(S)) != len(S):
             raise ValueError("S_0 must be distinct pool genes")
         max_n = int(min(self.max_n or bud["q2_max_n"], len(pool)))
-        cps = sorted({int(c) for c in self.checkpoints if len(S) <= int(c) <= max_n})
+        # checkpoints above the pool are mapped to the pool maximum (DESIGN §6.4: dev uses the dev-pool maximum)
+        cps = sorted({min(int(c), max_n) for c in self.checkpoints if len(S) <= int(c)})
         sel = self.selector
         sel.reset(np.setdiff1d(pool, S), sel_rng)
         cfg = {"arm": self.arm or getattr(sel, "name", type(sel).__name__), "split": self.split,
@@ -340,7 +345,7 @@ class Trajectory:
             cand = np.setdiff1d(pool, S)
             if not len(cand):
                 break
-            k = int(min(b_size, len(cand)))
+            k = int(min(b_size, len(cand), max_n - len(S)))
             t = time.perf_counter()
             view = views.SelectorView.build(b, S, split) if getattr(sel, "needs_view", True) else None
             t_view = time.perf_counter() - t

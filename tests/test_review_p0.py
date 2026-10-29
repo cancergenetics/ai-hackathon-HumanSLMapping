@@ -204,8 +204,6 @@ def test_bonferroni_crit():
     assert abs(b["crit"][0] - stats.t.ppf(1 - 0.05 / 16, 20)) < 1e-12
 
 
-@pytest.mark.xfail(strict=True, reason="REVIEW ISSUE M1: percentile_ci returns NaN (not +inf) when >= ~2.5% of "
-                                       "replicates are right-censored (+inf - +inf in numpy linear interpolation)")
 def test_percentile_ci_keeps_censored_bounds():
     x = np.r_[np.full(950, 100.0), np.full(50, np.inf)]                         # 5% right-censored n_req replicates
     lo, hi = E.percentile_ci(x)
@@ -304,7 +302,7 @@ def test_prediction_poisoning_stack_lr_n60_dev1(dev_b):
     assert np.array_equal(r.scores["E_fixed"], base[es.rows, es.cols].astype(np.float32))   # row/col alignment
 
 
-@pytest.mark.xfail(strict=True, reason="REVIEW ISSUE L1: k-means cluster universe includes D_val genes in dev "
+@pytest.mark.xfail(strict=True, reason="ACCEPTED DEVIATION D4 (label-free external features only): k-means cluster universe includes D_val genes in dev "
                                        "(DESIGN §6.2: 'dev: also excluding D_val')")
 def test_cluster_universe_excludes_dval_in_dev():
     sp = views.dev_split(1)
@@ -352,14 +350,10 @@ def test_randomised_greedy_uniform_top_k():
     assert stats.chisquare(cnt[:20]).pvalue > 1e-3
 
 
-@pytest.mark.xfail(strict=True, reason="REVIEW ISSUE L2: the last batch is not clipped to max_n (batch 50, max_n 655 "
-                                       "selects 700 genes)")
 def test_trajectory_does_not_overshoot_max_n():
     assert len(_traj(H.RandomSelector(), 655, bs=50)["selected"]) == 655
 
 
-@pytest.mark.xfail(strict=True, reason="REVIEW ISSUE L3: checkpoints above the dev pool size (e.g. 2627) are dropped "
-                                       "silently instead of being mapped to the dev pool maximum (DESIGN §6.4)")
 def test_pool_max_checkpoint_not_silently_dropped():
     log = _traj(H.RandomSelector(), 2627, cps=(2627,), bs=100)
     assert len(log["checkpoints"]) == 1

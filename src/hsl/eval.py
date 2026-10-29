@@ -420,4 +420,6 @@ def percentile_ci(x, level: float | None = None) -> tuple[float, float]:
     x = np.asarray(x, float)
     x = x[~np.isnan(x)]
     a = (1 - level) / 2
-    return float(np.quantile(x, a)), float(np.quantile(x, 1 - a))
+    # order-statistic quantiles: no interpolation, so ±inf censored codes yield ±inf bounds instead of NaN
+    return (float(np.quantile(x, a, method="inverted_cdf")),
+            float(np.quantile(x, 1 - a, method="inverted_cdf")))
