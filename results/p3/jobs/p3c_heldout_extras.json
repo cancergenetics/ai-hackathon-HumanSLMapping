@@ -1,0 +1,63 @@
+[
+ {
+  "name": "p3_oracle_greedyHO_dev1_r0",
+  "n": 160,
+  "timeout_s": 21600,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/40_p3_oracles.py",
+   "run",
+   "--config",
+   "oracle_greedyHO",
+   "--split",
+   "dev1",
+   "--traj",
+   "0"
+  ]
+ },
+ {
+  "name": "p3_oracle_hub_dev1_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/40_p3_oracles.py",
+   "run",
+   "--config",
+   "oracle_hub",
+   "--split",
+   "dev1",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p3_oracle_hub_dev2_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/40_p3_oracles.py",
+   "run",
+   "--config",
+   "oracle_hub",
+   "--split",
+   "dev2",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p3_oracle_hub_dev3_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/40_p3_oracles.py",
+   "run",
+   "--config",
+   "oracle_hub",
+   "--split",
+   "dev3",
+   "--traj",
+   "1"
+  ]
+ }
+]

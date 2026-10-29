@@ -1,0 +1,722 @@
+[
+ {
+  "name": "p4_H_dev1_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H",
+   "--split",
+   "dev1",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_F_r8_dev1_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r8",
+   "--split",
+   "dev1",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_C_dev1_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C",
+   "--split",
+   "dev1",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_R1_dev1_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "R1",
+   "--split",
+   "dev1",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_H-static_dev1_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H-static",
+   "--split",
+   "dev1",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_F_r4_dev1_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r4",
+   "--split",
+   "dev1",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_F_r16_dev1_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r16",
+   "--split",
+   "dev1",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_F-static_r8_dev1_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F-static_r8",
+   "--split",
+   "dev1",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_H_dev2_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H",
+   "--split",
+   "dev2",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_F_r8_dev2_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r8",
+   "--split",
+   "dev2",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_C_dev2_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C",
+   "--split",
+   "dev2",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_R1_dev2_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "R1",
+   "--split",
+   "dev2",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_H-static_dev2_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H-static",
+   "--split",
+   "dev2",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_F_r4_dev2_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r4",
+   "--split",
+   "dev2",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_F_r16_dev2_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r16",
+   "--split",
+   "dev2",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_F-static_r8_dev2_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F-static_r8",
+   "--split",
+   "dev2",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_H_dev3_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H",
+   "--split",
+   "dev3",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_F_r8_dev3_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r8",
+   "--split",
+   "dev3",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_C_dev3_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C",
+   "--split",
+   "dev3",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_R1_dev3_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "R1",
+   "--split",
+   "dev3",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_H-static_dev3_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H-static",
+   "--split",
+   "dev3",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_F_r4_dev3_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r4",
+   "--split",
+   "dev3",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_F_r16_dev3_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r16",
+   "--split",
+   "dev3",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_F-static_r8_dev3_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F-static_r8",
+   "--split",
+   "dev3",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_H_dev1_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H",
+   "--split",
+   "dev1",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_F_r8_dev1_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r8",
+   "--split",
+   "dev1",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_C_dev1_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C",
+   "--split",
+   "dev1",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_R1_dev1_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "R1",
+   "--split",
+   "dev1",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_H-static_dev1_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H-static",
+   "--split",
+   "dev1",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_F_r4_dev1_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r4",
+   "--split",
+   "dev1",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_F_r16_dev1_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r16",
+   "--split",
+   "dev1",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_F-static_r8_dev1_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F-static_r8",
+   "--split",
+   "dev1",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_H_dev2_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H",
+   "--split",
+   "dev2",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_F_r8_dev2_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r8",
+   "--split",
+   "dev2",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_C_dev2_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C",
+   "--split",
+   "dev2",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_R1_dev2_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "R1",
+   "--split",
+   "dev2",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_H-static_dev2_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H-static",
+   "--split",
+   "dev2",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_F_r4_dev2_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r4",
+   "--split",
+   "dev2",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_F_r16_dev2_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r16",
+   "--split",
+   "dev2",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_F-static_r8_dev2_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F-static_r8",
+   "--split",
+   "dev2",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_H_dev3_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H",
+   "--split",
+   "dev3",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_F_r8_dev3_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r8",
+   "--split",
+   "dev3",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_C_dev3_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C",
+   "--split",
+   "dev3",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_R1_dev3_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "R1",
+   "--split",
+   "dev3",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_H-static_dev3_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H-static",
+   "--split",
+   "dev3",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_F_r4_dev3_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r4",
+   "--split",
+   "dev3",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_F_r16_dev3_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F_r16",
+   "--split",
+   "dev3",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_F-static_r8_dev3_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "F-static_r8",
+   "--split",
+   "dev3",
+   "--traj",
+   "2"
+  ]
+ }
+]

@@ -1,0 +1,1992 @@
+{
+ "traj_id": "dev1_R1_r0_22c08e5584ee6926",
+ "selector": "R1",
+ "params": {
+  "deterministic": false,
+  "top_k": 20,
+  "knobs_sha": "8f5aa4f1f93d"
+ },
+ "rounds": [
+  {
+   "round": 0,
+   "phase": "order_built",
+   "n_screened": 0,
+   "select_s": 11.805406542029232,
+   "picks": [
+    "YIL151C",
+    "YDL184C",
+    "YKL041W",
+    "YLR080W",
+    "YMR034C",
+    "YBR046C",
+    "YGR256W",
+    "YDR448W",
+    "YGR207C",
+    "YOR363C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.1951451689671585
+  },
+  {
+   "round": 1,
+   "n_screened": 10,
+   "select_s": 0.0007959590293467045,
+   "picks": [
+    "YMR310C",
+    "YGR027C",
+    "YIL006W",
+    "YER016W",
+    "YKL103C",
+    "YCR094W",
+    "YCL069W",
+    "YOL012C",
+    "YDR349C",
+    "YER024W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    true,
+    false,
+    true,
+    false,
+    true,
+    false,
+    true
+   ],
+   "offarray_share_candidates": 0.1956001912960306
+  },
+  {
+   "round": 2,
+   "n_screened": 20,
+   "select_s": 0.0007790420204401016,
+   "picks": [
+    "YDR494W",
+    "YPL103C",
+    "YLR405W",
+    "YMR153W",
+    "YBR270C",
+    "YLR345W",
+    "YOR304C-A",
+    "YMR299C",
+    "YLL039C",
+    "YDR289C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19461797212878423
+  },
+  {
+   "round": 3,
+   "n_screened": 30,
+   "select_s": 0.0007461670320481062,
+   "picks": [
+    "YKL175W",
+    "YAR023C",
+    "YNL209W",
+    "YDR451C",
+    "YLL046C",
+    "YHR181W",
+    "YBR047W",
+    "YPR070W",
+    "YKL080W",
+    "YGL162W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false
+   ],
+   "offarray_share_candidates": 0.19555770159343314
+  },
+  {
+   "round": 4,
+   "n_screened": 40,
+   "select_s": 0.0007707918994128704,
+   "picks": [
+    "YGR230W",
+    "YOR171C",
+    "YBR108W",
+    "YDR210W",
+    "YML014W",
+    "YGL216W",
+    "YIL135C",
+    "YIL069C",
+    "YLR130C",
+    "YDR124W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    true,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.195536147501213
+  },
+  {
+   "round": 5,
+   "n_screened": 50,
+   "select_s": 0.000771000050008297,
+   "picks": [
+    "YPR037C",
+    "YPL256C",
+    "YNR033W",
+    "YPL207W",
+    "YGR292W",
+    "YLR012C",
+    "YDR388W",
+    "YGR021W",
+    "YML082W",
+    "YGR204W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true
+   ],
+   "offarray_share_candidates": 0.1955143832276938
+  },
+  {
+   "round": 6,
+   "n_screened": 60,
+   "select_s": 0.0007328749634325504,
+   "picks": [
+    "YCR079W",
+    "YGL108C",
+    "YER007C-A",
+    "YLR352W",
+    "YKL057C",
+    "YER019C-A",
+    "YBL066C",
+    "YOL060C",
+    "YDR174W",
+    "YLR228C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    true,
+    false,
+    true,
+    true,
+    false,
+    false,
+    true,
+    false
+   ],
+   "offarray_share_candidates": 0.1954924056834885
+  },
+  {
+   "round": 7,
+   "n_screened": 70,
+   "select_s": 0.0006972500123083591,
+   "picks": [
+    "YMR244W",
+    "YNL087W",
+    "YAR003W",
+    "YPL033C",
+    "YBR267W",
+    "YMR132C",
+    "YOR339C",
+    "YGL157W",
+    "YOL013C",
+    "YJL038C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.1944854751354013
+  },
+  {
+   "round": 8,
+   "n_screened": 80,
+   "select_s": 0.0006597908213734627,
+   "picks": [
+    "YNL292W",
+    "YDR186C",
+    "YIL171W",
+    "YER123W",
+    "YGL127C",
+    "YOR381W",
+    "YBR054W",
+    "YDR130C",
+    "YPR193C",
+    "YBR149W"
+   ],
+   "picks_offarray": [
+    true,
+    false,
+    true,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.1949529935675408
+  },
+  {
+   "round": 9,
+   "n_screened": 90,
+   "select_s": 0.0007027501706033945,
+   "picks": [
+    "YPL177C",
+    "YBL104C",
+    "YBR118W",
+    "YOR180C",
+    "YPL208W",
+    "YHR098C",
+    "YDR185C",
+    "YLR407W",
+    "YKL120W",
+    "YDR485C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19443063152660367
+  },
+  {
+   "round": 10,
+   "n_screened": 100,
+   "select_s": 0.0007624169811606407,
+   "picks": [
+    "YLR461W",
+    "YOR086C",
+    "YFL021W",
+    "YLR343W",
+    "YKL039W",
+    "YDR443C",
+    "YGR203W",
+    "YER027C",
+    "YLR218C",
+    "YPR043W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    true,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19490254872563717
+  },
+  {
+   "round": 11,
+   "n_screened": 110,
+   "select_s": 0.0007212080527096987,
+   "picks": [
+    "YHR041C",
+    "YMR283C",
+    "YPR013C",
+    "YKL214C",
+    "YBR145W",
+    "YER115C",
+    "YJL166W",
+    "YLR032W",
+    "YGR283C",
+    "YKL190W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19487694625816174
+  },
+  {
+   "round": 12,
+   "n_screened": 120,
+   "select_s": 0.0006295419298112392,
+   "picks": [
+    "YOR264W",
+    "YMR158C-A",
+    "YFL014W",
+    "YNR068C",
+    "YKR036C",
+    "YIL033C",
+    "YKL107W",
+    "YNL146W",
+    "YGL167C",
+    "YPL060W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    true,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19535588086824837
+  },
+  {
+   "round": 13,
+   "n_screened": 130,
+   "select_s": 0.0007092920131981373,
+   "picks": [
+    "YNR044W",
+    "YPL170W",
+    "YCR075C",
+    "YBR264C",
+    "YMR161W",
+    "YOL103W",
+    "YPL100W",
+    "YKR065C",
+    "YIL161W",
+    "YGR196C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19533231861998984
+  },
+  {
+   "round": 14,
+   "n_screened": 140,
+   "select_s": 0.0007555000483989716,
+   "picks": [
+    "YPR063C",
+    "YMR177W",
+    "YKL132C",
+    "YOR163W",
+    "YDR375C",
+    "YBR057C",
+    "YER073W",
+    "YER098W",
+    "YLR028C",
+    "YNL229C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true
+   ],
+   "offarray_share_candidates": 0.19632840387557368
+  },
+  {
+   "round": 15,
+   "n_screened": 150,
+   "select_s": 0.0007585419807583094,
+   "picks": [
+    "YOR023C",
+    "YBR208C",
+    "YML036W",
+    "YIL134W",
+    "YOR104W",
+    "YNR051C",
+    "YMR010W",
+    "YDR075W",
+    "YKL016C",
+    "YLR265C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false
+   ],
+   "offarray_share_candidates": 0.19682214249103025
+  },
+  {
+   "round": 16,
+   "n_screened": 160,
+   "select_s": 0.0007486671674996614,
+   "picks": [
+    "YJL027C",
+    "YER056C",
+    "YBL081W",
+    "YGR273C",
+    "YGR054W",
+    "YGR057C",
+    "YNR047W",
+    "YKL091C",
+    "YOR079C",
+    "YML100W-A"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19680577022153528
+  },
+  {
+   "round": 17,
+   "n_screened": 170,
+   "select_s": 0.0007514171302318573,
+   "picks": [
+    "YOR131C",
+    "YCL016C",
+    "YDL248W",
+    "YDR071C",
+    "YOL122C",
+    "YDL179W",
+    "YML073C",
+    "YLR070C",
+    "YDR383C",
+    "YFR015C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19730709476954947
+  },
+  {
+   "round": 18,
+   "n_screened": 180,
+   "select_s": 0.0006145420484244823,
+   "picks": [
+    "YKL184W",
+    "YJL065C",
+    "YDR165W",
+    "YDR387C",
+    "YPL163C",
+    "YDR120C",
+    "YLR193C",
+    "YER079W",
+    "YBL057C",
+    "YLR246W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19729307652264447
+  },
+  {
+   "round": 19,
+   "n_screened": 190,
+   "select_s": 0.0005795839242637157,
+   "picks": [
+    "YER039C-A",
+    "YNR029C",
+    "YLR205C",
+    "YBR125C",
+    "YDL052C",
+    "YNL020C",
+    "YBL085W",
+    "YER071C",
+    "YBR150C",
+    "YJR120W"
+   ],
+   "picks_offarray": [
+    true,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.1978021978021978
+  },
+  {
+   "round": 20,
+   "n_screened": 200,
+   "select_s": 0.0006622499786317348,
+   "picks": [
+    "YHL021C",
+    "YDR179W-A",
+    "YBL008W-A",
+    "YJL158C",
+    "YOR245C",
+    "YLR204W",
+    "YNR028W",
+    "YLR168C",
+    "YBR185C",
+    "YPR017C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    true,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19779063650710152
+  },
+  {
+   "round": 21,
+   "n_screened": 210,
+   "select_s": 0.0005980830173939466,
+   "picks": [
+    "YOL063C",
+    "YJR134C",
+    "YBR273C",
+    "YGL003C",
+    "YOR292C",
+    "YKR046C",
+    "YDR197W",
+    "YIL167W",
+    "YGL252C",
+    "YDL107W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    true,
+    false,
+    false,
+    true
+   ],
+   "offarray_share_candidates": 0.19777895293495504
+  },
+  {
+   "round": 22,
+   "n_screened": 220,
+   "select_s": 0.0007018749602138996,
+   "picks": [
+    "YPR093C",
+    "YJL183W",
+    "YHR002W",
+    "YBL039W-B",
+    "YLR109W",
+    "YDR106W",
+    "YBR129C",
+    "YBR139W",
+    "YOR064C",
+    "YJR113C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    true,
+    true,
+    false,
+    true,
+    false,
+    false,
+    false,
+    true
+   ],
+   "offarray_share_candidates": 0.1972355130249867
+  },
+  {
+   "round": 23,
+   "n_screened": 230,
+   "select_s": 0.0006557081360369921,
+   "picks": [
+    "YKL168C",
+    "YJL058C",
+    "YGL094C",
+    "YPL058C",
+    "YLR085C",
+    "YAR029W",
+    "YGL228W",
+    "YJL103C",
+    "YBR006W",
+    "YBR172C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19615179048637094
+  },
+  {
+   "round": 24,
+   "n_screened": 240,
+   "select_s": 0.0006366251036524773,
+   "picks": [
+    "YPL269W",
+    "YFL001W",
+    "YNR063W",
+    "YDR142C",
+    "YPR061C",
+    "YLR418C",
+    "YBR018C",
+    "YLR072W",
+    "YPR160W",
+    "YER183C"
+   ],
+   "picks_offarray": [
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.1972058033315422
+  },
+  {
+   "round": 25,
+   "n_screened": 250,
+   "select_s": 0.0006493749096989632,
+   "picks": [
+    "YAL013W",
+    "YER174C",
+    "YDR425W",
+    "YGR101W",
+    "YHR132W-A",
+    "YBR007C",
+    "YDL233W",
+    "YBR035C",
+    "YNL320W",
+    "YEL043W"
+   ],
+   "picks_offarray": [
+    true,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    true,
+    true,
+    true
+   ],
+   "offarray_share_candidates": 0.19773095623987033
+  },
+  {
+   "round": 26,
+   "n_screened": 260,
+   "select_s": 0.0006474999245256186,
+   "picks": [
+    "YJL171C",
+    "YIL146C",
+    "YMR304W",
+    "YLL040C",
+    "YLR238W",
+    "YPR194C",
+    "YGR275W",
+    "YOR227W",
+    "YIR044C",
+    "YDL130W-A"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false
+   ],
+   "offarray_share_candidates": 0.19608908202064096
+  },
+  {
+   "round": 27,
+   "n_screened": 270,
+   "select_s": 0.0006899579893797636,
+   "picks": [
+    "YKL155C",
+    "YDL020C",
+    "YOR089C",
+    "YDL070W",
+    "YEL017C-A",
+    "YBR015C",
+    "YDR541C",
+    "YMR170C",
+    "YDR055W",
+    "YOR017W"
+   ],
+   "picks_offarray": [
+    true,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19661387220098306
+  },
+  {
+   "round": 28,
+   "n_screened": 280,
+   "select_s": 0.0006714579649269581,
+   "picks": [
+    "YOR233W",
+    "YJR060W",
+    "YGR141W",
+    "YLR433C",
+    "YJL172W",
+    "YGL119W",
+    "YGR125W",
+    "YBR263W",
+    "YPL066W",
+    "YPL183C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19659527732015375
+  },
+  {
+   "round": 29,
+   "n_screened": 290,
+   "select_s": 0.0006571670528501272,
+   "picks": [
+    "YNL099C",
+    "YDR423C",
+    "YBR250W",
+    "YOL088C",
+    "YGL121C",
+    "YPL134C",
+    "YHR207C",
+    "YJR135C",
+    "YHR134W",
+    "YBR195C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.1965764770844837
+  },
+  {
+   "round": 30,
+   "n_screened": 300,
+   "select_s": 0.0006720831152051687,
+   "picks": [
+    "YBL052C",
+    "YLL015W",
+    "YML100W",
+    "YDR110W",
+    "YJL190C",
+    "YFL041W",
+    "YJR054W",
+    "YJL198W",
+    "YEL042W",
+    "YDL079C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    true,
+    false
+   ],
+   "offarray_share_candidates": 0.19766796224319821
+  },
+  {
+   "round": 31,
+   "n_screened": 310,
+   "select_s": 0.0006943750195205212,
+   "picks": [
+    "YLR042C",
+    "YJL030W",
+    "YDR453C",
+    "YHL015W-A",
+    "YMR130W",
+    "YER054C",
+    "YPR051W",
+    "YBL006C",
+    "YLR417W",
+    "YCL008C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    true,
+    true,
+    true
+   ],
+   "offarray_share_candidates": 0.19765494137353434
+  },
+  {
+   "round": 32,
+   "n_screened": 320,
+   "select_s": 0.0006169581320136786,
+   "picks": [
+    "YFL028C",
+    "YGR138C",
+    "YER114C",
+    "YKL211C",
+    "YEL053C",
+    "YOR359W",
+    "YJL068C",
+    "YLR390W-A",
+    "YKR053C",
+    "YGR169C-A"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    true
+   ],
+   "offarray_share_candidates": 0.1965188096574958
+  },
+  {
+   "round": 33,
+   "n_screened": 330,
+   "select_s": 0.0006423341110348701,
+   "picks": [
+    "YIR030C",
+    "YML061C",
+    "YGR210C",
+    "YNL097C",
+    "YJR159W",
+    "YDL112W",
+    "YKR011C",
+    "YGR089W",
+    "YIL005W",
+    "YER047C"
+   ],
+   "picks_offarray": [
+    false,
+    true,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19649915302089216
+  },
+  {
+   "round": 34,
+   "n_screened": 340,
+   "select_s": 0.0006052081007510424,
+   "picks": [
+    "YOR185C",
+    "YKL100C",
+    "YPL036W",
+    "YJR082C",
+    "YNR018W",
+    "YOR228C",
+    "YPL116W",
+    "YDR035W",
+    "YLR081W",
+    "YEL007W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true
+   ],
+   "offarray_share_candidates": 0.1964792731402612
+  },
+  {
+   "round": 35,
+   "n_screened": 350,
+   "select_s": 0.0005526670720428228,
+   "picks": [
+    "YLR250W",
+    "YCR008W",
+    "YML024W",
+    "YDR001C",
+    "YHR176W",
+    "YDR515W",
+    "YGR001C",
+    "YML068W",
+    "YMR195W",
+    "YLR203C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true
+   ],
+   "offarray_share_candidates": 0.19703026841804683
+  },
+  {
+   "round": 36,
+   "n_screened": 360,
+   "select_s": 0.0006092090625315905,
+   "picks": [
+    "YGL211W",
+    "YLR143W",
+    "YLR410W",
+    "YPL171C",
+    "YFL003C",
+    "YLR251W",
+    "YML037C",
+    "YOL153C",
+    "YDR155C",
+    "YJL095W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19701321079839174
+  },
+  {
+   "round": 37,
+   "n_screened": 370,
+   "select_s": 0.000709582818672061,
+   "picks": [
+    "YMR123W",
+    "YER042W",
+    "YGR127W",
+    "YAL016C-B",
+    "YFR044C",
+    "YBR201W",
+    "YNL277W-A",
+    "YDR264C",
+    "YJL139C",
+    "YNL270C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    true,
+    true,
+    false,
+    true
+   ],
+   "offarray_share_candidates": 0.1981513575967649
+  },
+  {
+   "round": 38,
+   "n_screened": 380,
+   "select_s": 0.0005677500739693642,
+   "picks": [
+    "YCL044C",
+    "YOL158C",
+    "YIR027C",
+    "YJL151C",
+    "YLR401C",
+    "YCR067C",
+    "YNL330C",
+    "YER161C",
+    "YJL168C",
+    "YOR155C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19697850087158628
+  },
+  {
+   "round": 39,
+   "n_screened": 390,
+   "select_s": 0.0005511250346899033,
+   "picks": [
+    "YKL005C",
+    "YMR029C",
+    "YMR129W",
+    "YGL229C",
+    "YEL070W",
+    "YLR179C",
+    "YDL054C",
+    "YCR089W",
+    "YJL101C",
+    "YDR406W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19754529514903565
+  },
+  {
+   "round": 40,
+   "n_screened": 400,
+   "select_s": 0.0006031668744981289,
+   "picks": [
+    "YCL075W",
+    "YHR158C",
+    "YDR381C-A",
+    "YCR020C",
+    "YBR268W",
+    "YKL074C",
+    "YKL087C",
+    "YEL038W",
+    "YIL055C",
+    "YIL148W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    true,
+    false,
+    true,
+    false,
+    false,
+    true,
+    false,
+    true
+   ],
+   "offarray_share_candidates": 0.19811875367430923
+  },
+  {
+   "round": 41,
+   "n_screened": 410,
+   "select_s": 0.000569542171433568,
+   "picks": [
+    "YOR356W",
+    "YPL065W",
+    "YBL101C",
+    "YKR014C",
+    "YBR194W",
+    "YGL084C",
+    "YLL048C",
+    "YDL240W",
+    "YGR017W",
+    "YML052W"
+   ],
+   "picks_offarray": [
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19692489651094028
+  },
+  {
+   "round": 42,
+   "n_screened": 420,
+   "select_s": 0.0005343330558389425,
+   "picks": [
+    "YKR096W",
+    "YIL092W",
+    "YOR352W",
+    "YDR126W",
+    "YGR174W-A",
+    "YBR009C",
+    "YNL329C",
+    "YIL120W",
+    "YOR283W",
+    "YKL133C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    true,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19750148720999405
+  },
+  {
+   "round": 43,
+   "n_screened": 430,
+   "select_s": 0.0005587500054389238,
+   "picks": [
+    "YIL140W",
+    "YCL064C",
+    "YNL291C",
+    "YOR354C",
+    "YLR114C",
+    "YNL046W",
+    "YFR035C",
+    "YOR096W",
+    "YDR066C",
+    "YDL025C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19748653500897667
+  },
+  {
+   "round": 44,
+   "n_screened": 440,
+   "select_s": 0.0005760418716818094,
+   "picks": [
+    "YHR193C",
+    "YNL326C",
+    "YJL165C",
+    "YGL027C",
+    "YJL149W",
+    "YNR034W",
+    "YBR214W",
+    "YOR003W",
+    "YHR092C",
+    "YKL077W"
+   ],
+   "picks_offarray": [
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19747140276941602
+  },
+  {
+   "round": 45,
+   "n_screened": 450,
+   "select_s": 0.000488791149109602,
+   "picks": [
+    "YPR101W",
+    "YBR215W",
+    "YJR144W",
+    "YDL244W",
+    "YPR151C",
+    "YML108W",
+    "YBR228W",
+    "YML119W",
+    "YMR056C",
+    "YGL175C"
+   ],
+   "picks_offarray": [
+    true,
+    false,
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19745608721986674
+  },
+  {
+   "round": 46,
+   "n_screened": 460,
+   "select_s": 0.0005843339022248983,
+   "picks": [
+    "YKL218C",
+    "YOR014W",
+    "YDR242W",
+    "YLR313C",
+    "YOR101W",
+    "YKL086W",
+    "YJR061W",
+    "YOR234C",
+    "YKL124W",
+    "YNL067W-B"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    true
+   ],
+   "offarray_share_candidates": 0.19683120048750763
+  },
+  {
+   "round": 47,
+   "n_screened": 470,
+   "select_s": 0.0004842919297516346,
+   "picks": [
+    "YNL197C",
+    "YEL018W",
+    "YLR154W-A",
+    "YJL208C",
+    "YDR067C",
+    "YIL024C",
+    "YHR192W",
+    "YNL275W",
+    "YBR093C",
+    "YFR006W"
+   ],
+   "picks_offarray": [
+    true,
+    true,
+    true,
+    false,
+    false,
+    false,
+    true,
+    true,
+    true,
+    false
+   ],
+   "offarray_share_candidates": 0.19681177191906807
+  },
+  {
+   "round": 48,
+   "n_screened": 480,
+   "select_s": 0.0005146670155227184,
+   "picks": [
+    "YMR111C",
+    "YLL005C",
+    "YPL049C",
+    "YOL042W",
+    "YHL003C",
+    "YGL178W",
+    "YDL082W",
+    "YFL007W",
+    "YOR123C",
+    "YGL060W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    true,
+    false,
+    true,
+    true,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19432449105490437
+  },
+  {
+   "round": 49,
+   "n_screened": 490,
+   "select_s": 0.0006182091310620308,
+   "picks": [
+    "YBR020W",
+    "YFR013W",
+    "YPL042C",
+    "YMR285C",
+    "YBR077C",
+    "YJL221C",
+    "YER139C",
+    "YJL184W",
+    "YDR420W",
+    "YJL201W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    true,
+    false,
+    true,
+    true,
+    false,
+    true,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19366852886405958
+  },
+  {
+   "round": 50,
+   "n_screened": 500,
+   "select_s": 0.0005831248126924038,
+   "picks": [
+    "YEL027W",
+    "YLR260W",
+    "YPR192W",
+    "YJR009C",
+    "YPL157W",
+    "YOR360C",
+    "YER083C",
+    "YNL333W",
+    "YKR034W",
+    "YDR089W"
+   ],
+   "picks_offarray": [
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19237976264834478
+  },
+  {
+   "round": 51,
+   "n_screened": 510,
+   "select_s": 0.0005501250270754099,
+   "picks": [
+    "YMR162C",
+    "YGL083W",
+    "YML029W",
+    "YLL038C",
+    "YGR028W",
+    "YPL262W",
+    "YPL026C",
+    "YLR227C",
+    "YOL059W",
+    "YER035W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true
+   ],
+   "offarray_share_candidates": 0.19170333123821495
+  },
+  {
+   "round": 52,
+   "n_screened": 520,
+   "select_s": 0.000588499940931797,
+   "picks": [
+    "YGL186C",
+    "YDL121C",
+    "YGL160W",
+    "YER095W",
+    "YER145C",
+    "YBR239C",
+    "YOL028C",
+    "YDR284C",
+    "YNL328C",
+    "YKL050C"
+   ],
+   "picks_offarray": [
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false
+   ],
+   "offarray_share_candidates": 0.1922833649588868
+  },
+  {
+   "round": 53,
+   "n_screened": 530,
+   "select_s": 0.0005973330698907375,
+   "picks": [
+    "YOL032W",
+    "YNL250W",
+    "YOR068C",
+    "YDR513W",
+    "YNL058C",
+    "YBL042C",
+    "YLR432W",
+    "YDR181C",
+    "YNL072W",
+    "YCR010C"
+   ],
+   "picks_offarray": [
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19223424570337364
+  },
+  {
+   "round": 54,
+   "n_screened": 540,
+   "select_s": 0.0005632501561194658,
+   "picks": [
+    "YAL048C",
+    "YGL194C",
+    "YDR469W",
+    "YNL159C",
+    "YDL214C",
+    "YGL242C",
+    "YGR023W",
+    "YOR115C",
+    "YDR251W",
+    "YKL048C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19282511210762332
+  },
+  {
+   "round": 55,
+   "n_screened": 550,
+   "select_s": 0.0005280000623315573,
+   "picks": [
+    "YOL056W",
+    "YKL040C",
+    "YDR540C",
+    "YBL079W",
+    "YJL020C",
+    "YDR213W",
+    "YAL018C",
+    "YML016C",
+    "YGR217W",
+    "YGR286C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19342359767891681
+  },
+  {
+   "round": 56,
+   "n_screened": 560,
+   "select_s": 0.0005637500435113907,
+   "picks": [
+    "YLR342W",
+    "YOR205C",
+    "YBR180W",
+    "YLR094C",
+    "YGL166W",
+    "YIL149C",
+    "YCR075W-A",
+    "YDR147W",
+    "YHR212W-A",
+    "YLR059C"
+   ],
+   "picks_offarray": [
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    true,
+    false
+   ],
+   "offarray_share_candidates": 0.19402985074626866
+  },
+  {
+   "round": 57,
+   "n_screened": 570,
+   "select_s": 0.0005551250651478767,
+   "picks": [
+    "YIR007W",
+    "YDL169C",
+    "YOR001W",
+    "YNR039C",
+    "YJL062W",
+    "YCR073W-A",
+    "YIL127C",
+    "YDR305C",
+    "YEL040W",
+    "YKL146W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    true,
+    false,
+    true,
+    false
+   ],
+   "offarray_share_candidates": 0.19333768778576094
+  },
+  {
+   "round": 58,
+   "n_screened": 580,
+   "select_s": 0.0005458330269902945,
+   "picks": [
+    "YGL013C",
+    "YNL005C",
+    "YER075C",
+    "YDR400W",
+    "YDR450W",
+    "YER015W",
+    "YBR090C",
+    "YKR049C",
+    "YBR175W",
+    "YMR194C-B"
+   ],
+   "picks_offarray": [
+    false,
+    true,
+    false,
+    false,
+    true,
+    true,
+    false,
+    false,
+    true,
+    true
+   ],
+   "offarray_share_candidates": 0.19263642340565418
+  },
+  {
+   "round": 59,
+   "n_screened": 590,
+   "select_s": 0.0005717079620808363,
+   "picks": [
+    "YNL098C",
+    "YMR280C",
+    "YMR232W",
+    "YDR322C-A",
+    "YJL210W",
+    "YJL164C",
+    "YOL004W",
+    "YIL159W",
+    "YER152C",
+    "YDR119W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19060225016545335
+  },
+  {
+   "round": 60,
+   "n_screened": 600,
+   "select_s": 0.0005343749653548002,
+   "picks": [
+    "YLR137W",
+    "YER053C-A",
+    "YML131W",
+    "YKR030W",
+    "YBR073W",
+    "YJR077C",
+    "YPL038W",
+    "YLR146C",
+    "YPR129W",
+    "YKL008C"
+   ],
+   "picks_offarray": [
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19120586275816123
+  },
+  {
+   "round": 61,
+   "n_screened": 610,
+   "select_s": 0.0005495829973369837,
+   "picks": [
+    "YBR272C",
+    "YOR042W",
+    "YMR201C",
+    "YIL153W",
+    "YLL045C",
+    "YGL032C",
+    "YBR284W",
+    "YDR011W",
+    "YNL068C",
+    "YPR184W"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19181757209926223
+  },
+  {
+   "round": 62,
+   "n_screened": 620,
+   "select_s": 0.000622207997366786,
+   "picks": [
+    "YCR088W",
+    "YAR018C",
+    "YOL029C",
+    "YHR108W",
+    "YLR011W",
+    "YBR258C",
+    "YDR258C",
+    "YOR166C",
+    "YGL146C",
+    "YDR465C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19311276164753544
+  },
+  {
+   "round": 63,
+   "n_screened": 630,
+   "select_s": 0.0005119580309838057,
+   "picks": [
+    "YGL081W",
+    "YPR078C",
+    "YLR367W",
+    "YEL059C-A",
+    "YPR159C-A",
+    "YCL050C",
+    "YGR016W",
+    "YMR244C-A",
+    "YMR295C",
+    "YGL236C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.1937457511896669
+  },
+  {
+   "round": 64,
+   "n_screened": 640,
+   "select_s": 0.0005008750595152378,
+   "picks": [
+    "YNL321W",
+    "YLR363W-A",
+    "YGL079W",
+    "YFR023W",
+    "YIL076W",
+    "YKR077W",
+    "YGL224C",
+    "YKR026C",
+    "YOR269W",
+    "YFR040W"
+   ],
+   "picks_offarray": [
+    true,
+    true,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19370294318959616
+  },
+  {
+   "round": 65,
+   "n_screened": 650,
+   "select_s": 0.0004960829392075539,
+   "picks": [
+    "YML081C-A",
+    "YJR129C",
+    "YML112W",
+    "YGL187C",
+    "YBL063W",
+    "YER096W",
+    "YBR162C",
+    "YHR171W",
+    "YMR075W",
+    "YJL124C"
+   ],
+   "picks_offarray": [
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "offarray_share_candidates": 0.19297036526533426
+  }
+ ]
+}

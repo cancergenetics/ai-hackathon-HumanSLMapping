@@ -254,6 +254,21 @@ def cmd_analyze(a) -> int:
                 crow.append({"config": cid, "split": split, "n": "G", "R_s": d["R_s"], "delta": cs["G"]["G"],
                              "lo": cs["G"]["G_ci"][0], "hi": cs["G"]["G_ci"][1], "p": None,
                              "G_star": cs["G_star"], "G_defined": cs["G"]["defined"]})
+        # headline-rule strata (DESIGN §3): Δ(160) and Δ(660) on E_AO and E_VV (dev analogue of E_TT)
+        for split in per:
+            rs = [x for x in rows if x["config"] == cid and x["split"] == split]
+            for st in ("AO", "VV", "onrows"):
+                g2 = [160, 660]
+                As, es, _ = q2dev.arm_matrix(rs, split, g2, BOOT, stratum=st)
+                Ar, er, _ = q2dev.arm_matrix(rnd, split, g2, BOOT, stratum=st)
+                for n in g2:
+                    j = g2.index(n)
+                    if np.isfinite(es[:, j]).any() and np.isfinite(er[:, j]).sum() >= 2:
+                        w = q2dev.welch_at(As[:, :, j], es[:, j], Ar[:, :, j], er[:, j])
+                        crow.append({"config": cid, "split": split, "n": f"{st}{n}", "R_s": per[split]["R_s"],
+                                     "s_mean": float(np.nanmean(es[:, j])), "r_mean": float(np.nanmean(er[:, j])),
+                                     "delta": w["delta"], "rel": w["delta"] / float(np.nanmean(er[:, j])),
+                                     "lo": w["ci95"][0], "hi": w["ci95"][1], "p": w["p_one_sided"]})
         Gp = q2dev.gap_closure_joint(pairs, np.random.default_rng(p1.boot_seed(f"p4_G_pooled_{cid}"))) \
             if len(pairs) == 3 else None
         arm = q2dev.parse(cid).arm
@@ -480,6 +495,17 @@ def _summary(res, cdf, rk, diag, rt, base) -> None:
                 else:
                     cells.append("—")
             L.append(f"| {c} | " + " | ".join(cells) + " |")
+    L += ["", "## Headline-rule strata: relative Δ at n = 160 / 660 (mean of dev1–3; per-split CIs in contrasts.csv)",
+          "", "E_AO = array-only columns; E_VV = on-array D_val columns (dev analogue of E_TT); onrows = on-array target "
+          "rows only (removes the off-array query artefact).", "",
+          "| config | all 160 | AO 160 | VV 160 | onrows 160 | all 660 | AO 660 | VV 660 | onrows 660 | same sign at 160 (all, AO, VV) |",
+          "|---|---|---|---|---|---|---|---|---|---|"]
+    for c, x in cdf.groupby("config"):
+        v = x.groupby(x.n.astype(str)).rel.mean()
+        keys = ["160", "AO160", "VV160", "onrows160", "660", "AO660", "VV660", "onrows660"]
+        sg = [np.sign(v[k]) for k in ("160", "AO160", "VV160") if k in v.index]
+        L.append(f"| {c} | " + " | ".join(f"{100 * v[k]:+.1f}%" if k in v.index else "—" for k in keys)
+                 + f" | {'yes' if len(sg) == 3 and len(set(sg)) == 1 else 'no'} |")
     L += ["", "## Relative Δ(n) vs random at matched n (mean of dev1–3)", "",
           "| config | " + " | ".join(str(n) for n in Q2) + " |", "|---|" + "---|" * len(Q2)]
     dn = cdf[pd.to_numeric(cdf.n, errors="coerce").notna()].copy()

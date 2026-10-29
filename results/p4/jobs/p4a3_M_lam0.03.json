@@ -1,0 +1,142 @@
+[
+ {
+  "name": "p4_M_lam0.03_dev1_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "M_lam0.03",
+   "--split",
+   "dev1",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_M_lam0.03_dev2_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "M_lam0.03",
+   "--split",
+   "dev2",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_M_lam0.03_dev3_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "M_lam0.03",
+   "--split",
+   "dev3",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_M_lam0.03_dev1_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "M_lam0.03",
+   "--split",
+   "dev1",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_M_lam0.03_dev2_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "M_lam0.03",
+   "--split",
+   "dev2",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_M_lam0.03_dev3_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "M_lam0.03",
+   "--split",
+   "dev3",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p3_oracle_hub_dev2_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/40_p3_oracles.py",
+   "run",
+   "--config",
+   "oracle_hub",
+   "--split",
+   "dev2",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p3_oracle_hub_dev3_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/40_p3_oracles.py",
+   "run",
+   "--config",
+   "oracle_hub",
+   "--split",
+   "dev3",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p3_analyze_interim",
+  "n": 160,
+  "timeout_s": 10800,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/40_p3_oracles.py",
+   "analyze"
+  ]
+ },
+ {
+  "name": "p4_analyze_interim",
+  "n": 160,
+  "timeout_s": 14400,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "analyze"
+  ]
+ }
+]

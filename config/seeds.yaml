@@ -28,3 +28,7 @@ strategy_smoke_seed: 1110313
 # 2026-10-29 (P3, DESIGN §11 end-to-end controls at the P3 milestone): permutation of the screened block's ε/P/label
 # and of array SMF for the shuffled-label control (scripts/40_p3_oracles.py controls). Control only; never an analysis.
 p3_e2e_control_seed: 1210317
+# 2026-10-29 (P3, PI request): seeded half split of each dev split's D_val queries (stratified by the frozen SL-count
+# strata; SeedSequence(seed, spawn_key=(k,)) for dev k) for the HELD-OUT greedy oracle: select on half A, score on
+# half B (hsl.q2dev.heldout_halves). Evaluation-only diagnostic.
+p3_heldout_half_seed: 1310319

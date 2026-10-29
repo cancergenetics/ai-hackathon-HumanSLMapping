@@ -195,6 +195,9 @@ def make_selector(spec: ArmSpec, split: str, n_threads: int = 2):
         sel = oracles.OracleHubFirst(split)
     elif spec.arm == "oracle_greedy":
         sel = oracles.GreedyOracle(split, n_threads=n_threads)
+    elif spec.arm == "oracle_greedyHO":            # held-out: selects on query half A (scored on half B later)
+        sel = oracles.GreedyOracle(split, n_threads=n_threads, score_fn=heldout_score_fn(split, n_threads=n_threads))
+        sel.params = {**sel.params, "score": "heldout_halfA"}
     else:
         sel = strategies.make(spec.arm, deterministic=spec.deterministic, **spec.knobs)
     if spec.feasible:
@@ -318,15 +321,75 @@ def weights(split: str) -> np.ndarray:
     return _W[split]
 
 
-def boot_vector(pred_file: str, split: str, cache_dir: Path) -> np.ndarray:
-    """[1 + B]: unit-weight AP, then the B replicate APs under the split's shared query weights. Cached."""
-    cp = Path(cache_dir) / split / f"{Path(pred_file).stem}.npy"
+@lru_cache(maxsize=4)
+def heldout_halves(split: str) -> tuple[np.ndarray, np.ndarray]:
+    """Fixed seeded halves (A, B) of the split's D_val queries, stratified by the frozen SL-count strata (seed
+    p3_heldout_half_seed): the held-out greedy oracle selects on A and is scored on B (evaluation only)."""
+    sp = dev_split(split)
+    st = views.query_strata(sp.targets, views.dev_bundle())
+    rng = np.random.default_rng(np.random.SeedSequence(config.seed("p3_heldout_half_seed"),
+                                                       spawn_key=(int(split[3:]),)))
+    A = []
+    for h in np.unique(st):
+        g = np.sort(sp.targets[st == h])
+        g = g[rng.permutation(len(g))]
+        A += list(g[: (len(g) + 1) // 2]) if rng.random() < 0.5 else list(g[: len(g) // 2])
+    A = np.sort(np.array(A, dtype=str))
+    return A, np.setdiff1d(sp.targets, A)
+
+
+STRATA = ("all", "AO", "VV", "onrows", "halfA", "halfB")
+
+
+def stratum_mask(split: str, stratum: str):
+    """Cell mask over E_fixed_dev: AO = array-only columns, VV = on-array D_val columns (dev E_TT analogue),
+    onrows = target rows of on-array genes, halfA/halfB = held-out query halves. None for 'all'."""
+    es = _eset(split)
+    if stratum == "all":
+        return None
+    if stratum in ("AO", "VV"):
+        return np.asarray(es.strata[stratum], dtype=bool)
+    if stratum == "onrows":
+        return p1.target_on_array(split)[es.rows]
+    if stratum in ("halfA", "halfB"):
+        half = heldout_halves(split)[0 if stratum == "halfA" else 1]
+        return np.isin(es.targets[es.rows], half)
+    raise KeyError(stratum)
+
+
+def heldout_score_fn(split: str, method: str = "F2_mk_foldin", n_threads: int = 2):
+    """Realised AUPRC of the closed-form fold-in on E_fixed_dev restricted to half A (held-out greedy oracle)."""
+    from hsl import upstream as U
+    sp = dev_split(split)
+    es = _eset(split)
+    m = stratum_mask(split, "halfA")
+    y = es.y[m]
+
+    def f(S) -> float:
+        if not len(S):
+            return 0.0
+        v = U.construct_view(views.dev_bundle(), S, sp.targets)
+        Smat, _ = U.run_method(v, method, n_threads=n_threads, n_folds=min(10, max(len(S), 2)))
+        return float(E.average_precision(y, es.scores(Smat)[m]))
+    f.__name__ = "heldout_halfA_auprc"
+    return f
+
+
+def boot_vector(pred_file: str, split: str, cache_dir: Path, stratum: str = "all") -> np.ndarray:
+    """[1 + B]: unit-weight AP, then the B replicate APs under the split's shared query weights, on the E_fixed_dev
+    cells of `stratum` (STRATA). Cached."""
+    sfx = "" if stratum == "all" else f"__{stratum}"
+    cp = Path(cache_dir) / split / f"{Path(pred_file).stem}{sfx}.npy"
     if cp.exists():
         return np.load(cp)
     es = _eset(split)
     s = p1.load_scores(pred_file)
     W = weights(split)
-    e = E.WeightedAP(es.y, s, es.rows, W.shape[1])
+    m = stratum_mask(split, stratum)
+    if m is None:
+        e = E.WeightedAP(es.y, s, es.rows, W.shape[1])
+    else:
+        e = E.WeightedAP(es.y[m], s[m], es.rows[m], W.shape[1])
     ch = int(config.protocol()["bootstrap"]["chunk"])
     A = np.concatenate([e.ap(W[i:i + ch]) for i in range(0, len(W), ch)])
     est = float(e.ap(np.ones(W.shape[1]))[0])
@@ -336,7 +399,7 @@ def boot_vector(pred_file: str, split: str, cache_dir: Path) -> np.ndarray:
     return v
 
 
-def arm_matrix(rows: list[dict], split: str, grid, cache_dir: Path, trajs=None):
+def arm_matrix(rows: list[dict], split: str, grid, cache_dir: Path, trajs=None, stratum: str = "all"):
     """(A [B x R x J], est [R x J], traj ids) for one arm's rows on one split (NaN where a checkpoint is missing)."""
     rows = [x for x in rows if x["split"] == split]
     tr = sorted({int(x["traj"]) for x in rows}) if trajs is None else list(trajs)
@@ -347,7 +410,7 @@ def arm_matrix(rows: list[dict], split: str, grid, cache_dir: Path, trajs=None):
     ti = {t: i for i, t in enumerate(tr)}
     for x in rows:
         if int(x["n"]) in gi and int(x["traj"]) in ti:
-            v = boot_vector(x["pred_file"], split, cache_dir)
+            v = boot_vector(x["pred_file"], split, cache_dir, stratum)
             A[:, ti[int(x["traj"])], gi[int(x["n"])]] = v[1:]
             est[ti[int(x["traj"])], gi[int(x["n"])]] = v[0]
     return A, est, tr

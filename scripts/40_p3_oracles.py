@@ -38,6 +38,12 @@ BOOT = OUT / "boot"
 PY = ".venv/bin/python"
 Q2 = [int(n) for n in config.budgets()["q2_checkpoints"]]
 GREEDY_CPS = [n for n in Q2 if n <= 160]
+ORACLES = ("oracle_hub", "oracle_greedy", "oracle_greedyHO")
+STRATUM_PLAN = (("oracle_hub", ("AO", "VV", "onrows")), ("oracle_greedy", ("halfA", "halfB")),
+                ("oracle_greedyHO", ("halfA", "halfB")))
+STRATUM_LABEL = {"AO": "E_AO (array-only columns)", "VV": "E_VV (on-array D_val columns; dev E_TT analogue)",
+                 "onrows": "on-array target rows only", "halfA": "query half A (held-out oracle's selection half)",
+                 "halfB": "query half B (held out from the held-out oracle)"}
 
 
 def _ints(s):
@@ -47,11 +53,11 @@ def _ints(s):
 # ============================================================================ run
 def cmd_run(a) -> int:
     part = PARTS / f"{a.config}_{a.split}_r{a.traj}.jsonl"
-    cps = _ints(a.checkpoints) if a.checkpoints else (GREEDY_CPS if a.config == "oracle_greedy" else Q2)
+    cps = _ints(a.checkpoints) if a.checkpoints else (GREEDY_CPS if a.config.startswith("oracle_greedy") else Q2)
     if all(q2dev.done([part], a.config, a.split, a.traj, n) for n in cps):
         print("done already", part)
         return 0
-    extra = OUT / "greedy_logs" / f"{a.config}_{a.split}_r{a.traj}.json" if a.config == "oracle_greedy" else None
+    extra = OUT / "greedy_logs" / f"{a.config}_{a.split}_r{a.traj}.json" if a.config.startswith("oracle_greedy") else None
     rows = q2dev.run_config(a.config, a.split, a.traj, cps, part, max_n=a.max_n or max(cps), phase="p3",
                             n_threads=int(a.threads), extra_log=extra)
     for r in rows:
@@ -147,7 +153,7 @@ def cmd_analyze(a) -> int:
         n_chk = q2dev.check_est([x for x in rows + rnd if x["n"] in grid], split, BOOT)
         res.setdefault("engine_checks", {})[split] = n_chk
     curve = []
-    for cfg, d in [("R0", rnd)] + [(c, [x for x in rows if x["config"] == c]) for c in ("oracle_hub", "oracle_greedy")]:
+    for cfg, d in [("R0", rnd)] + [(c, [x for x in rows if x["config"] == c]) for c in ORACLES]:
         for x in d:
             if x["n"] in grid:
                 curve.append({k: x.get(k) for k in ("config", "split", "traj", "n", "auprc", "auprc_AO", "auprc_VV",
@@ -164,8 +170,8 @@ def cmd_analyze(a) -> int:
     tab.to_csv(OUT / "curves.csv", index=False)
     # ---- contrasts and G
     ceil = []
-    G_pairs = {"oracle_hub": [], "oracle_greedy": []}
-    for cfg in ("oracle_hub", "oracle_greedy"):
+    G_pairs = {c: [] for c in ORACLES}
+    for cfg in ORACLES:
         for split in ("dev1", "dev2", "dev3"):
             rs = [x for x in rows if x["config"] == cfg and x["split"] == split]
             if not rs:
@@ -209,10 +215,11 @@ def cmd_analyze(a) -> int:
     res["ceilings"] = ceil
     res["G_pooled"] = pooled
     gmin = float(config.protocol()["stats"]["g_star_min"])
-    Gs = {c: pooled[c]["G"] for c in pooled}
+    Gs = {c: pooled[c]["G"] for c in pooled if c in ("oracle_hub", "oracle_greedy")}
     res["go"] = {"rule": f"de-scope C/M iff both oracles have G < {gmin} at n = 160",
                  "G": Gs, "descope_CM": bool(len(Gs) == 2 and all(g < gmin for g in Gs.values())),
                  "complete": bool(len(Gs) == 2)}
+    res["strata"] = stratum_ceilings(rows, rnd, grid)
     if (OUT / "controls.json").exists():
         res["controls"] = json.loads((OUT / "controls.json").read_text())
     (OUT / "summary.json").write_text(json.dumps(res, indent=1, default=float) + "\n")
@@ -235,16 +242,52 @@ def cmd_analyze(a) -> int:
     return 0
 
 
+def stratum_ceilings(rows, rnd, grid) -> list[dict]:
+    """G(160) and s160/r160/r660 per oracle on cell strata (PI request after P3): the hub ceiling on E_AO, E_VV and
+    on-array target rows (separates the off-array artefact); both greedy oracles on query halves A/B (the held-out
+    oracle selected on half A only, so its half-B G is the attainable-ceiling estimate)."""
+    out = []
+    grid = [160, 660]
+    j160, j660 = 0, 1
+    for cfg, strata in STRATUM_PLAN:
+        for st in strata:
+            pairs = []
+            for split in ("dev1", "dev2", "dev3"):
+                rs = [x for x in rows if x["config"] == cfg and x["split"] == split]
+                if not rs:
+                    continue
+                As, es, tr = q2dev.arm_matrix(rs, split, grid, BOOT, stratum=st)
+                Ar, er, _ = q2dev.arm_matrix(rnd, split, grid, BOOT, stratum=st)
+                if not np.isfinite(es[:, j160]).any():
+                    continue
+                p = (As[:, :, [j160]], Ar[:, :, [j160, j660]], es[:, [j160]], er[:, [j160, j660]])
+                pairs.append(p)
+                g1 = q2dev.gap_closure_joint([p], np.random.default_rng(p1.boot_seed(f"p3_G_{cfg}_{st}_{split}")))
+                w = q2dev.welch_at(As[:, :, j160], es[:, j160], Ar[:, :, j160], er[:, j160])
+                out.append({"config": cfg, "stratum": st, "split": split, "R_s": len(tr),
+                            "s160": float(np.nanmean(es[:, j160])), "r160": float(np.nanmean(er[:, j160])),
+                            "r660": float(np.nanmean(er[:, j660])), "delta160": w["delta"],
+                            "delta160_lo": w["ci95"][0], "delta160_hi": w["ci95"][1],
+                            "G": g1["G"], "G_lo": g1["G_ci"][0], "G_hi": g1["G_ci"][1]})
+            if len(pairs) > 1:
+                gp = q2dev.gap_closure_joint(pairs, np.random.default_rng(p1.boot_seed(f"p3_G_{cfg}_{st}_pooled")))
+                out.append({"config": cfg, "stratum": st, "split": "pooled", "G": gp["G"], "G_lo": gp["G_ci"][0],
+                            "G_hi": gp["G_ci"][1]})
+    pd.DataFrame(out).to_csv(OUT / "ceilings_strata.csv", index=False)
+    return out
+
+
 def _figure(tab: pd.DataFrame) -> None:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    col = {"R0": "#6b7280", "oracle_hub": "#d1495b", "oracle_greedy": "#2a78d6"}
+    col = {"R0": "#6b7280", "oracle_hub": "#d1495b", "oracle_greedy": "#2a78d6", "oracle_greedyHO": "#1baf7a"}
     lab = {"R0": "random (R0, R = 10)", "oracle_hub": "oracle hub-first (true degree)",
-           "oracle_greedy": "greedy oracle (realised gain)"}
+           "oracle_greedy": "greedy oracle, in-sample (upper bound)",
+           "oracle_greedyHO": "greedy oracle, held-out halves"}
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), sharey=True)
     for ax, split in zip(axes, ("dev1", "dev2", "dev3")):
-        for cfg in ("R0", "oracle_hub", "oracle_greedy"):
+        for cfg in ("R0",) + ORACLES:
             d = tab[(tab.config == cfg) & (tab.split == split)].sort_values("n")
             if len(d):
                 ax.errorbar(d.n, d.auprc, yerr=d.sd.fillna(0), marker="o", ms=4, lw=1.5, capsize=2,
@@ -295,6 +338,19 @@ def _summary(res, tab, cel) -> None:
                  f"{_f(r.get('brief_est'))} [{_f(r.get('brief_lo'))}, {_f(r.get('brief_hi'))}] | "
                  f"{_f(r.get('matches_p'), 3)} | {_f(r.get('G_star'), 2)} | {_f(r.get('traj_wall_s_mean'), 0)} | "
                  f"{_f(r.get('select_s_to160'), 0)} |")
+    if res.get("strata"):
+        L += ["", "## Ceilings by stratum (G at n = 160; joint bootstrap)", "",
+              "The hub ceiling restricted to on-array rows / on-array columns separates the yeast off-array SL excess "
+              "(D5); the greedy oracles on query halves separate in-sample optimisation from an attainable ceiling: "
+              "`oracle_greedy` selected on ALL D_val queries (in-sample on both halves: an upper bound, **not "
+              "attainable**), `oracle_greedyHO` selected on half A only, so its **half-B G is the attainable-ceiling "
+              "estimate**.", "",
+              "| oracle | stratum | split | s160 | r160 | r660 | Δ(160) [95% CI] | G [95% CI] |", "|---|---|---|---|---|---|---|---|"]
+        for r in res["strata"]:
+            L.append(f"| {r['config']} | {STRATUM_LABEL[r['stratum']]} | {r['split']} | {_f(r.get('s160'))} | "
+                     f"{_f(r.get('r160'))} | {_f(r.get('r660'))} | {_f(r.get('delta160'))} "
+                     f"[{_f(r.get('delta160_lo'))}, {_f(r.get('delta160_hi'))}] | {_f(r['G'], 2)} "
+                     f"[{_f(r['G_lo'], 2)}, {_f(r['G_hi'], 2)}] |")
     L += ["", "## Mean AUPRC by budget (all arms)", "", "| arm | split | " + " | ".join(str(n) for n in Q2) + " |",
           "|---|---|" + "---|" * len(Q2)]
     for (cfg, split), d in tab.groupby(["config", "split"]):
@@ -321,7 +377,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
     r = sub.add_parser("run")
-    r.add_argument("--config", required=True, choices=["oracle_hub", "oracle_greedy"])
+    r.add_argument("--config", required=True, choices=["oracle_hub", "oracle_greedy", "oracle_greedyHO"])
     r.add_argument("--split", required=True)
     r.add_argument("--traj", type=int, required=True)
     r.add_argument("--checkpoints", default="")
