@@ -29,6 +29,11 @@ def knobs() -> dict:
         return yaml.safe_load(f) or {}
 
 
+def knobs_sha() -> str:
+    import json
+    return hashlib.sha256(json.dumps(knobs(), sort_keys=True).encode()).hexdigest()[:12]
+
+
 def protocol_selector() -> dict:
     return config.protocol()["selector"]
 
@@ -138,7 +143,8 @@ class Selector:
     def __init__(self, deterministic: bool = False, top_k: int | None = None, **params):
         self.deterministic = bool(deterministic)
         self.top_k = int(protocol_selector()["randomised_greedy_top_k"] if top_k is None else top_k)
-        self.params = {"deterministic": self.deterministic, "top_k": self.top_k, **params}
+        self.params = {"deterministic": self.deterministic, "top_k": self.top_k, **params,
+                       "knobs_sha": knobs_sha()}               # strategies.yaml enters the trajectory id
         self.diagnostics: list = []
         self._feats = FeatureCache()
 
