@@ -70,6 +70,10 @@ then DESIGN.md and up to three review rounds.
   - [x] Independent P0 code review: safe with fixes; no leakage, AP/stats correct. Fixed M1 (censored CI), L2, L3, disk
         guard (M2). L1 (dev k-means clusters include D_val; label-free external features) accepted as deviation D4.
 - [~] P1 dev random curves + power pilot + upstream-protocol sanity + universe subsampling
+  - [x] Interim n ≤ 660 (19e7a53; 3 splits × R=10): P* AUPRC (E_fixed_dev, prev ≈ 0.0095) 0.029 @30, 0.041 @160,
+        0.049 @330, 0.060 @660 (SD of split means ≈ 0.002–0.005); stack_lr 0.030/0.039/0.043/0.048; B1 0.042 @660.
+        P* ≈ stack_lr at n ≤ 100 (−1.2% @30) → target for P2. m1_hgb (dev1) 2–9% above P*. Random gap r660 − r160
+        ≈ 0.019 ≫ 5% margin → the "5% vs 20%" comparison is discriminating.
   - [x] Power pilot (dev1, R=10, P*): r160 0.0389 (σ_r 0.0021), r210 0.0411, g = 0.0021. Frozen provisional rule
         (ρ=0) gives V_Q(Δ) ≫ (g/3.5)² → "bounds only" provisionally; shared-weight correlation (ρ_boot 0.994) implies
         R_s ≈ 21 suffices. Per DESIGN, V_Q(Δ) is measured directly in P4 and R fixed at freeze.
