@@ -86,6 +86,13 @@ then DESIGN.md and up to three review rounds.
       per-channel poisoning + broken twins pass; selection ≤ 1 s/round (F 0.6–0.9 s). 208 fast tests pass.
       Kernel approximations in selectors: AP-MS neighbourhood over pool genes, ESM via 16 standardised components,
       pair-store kernels unavailable to selectors (SelectorView unchanged).
+  - [x] Independent strategy code review (docs/reviews/strategies_code_review.md): safe with fixes — math verified by
+        brute force, hygiene clean; F and C nearly never picked off-array genes (inverse of D5), R1 SMF imputation,
+        cluster cap at large batches, M λ too large. Fixes (ad45deb): route-stratified calibration (off-array genes
+        ranked among themselves, mapped onto the on-array score distribution) for H/F/C; R1 random SMF tertile for
+        off-array; cap max(2, ⌈b/k⌉); M λ = 0.3·mean diag. All strategies within ±5 pp of the 19.5% off-array base on
+        dev1; 267 tests pass. PI checked the one edited reviewer test: reference updated to the new spec, not weakened.
+- [~] P2 predictor development (n ≤ 330; gate per DESIGN §8) → freeze P*
 - [ ] M4 Q1: performance vs. fraction screened (random)
 - [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
 - [ ] M6 Q3: translation to HAP1 (query numbers, choice of query lines, role of prediction)
