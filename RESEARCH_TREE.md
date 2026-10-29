@@ -107,7 +107,11 @@ then DESIGN.md and up to three review rounds.
     - [x] Power pilot (frozen P*, dev1): r160 0.0416, r210 0.0433, r490 0.0509, r660 0.0553; g = 0.0017 [0.0009, 0.0025].
       Under the frozen ρ = 0 rule, Q2 claims are bounds only (V_Q(Δ) 4.5e-6 ≫ (g/3.5)²); the shared-weight sensitivity
       gives R_s ≈ 35–39. V_Q(Δ) is measured directly in P4 and R is fixed at the freeze.
-    - [~] Universe subsampling with frozen P* (50%, 25%); [ ] n 820–1640 (batch5); [ ] n ≥ 1970 alone (batch6, held)
+    - [x] Universe subsampling with frozen P* (50%, 25%) and n 820–1640 (batch5, commit 3418dfd, 0 failures).
+      Frozen P* vs pre-P2 P*: +4.9% @30, +5.7% @160, +1.1% @660, +0.5% @1310 (AUPRC 0.0722 at 1310).
+      Provisional slope (50/25% only): b(n_80) = 1.08 [0.72, 1.58], b(n_90) = 1.13 [0.79, 1.54]. n_80/N ≈ 0.35–0.37,
+      so fraction scaling; reported as a bound because external stores are not restricted to the sub-universe.
+    - [~] n ≥ 1970 + pool max (batch6), run alongside P4 under a memory guard instead of alone (jobs are ~1 core each).
 - [x] P3 oracle ceilings → GO (C, M kept). Commit fb18bb0, results/p3/summary.md.
   - [!] Greedy oracle (dev1, in-sample): s160 0.0698 vs r160 0.0416, G = 2.05 [1.55, 2.75]. Upper bound only, because it
     selects on the scored cells; a held-out-half version is queued.
