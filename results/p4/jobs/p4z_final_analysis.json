@@ -1,0 +1,34 @@
+[
+ {
+  "name": "p4_degdiag",
+  "n": 160,
+  "timeout_s": 10800,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "degdiag"
+  ]
+ },
+ {
+  "name": "p3_analyze_final",
+  "n": 160,
+  "timeout_s": 10800,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/40_p3_oracles.py",
+   "analyze",
+   "--ledger"
+  ]
+ },
+ {
+  "name": "p4_analyze_final",
+  "n": 160,
+  "timeout_s": 18000,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "analyze",
+   "--ledger"
+  ]
+ }
+]

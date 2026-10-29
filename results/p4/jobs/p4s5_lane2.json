@@ -1,0 +1,362 @@
+[
+ {
+  "name": "p4_H__b110_dev1_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H__b110",
+   "--split",
+   "dev1",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_C__b110_dev2_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C__b110",
+   "--split",
+   "dev2",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_H__b110_dev1_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H__b110",
+   "--split",
+   "dev1",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_C__b110_dev2_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C__b110",
+   "--split",
+   "dev2",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_C__feas_dev1_r0",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C__feas",
+   "--split",
+   "dev1",
+   "--traj",
+   "0"
+  ]
+ },
+ {
+  "name": "p4_C__feas_dev3_r0",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C__feas",
+   "--split",
+   "dev3",
+   "--traj",
+   "0"
+  ]
+ },
+ {
+  "name": "p4_C__feas_dev2_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C__feas",
+   "--split",
+   "dev2",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_C__feas_dev1_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C__feas",
+   "--split",
+   "dev1",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_C__feas_dev3_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C__feas",
+   "--split",
+   "dev3",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_H__min_dev3_r0",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H__min",
+   "--split",
+   "dev3",
+   "--traj",
+   "0"
+  ]
+ },
+ {
+  "name": "p4_H__min_dev3_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H__min",
+   "--split",
+   "dev3",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_H__min_dev3_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H__min",
+   "--split",
+   "dev3",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_H__b50_dev1_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H__b50",
+   "--split",
+   "dev1",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_C__b50_dev2_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C__b50",
+   "--split",
+   "dev2",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_H__b50_dev1_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H__b50",
+   "--split",
+   "dev1",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_C__b50_dev2_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C__b50",
+   "--split",
+   "dev2",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_H__feas_dev1_r0",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H__feas",
+   "--split",
+   "dev1",
+   "--traj",
+   "0"
+  ]
+ },
+ {
+  "name": "p4_H__feas_dev3_r0",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H__feas",
+   "--split",
+   "dev3",
+   "--traj",
+   "0"
+  ]
+ },
+ {
+  "name": "p4_H__feas_dev2_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H__feas",
+   "--split",
+   "dev2",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_H__feas_dev1_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H__feas",
+   "--split",
+   "dev1",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_H__feas_dev3_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "H__feas",
+   "--split",
+   "dev3",
+   "--traj",
+   "2"
+  ]
+ },
+ {
+  "name": "p4_C__min_dev2_r0",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C__min",
+   "--split",
+   "dev2",
+   "--traj",
+   "0"
+  ]
+ },
+ {
+  "name": "p4_C__min_dev2_r1",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C__min",
+   "--split",
+   "dev2",
+   "--traj",
+   "1"
+  ]
+ },
+ {
+  "name": "p4_C__min_dev2_r2",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "run",
+   "--config",
+   "C__min",
+   "--split",
+   "dev2",
+   "--traj",
+   "2"
+  ]
+ }
+]

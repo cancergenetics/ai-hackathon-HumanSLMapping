@@ -208,6 +208,26 @@ def power(per: dict, g: float, n_t: int = N_T) -> dict:
             "VQ_exceeds_target": bool(VQ > target), "R_s_required": req,
             "se_at": {R: float(np.sqrt(VQ + s2s / R + s2r / (2 * R))) for R in (3, 5, 10, 20, 30, 40)}}
 
+LAMBDA_RULE = ("M λ chosen BEFORE M trajectories 1–2 (PI instruction, 2026-10-29) by the §8 metric — mean over dev1–3 "
+               "of relative Δ(160) = (s160 − r160)/r160 vs the R0 mean — computed on trajectory 0 only (the only "
+               "M data then available; one trajectory per split for each λ ∈ {0.03, 0.3, 3}); highest mean wins. "
+               "Trajectories 1–2 were then run for the chosen λ only, so later all-trajectory means are not a "
+               "like-for-like comparison across λ.")
+
+
+def lambda_screen(rows, rnd) -> dict:
+    """Recompute the M λ screen exactly as decided: trajectory 0, n = 160, point estimates vs the R0 mean."""
+    rm = pd.DataFrame(rnd).groupby(["split", "n"]).auprc.mean()
+    out = {"rule": LAMBDA_RULE, "by_config": {}}
+    for x in rows:
+        if q2dev.parse(x["config"]).arm == "M" and "__" not in x["config"] and x["traj"] == 0 and x["n"] == 160:
+            out["by_config"].setdefault(x["config"], {})[x["split"]] = x["auprc"] / rm[(x["split"], 160)] - 1
+    for c, d in out["by_config"].items():
+        d["mean"] = float(np.mean([d[s] for s in SPLITS if s in d])) if all(s in d for s in SPLITS) else None
+    ok = {c: d["mean"] for c, d in out["by_config"].items() if d.get("mean") is not None}
+    out["chosen"] = max(ok, key=ok.get) if ok else None
+    return out
+
 
 def cmd_analyze(a) -> int:
     rows = load_rows()
@@ -286,6 +306,7 @@ def cmd_analyze(a) -> int:
     rk.to_csv(OUT / "ranking.csv", index=False)
     res["ranking"] = rk.to_dict("records")
     res["power"] = pw
+    res["lambda_screen"] = lambda_screen(rows, rnd)
     # ---- shortlist rule (§8): rank by mean over 3 splits of relative Δ(160); ≤ 1 per family (H, F, C/M); ≤ 3
     eligible = rk[(rk.family.isin(["H", "F", "C/M"])) & (rk.n_splits == 3) & (rk.R_min >= 3)]
     short = []
@@ -327,7 +348,10 @@ def cmd_analyze(a) -> int:
                              "outcome": "shortlisted" if r.config in [s["config"] for s in short] else "not_shortlisted",
                              "metrics": {"mean_rel_delta160": r.mean_rel_delta160,
                                          "per_split_160": sub[["split", "delta", "lo", "hi", "rel"]].to_dict("records"),
-                                         "G_pooled": r.G_pooled, "power": pw.get(r.config)}})
+                                         "G_pooled": r.G_pooled, "power": pw.get(r.config)},
+                          **({"selection_rule": res["lambda_screen"]["rule"],
+                              "lambda_screen_traj0": res["lambda_screen"]["by_config"].get(r.config),
+                              "lambda_chosen": res["lambda_screen"]["chosen"]} if r.arm == "M" else {})})
         for cid, sc in res["scenarios"].items():
             q2dev.ledger({"id": f"p4_{cid}", "parent": q2dev.parse(cid).arm, "config_hash": H._hash(["p4", cid]),
                              "split": "dev1-3", "kind": "p4_scenario", "outcome": "descriptive", "metrics": sc})
@@ -398,8 +422,9 @@ def _figures(cdf, df, rnd) -> None:
     m = d.groupby(["config", "n"]).agg(rel=("rel", "mean"), lo=("lo", "mean"), hi=("hi", "mean"),
                                        r=("r_mean", "mean")).reset_index()
     cfgs = [c for c in MAIN if c in set(m.config)] + sorted(set(m.config) - set(MAIN))
-    pal = ["#6b7280", "#d1495b", "#f4a3ad", "#2a78d6", "#1f4e9c", "#7fb3ef", "#9ec5f0", "#1baf7a", "#eda100",
-           "#8e44ad", "#16a085", "#c0392b", "#7f8c8d"]
+    from matplotlib.ticker import NullFormatter
+    pal = ["#6b7280", "#d1495b", "#f4a3ad", "#2a78d6", "#1f4e9c", "#7fb3ef", "#a9c8ee", "#1baf7a", "#eda100",
+           "#8e44ad", "#b07c00", "#5b2c6f", "#7f8c8d", "#e67e22", "#2c3e50"]
     fig, ax = plt.subplots(figsize=(8, 5))
     for i, c in enumerate(cfgs):
         x = m[m.config == c].sort_values("n")
@@ -408,6 +433,7 @@ def _figures(cdf, df, rnd) -> None:
     ax.set_xscale("log")
     ax.set_xticks(Q2)
     ax.set_xticklabels([str(n) for n in Q2])
+    ax.xaxis.set_minor_formatter(NullFormatter())
     ax.set_xlabel("queries screened n")
     ax.set_ylabel("relative Δ vs random at matched n (%), mean of dev1–3")
     ax.grid(alpha=0.3)
@@ -428,6 +454,9 @@ def _figures(cdf, df, rnd) -> None:
             x = df[(df.config == c) & (df.split == split)].groupby("n").auprc.mean()
             ax.plot(x.index, x.values, marker="o", ms=2.5, lw=1.2, color=pal[i % len(pal)], label=c)
         ax.set_xscale("log")
+        ax.set_xticks([30, 100, 160, 330, 660])
+        ax.set_xticklabels(["30", "100", "160", "330", "660"])
+        ax.xaxis.set_minor_formatter(NullFormatter())
         ax.set_title(split)
         ax.set_xlabel("n")
         ax.grid(alpha=0.3)
@@ -513,6 +542,15 @@ def _summary(res, cdf, rk, diag, rt, base) -> None:
     for c, x in dn.groupby("config"):
         v = x.groupby("n").rel.mean()
         L.append(f"| {c} | " + " | ".join(f"{100 * v[n]:+.1f}%" if n in v.index else "—" for n in Q2) + " |")
+    ls = res.get("lambda_screen", {})
+    if ls.get("by_config"):
+        L += ["", "## M λ screen (selection rule and the data it used)", "", ls["rule"], "",
+              "| config | dev1 | dev2 | dev3 | mean (trajectory 0 only) |", "|---|---|---|---|---|"]
+        for c, d in sorted(ls["by_config"].items()):
+            L.append(f"| {c} | " + " | ".join(f"{100 * d[s]:+.1f}%" if s in d else "—" for s in SPLITS)
+                     + f" | {100 * d['mean']:+.1f}% |" if d.get("mean") is not None else f"| {c} | incomplete |")
+        L += ["", f"Chosen: **{ls['chosen']}**. The ranking table above mixes R = 3 (chosen λ) with R = 1 (others); "
+              "all three λ are within trajectory noise (σ_s(160) of M ≈ 0.002–0.005 per split).", ""]
     pw = res["power"]
     L += ["", "## Power and R (DESIGN §5, §7.1; P4-measured)", "",
           f"g = r210 − r160 (frozen-P* dev random curves, mean of splits) = {_f(res['g_r210_r160']['mean'])}; target "

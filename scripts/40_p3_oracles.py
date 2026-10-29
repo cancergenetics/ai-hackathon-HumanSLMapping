@@ -295,6 +295,8 @@ def _figure(tab: pd.DataFrame) -> None:
         ax.set_xscale("log")
         ax.set_xticks([30, 60, 100, 160, 330, 660])
         ax.set_xticklabels(["30", "60", "100", "160", "330", "660"])
+        from matplotlib.ticker import NullFormatter
+        ax.xaxis.set_minor_formatter(NullFormatter())
         ax.set_title(f"{split} (E_fixed_dev)")
         ax.set_xlabel("queries screened n")
         ax.grid(alpha=0.3)

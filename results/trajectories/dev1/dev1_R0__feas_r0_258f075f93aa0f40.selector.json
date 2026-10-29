@@ -1,0 +1,9 @@
+{
+ "traj_id": "dev1_R0__feas_r0_258f075f93aa0f40",
+ "selector": "R0_random",
+ "params": {
+  "pool": "feasible",
+  "n_allowed": 1931
+ },
+ "rounds": []
+}
