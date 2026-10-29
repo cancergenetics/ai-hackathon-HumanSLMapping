@@ -1,6 +1,6 @@
 # DESIGN — Using the yeast GI network to design human HAP1 synthetic-lethal screens
 
-Version: **v3** (2026-10-29), after review rounds 1 (7 reviewers) and 2 (3 reviewers); `docs/reviews/design_r*_*.md`;
+Version: **v3.1** (2026-10-29, frozen design), after review rounds 1 (7 reviewers), 2 (3) and 3 (1); `docs/reviews/design_r*_*.md`;
 responses in §14–§15.
 Brief: PROMPT.md (fixed). Background: LITERATURE.md. Upstream predictor: YEAST_SLs @ 9b5dce9 (read-only; vendored in
 `third_party/ysl`, docs/recon.md). Data numbers: results/data_characterisation/summary.md.
@@ -32,7 +32,8 @@ The brief's example "5% vs 20%" is operationalised as budgets **160 (4.9%) vs 66
 - **SMF:** array-strain SMF is a single-mutant phenotype (not a GI), allowed for predictor and selector (human analogue:
   HAP1 fitness). Query-strain SMF of an unscreened gene is excluded everywhere (it only exists once the query strain is
   built/screened). For the 631 off-array genes SMF is missing; selectors may not use a "missing SMF / off-array"
-  indicator (yeast artefact; every HAP1 gene is in the library).
+  indicator as a feature or score term (yeast artefact; every HAP1 gene is in the library); routing a candidate to an
+  external-only submodel when its data are absent is allowed.
 - Tier 2 (Hoepfner 2014 chemogenomic co-fitness) — sensitivity only, never headline.
 - Excluded: GI data from any other source (incl. ExN/ExE/DAmP), Costanzo precomputed similarity/degree files,
   STRING/text mining, GO, knockout proteomics and other yeast-only resources.
@@ -50,7 +51,8 @@ selected or used for tuning/stopping/strategy design. **Dev code cannot load T r
 them; only `final_bundle` with `HSL_FINAL=1` on a clean frozen commit holds them).
 
 ## 3. Observation model, symmetric pairs, evaluation sets, metric
-**Screening** gene g ∈ D reveals its whole query row ε(g, ·), P(g, ·).
+**Screening** gene g ∈ D reveals its whole query row ε(g, ·), P(g, ·). The predictor sees all columns of screened
+rows, incl. T (dev: D_val) columns (observed pairs per the brief); only the SelectorView masks them.
 **Observed pairs / symmetric handling.** A gene pair {x, y} counts as observed iff x ∈ S or y ∈ S. If x is screened
 and y is not, only ε(x, y) (the screened direction) exists; it is available to the predictor as a feature of cell
 (y, x) (the "reciprocal" feature), but cell (y, x) is excluded from every evaluation set and is never a training label;
@@ -79,9 +81,9 @@ with ≥ 1 positive in the set (zero-positive queries counted and reported; incl
 
 ## 4. Predictors
 - **Primary predictor P\* = `stack_lr_wr2`** (upstream multi-kernel fold-in + LR; ~12–60 s per fit), or its frozen
-  successor if one passes the §8 gate before the freeze. All Q1/Q2/Q3 headlines use P*; n_req always inverts the random
+  successor if one passes the §8 gate before the P2 freeze of P*. All Q1/Q2/Q3 headlines use P*; n_req always inverts the random
   curve of the same predictor.
-- Secondary: `m1_hgb` (genome dropped; `prop_folds = 5` when n < 30), refit on the same selected sets for 5
+- Secondary: `m1_hgb` (genome dropped), refit on the same selected sets for 5
   trajectories per arm at {160, 660} (strategies) and {160, 490, 660} (random); baselines `B1_array_rate`, `B2_product` (array rate × query propensity) and `stack_lr`;
   tier-2 `m1_hgb_t2` sensitivity at 660 only.
 - **Same recipe in every arm.** Any predictor change (e.g. covariate-shift correction) applies to all arms; the strategy
@@ -94,6 +96,7 @@ with ≥ 1 positive in the set (zero-positive queries counted and reported; incl
 - Random/Q1 grid: n ∈ {10, 30, 60, 100, 120, 160, 210, 220, 330, 410, 490, 660, 820, 980, 1310, 1640, 1970, 2627}
   (220 ≈ Billmann's 222 lines).
 - Q2 checkpoints: {30, 60, 100, 160, 220, 330, 490, 660}; trajectories run to 660 (dev: to 660 or pool exhaustion).
+- Warm-start checkpoints: {220, 330, 440, 490, 660} (`budgets.yaml: warm_start_checkpoints`).
 - Random arm = nested prefixes of seeded permutations of the candidate pool (shared by Q1 and Q2).
 - Seeds via `numpy.random.SeedSequence(base).spawn(R)`; trajectory r of every arm uses model seed r (common random
   numbers). Separate RNG streams for selection and evaluation. Dev and final streams disjoint. All named seed lists
@@ -125,9 +128,10 @@ SelectorView, then their rows are revealed.
 ### 6.2 Strategy set (≤ 3 frozen for the final, chosen on dev)
 - **R0 random** (comparator): nested prefixes of seeded permutations.
 - **R1 Billmann-like** (status quo, static): round-robin over SMF × abundance tertile bins, spread across k-means
-  clusters (k = 100, fixed seed, external-kernel embedding of non-test genes).
+  clusters (k = 100, fixed seed, external-kernel embedding of non-test genes; dev: also excluding D_val); trajectory r
+  = seeded permutation of within-bin order.
 - **H hub-first:** rank candidates by predicted query-side SL degree q̂. Prior (n < 30, unfitted): rank(1 − SMF) +
-  rank(abundance), descending; off-array genes use abundance only. From n = 30: Gaussian ridge (λ by GCV) on
+  rank(abundance), descending; off-array genes score 2·rank(abundance) (same scale). From n = 30: Gaussian ridge (λ by GCV) on
   logit((k+0.5)/(m+1)) of screened rows; inputs: shrunk array-side rate ĉ_x = (k_x + 100·π̄_S)/(n_x + 100), array SMF,
   abundance, AP-MS degree, coexpression degree, conservation, paralog flag; off-array candidates use an
   external-only submodel. Batch cap ≤ 2 genes per cluster. Dev diagnostic: Spearman(q̂, true degree) on the pool.
@@ -137,15 +141,19 @@ SelectorView, then their rows are revealed.
   an (r−1)×(r−1) map B fitted by least squares on screened on-array genes; off-array candidates and cold start: KRR
   from the external kernel into the same space); ũ whitened to unit mean square; δ = mean p̂(1−p̂);
   p̂_sx = clip(q̂_s·ĉ_x/π̄_S, 1e-4, 0.5). Greedy within a batch via the determinant lemma and Sherman–Morrison; M_x
-  recomputed each round. r = 1 (u ≡ 1) reduces exactly to H's ordering (built-in ablation); r ∈ {4, 8, 16} tuned on dev.
+  recomputed each round. r = 1 (u ≡ 1) reduces exactly to H's ordering (built-in ablation; F uses the same ≤ 2-per-cluster batch cap as H);
+  r ∈ {4, 8, 16} tuned on dev. Cold start (n < 30, incl. S = ∅): p̂ ≡ const, so the objective is
+  Σ_x log det(I + Σ_s u_s u_sᵀ) with ũ = top r−1 kernel-PCA components of the external kernel (whitened); the SVD space
+  is used from n = 30. M_x := δI_r + Σ_{s∈S} p̂_sx(1−p̂_sx) u_s u_sᵀ.
 - **C coverage:** facility location over the predictor's `mk` kernel (GI sym kernel over screened on-array genes +
   external kernels), target pool = unscreened non-test candidates; one arm (its static part = external kernel only is
   reported as the round-0 behaviour).
 - **M max posterior variance:** pick argmax k(g,g) − k_gS(K_SS+λI)⁻¹k_Sg under the GI-only kernel (adaptive column
-  sampling); cheap uncertainty arm.
+  sampling); cheap uncertainty arm. Round 0 = the first batch of the R0 permutation of the same trajectory;
+  candidates without a GI column (off-array) are never picked by M (count reported).
 - **Static variants** H-static, F-static (prior/external only, chosen at round 0) measure the value of iteration.
 - Dropped: U (bootstrap uncertainty; cost and objective mismatch), V (redundant with F on the same geometry).
-- Randomised greedy: each pick sampled from the top-20 by gain (seeded) to give trajectory variance; claims refer to
+- Randomised greedy: each pick sampled uniformly from the top-20 by gain (seeded) to give trajectory variance; claims refer to
   this randomised rule; one deterministic (temperature-0) trajectory per finalist is reported alongside.
 - Compute rule: no selector fits stack_lr_wr2/m1_hgb per round; allowed per round: kernel/degree modules and at most
   one stack_lr fit. Selection seconds per round logged. Switch points/cut-offs as pool fractions.
@@ -153,15 +161,18 @@ SelectorView, then their rows are revealed.
 - **Warm start:** S_0 = 220 genes chosen by R1 (≈ Billmann's 222), then continue to 660 with R1-continuation (status
   quo), random, and the best strategies. Primary contrast: strategy vs R1-continuation at 440 and 660.
 - **Batch size:** 10 (brief), 50, 110 (= 6 rounds to 660) and one-shot (static) at n ∈ {160, 330, 660}; the Q3
-  recommendation uses the best strategy feasible in ≤ 6 HAP1 rounds.
-- **HAP1-feasible pool:** pool minus the bottom array-SMF decile; AUPRC lost reported.
-- **HAP1-minimal features:** selector restricted to fitness + coexpression + protein embeddings (no AP-MS).
+  recommendation uses the best strategy feasible in ≤ 6 HAP1 rounds. For batch b, a checkpoint n not divisible by b
+  uses the first n − b⌊n/b⌋ genes of the next batch in greedy order.
+- **HAP1-feasible pool:** pool minus the bottom array-SMF decile (off-array genes, lacking SMF, are kept); AUPRC lost
+  reported.
+- **HAP1-minimal features:** selector restricted to fitness + coexpression + protein embeddings (no AP-MS; predictor
+  unchanged).
 ### 6.4 Statistics (confirmatory family fixed now)
 - **AP engine:** exact weighted AP (scores sorted once; tie groups kept; per replicate, query weights gathered and
-  cumulated at tie-group ends). One replicate array A[b, arm, r, n] with stratified query weights w^b (11 split strata,
+  cumulated at tie-group ends). One replicate array W[rep, arm, r, n] with stratified query weights w^b (11 split strata,
   B = 2,000, same w^b for all arms) drives every inference.
-- Estimand Δ(n) = E_traj[AUPRC_s(n)] − E_traj[AUPRC_r(n)] on E_fixed with P*. SE² = V_Q + a + b with V_Q = Var_b of the
-  trajectory-mean contrast, a = σ̂²_s/R_s, b = σ̂²_r/R_r; ν = SE⁴/[a²/(R_s−1) + b²/(R_r−1)] (V_Q treated as known;
+- Estimand Δ(n) = E_traj[AUPRC_s(n)] − E_traj[AUPRC_r(n)] on E_fixed with P*. SE² = V_Q + σ̂²_s/R_s + σ̂²_r/R_r with V_Q = Var
+  over replicates of the trajectory-mean contrast; ν = SE⁴/[(σ̂²_s/R_s)²/(R_s−1) + (σ̂²_r/R_r)²/(R_r−1)] (V_Q treated as known;
   ignoring the CRN covariance is conservative); one-sided p = 1 − T_ν(Δ̂/SE). Paired predictor-change contrasts (same
   S) use Var(d_r)/R + V_Q(d̄).
 - **Family** (one-sided, Holm, familywise α = 0.025): for each of ≤ 3 frozen strategies, (c1) AUPRC_s(160) >
@@ -197,7 +208,8 @@ draws each; inner fold structure rebuilt inside each; T outside every sub-univer
 permutations per draw, budget grid scaled so fractions match. External features restricted to the sub-universe and
 every derived statistic (degrees, quantile ranks, clusters, kernels' normalisation) recomputed inside it where the
 upstream code allows; otherwise the result is labelled a bound. Fit the slope b of log n_80 (and log n_90) on log N
-(N = candidate-pool size) by OLS over the 9 draws (draw-bootstrap CI): b ≈ 0 → count scaling, b ≈ 1 → fraction
+(N = candidate-pool size) by OLS over 9 draws (3 per level: 100% = dev splits 1–3, 50%, 25%; levels {100, 50} only, 6 draws, if the §12
+trigger fires; draw-bootstrap CI; N = candidate-pool size, proportional to N_yeast across levels so b is unaffected): b ≈ 0 → count scaling, b ≈ 1 → fraction
 scaling. HAP1 translation: n_HAP1 = n_yeast · (N_HAP1/N_yeast)^b, with b = 0 and b = 1 shown as bounds. Report the
 positive count of E_fixed_dev at 25% (noise check). Caveat: subsampling mimics fewer genes per module, not more modules.
 ### 7.4 HAP1 translation and actionability
@@ -227,25 +239,28 @@ positive count of E_fixed_dev at 25% (noise check). Caveat: subsampling mimics f
   configuration), paired contrasts at n ∈ {30, 160, 330}: mean relative gain ≥ 2% (over budgets and splits), the 95% CI
   at n = 160 excludes 0 on ≥ 2/3 dev splits, same sign on the re-split check.
 - **Strategy shortlist:** ≥ 3 trajectories per configuration per split; rank by the mean over the 3 splits of relative
-  Δ(160); at most one variant per family (H, F, C/M) advances; ≤ 3 finalists. Static counterparts of finalists run on T
-  as descriptive arms outside the family.
+  Δ(160); at most one variant per family (H, F, C/M) advances; ≤ 3 finalists. R1, the static counterparts of finalists, and the warm-start
+  and batch-size scenarios for the best ≤ 2 run on T as descriptive arms outside the family; the feasible-pool and
+  minimal-features scenarios are dev only.
 - **Surrogate** (closed-form fold-in) may be used for tuning only if its within-n Spearman with P* AUPRC across random
   trajectories at n ∈ {30, 160, 330} is ≥ 0.8 and, once ≥ 5 configurations exist, Spearman(surrogate Δ, P* Δ) at
   n = 160 ≥ 0.7.
 - **Ledger** (`results/LEDGER.jsonl`, append-only, one line per configuration: id, parent, config hash, split,
   outcome, metrics); the count is reported.
 - **Freeze:** `config/finalists.yaml` + `config/frozen.yaml` (hashes of hsl/eval.py, hsl/views.py, hsl/guard.py,
-  harness, protocol.yaml, split files, seeds, budgets, PROVENANCE.md, yeast_sls_commit.txt, data checksum table).
+  harness, protocol.yaml, split files, seeds, budgets, third_party/ysl/PROVENANCE.md, config/feature_provenance.yaml
+  (source; docs/feature_provenance.md rendered from it), DATA.md, yeast_sls_commit.txt, data checksum table).
   Sub-agents never edit frozen files; a failing frozen test is reported, never worked around.
 
 ## 9. Phases and gates (recorded in RESEARCH_TREE.md)
 - **P0 infrastructure** (eval engine, views/guard, SelectorView, harness, launcher, protocol.yaml, tests, provenance).
 - **P1:** dev random curves (P* + baselines; m1_hgb subset) + power pilot + universe subsampling (P* only).
 - **P2 predictor development** for n ≤ 330 (n-dependent GI weight, propensity features, small-n degeneracies) on the
-  P1 trajectories → **freeze P*** before any strategy work.
+  P1 trajectories → **freeze P*** before any strategy work. If P2 changes P*, the power pilot and the
+  universe-subsampling curves are re-run with the frozen P* before P3 (the §12 50%-only trigger still applies).
 - **P3 ceilings (go/no-go):** oracle hub-first (true query degree; all 3 splits; free) and greedy oracle (closed-form
   fold-in; 200 random candidates per **round of 10**, top-10 by realised E_fixed_dev gain; split 1 only, to n = 160) —
-  evaluation-only diagnostics. If the oracles reach G < 0.5 at n = 160, de-scope C/M and say so.
+  evaluation-only diagnostics. If both oracles have G < 0.5 at n = 160, de-scope C/M and say so.
 - **P4:** strategies on dev (R1, H, H-static, F, F-static, C, M) → shortlist; warm start, batch size, feasible pool,
   minimal features for the best ≤ 2; R fixed → **freeze** → **Final** (Q1 + Q2 on T) → Q3 analyses → REPORT →
   optional items.
@@ -270,13 +285,16 @@ ledger line. Candidate pool = D (minus identity removals); T evaluated.
   milestone and the final (≥ 3 strategy/n cells + the Q2 verdict). REPORT numbers rendered from `results/claims.json`
   via `{{claim:id}}` placeholders (test: all placeholders resolve).
 - YEAST_SLs read-only: `hsl.guard` + `scripts/check_readonly.sh` at each milestone.
+- Repo hygiene: a DATA.md row (source, version, checksum, licence) per dataset is asserted at each milestone; raw and
+  restricted data paths are git-ignored and a test fails if any is tracked.
 
 ## 12. Compute
 M2, 8 cores, 24 GB. Concurrency per §4. Rough v3 estimate (round-2 review): 70–90 job-h before cuts. Wall-clock
 triggers, applied in order and logged in the tree: if P1 > 6 h wall → universe subsampling to the 50% level only; if
-P1–P3 > 14 h → m1_hgb Q1 grid to {160, 660, 2627} × 3; if P4 > 12 h → stop dev trajectories of strategies eliminated
-after split 1, drop batch-50; if the final > 10 h → R at the pilot minimum. Every result row records fit/predict and
-selection wall-clock.
+P1–P3 > 14 h → m1_hgb Q1-only budgets {30, 1310} dropped (the §4 Q2 set {160, 490, 660} × 5 and 2627 kept); if P4 >
+12 h → stop dev trajectories of strategies eliminated after split 1, drop batch-50; if the projected final (P4 timings
+× R) exceeds 10 h, R is set at the pilot minimum *before* the freeze; R is never changed after it. Every result row
+records fit/predict and selection wall-clock.
 
 ## 13. Threats and limitations
 Single-direction labels are noisy (κ 0.14), capping AUPRC; NxN lacks essential genes; yeast→HAP1 scaling tested only by
@@ -288,10 +306,10 @@ columns (strata reported); T not blind for upstream predictors (declared); rando
 |---|---|---|
 | ext. PI | 1 n_80/n_90; 2 scaling experiment; 3 gap closure G; 4 oracle ceilings first; 5 R1 + warm start; 6 one primary predictor; 7 discovery axis; 8 reciprocal reference; 9 E_fixed characterisation + agreement rule; 10 batch size; 11 drop U, add M; 12 phase gates; 13 trajectory variance | A (all) |
 | ext. PI | 14 availability subset; 15 strict label; 16 per-query rules | P: 14 replaced by HAP1-feasible pool (domain #2); 15 optional secondary; 16 A |
-| statistics | 1 tie-aware AP; 2 macro rules; 4 variance decomposition; 5 stratified B=10k binned; 8 CRN; 9 power pilot; 11 family/Holm; 12 budget-scale margin (160 vs 490); 13 isotonic censored n_req; 14 no T columns in dev eval; 15 disjoint folds + confirmation + ledger; 16 same recipe; 17 thresholds not on T; 18 stopping metrics | A |
-| statistics | 3 E_common; 6 two-way bootstrap; 7 model-seed variance; 10 m1_hgb on same trajectories; 19 per-seed fit | A |
+| statistics | 1 tie-aware AP; 2 macro rules; 4 variance decomposition; 5 stratified bootstrap (v3: exact weighted AP, B = 2,000); 8 CRN; 9 power pilot; 11 family/Holm; 12 budget-scale margin (160 vs 490); 13 isotonic censored n_req; 14 no T columns in dev eval; 15 disjoint folds + re-split check (n ≤ 330) + ledger; 16 same recipe; 17 thresholds not on T; 18 stopping metrics | A |
+| statistics | 3 E_common (dropped in v3, §15); 6 two-way bootstrap; 7 model-seed variance; 10 m1_hgb on same trajectories; 19 per-seed fit | A |
 | data | 1 drop genome; 2 E_AO/E_TT strata + agreement; 3 SelectorView spec + per-channel tests; 4 wording/coverage; 5 identity exclusions; 6 lockbox declaration + 23-gene sensitivity; 7 on-array stratum for HAP1; 8 SMF; 9 provenance table; 10 assertions; 11 seeds | A |
-| algorithms | 1 F; 2 shared kernel module; 3 drop U; 4 degree model spec; 5 oracle; 6 surrogate with fidelity check; 7 selector compute rule; 8 B2_product; 9 R1; 10 trajectory variance; 11 batch cap; 12 masking; 13 pool fractions; 14–15 low-n predictor ideas (P5) | A |
+| algorithms | 1 F; 2 shared kernel module; 3 drop U; 4 degree model spec; 5 oracle; 6 surrogate with fidelity check; 7 selector compute rule; 8 B2_product; 9 R1; 10 trajectory variance; 11 batch cap; 12 masking; 13 pool fractions; 14–15 low-n predictor ideas (P2) | A |
 | prior work | 1 scaling test; 2 baselines (R1; adaptive column sampling = M; TypiClust ≈ C); 5 n=220; 6 discovery; 7 phased hybrid (F/H + static first); 8 strict label; 9 reframe precision; 11 efficiency currency | A / P (TypiClust folded into C) |
 | prior work | 3 like-for-like upstream anchor | P: upstream-protocol reproduction on dev only (cells incl. reciprocal), T comparison post hoc in final |
 | prior work | 4, 12 Billmann degree distribution / hub transfer | P: optional, evaluation-only, post-freeze (§7.4) |
@@ -315,3 +333,4 @@ columns (strata reported); T not blind for upstream predictors (declared); rando
 - v1 (2026-10-29): first draft.
 - v2 (2026-10-29): round-1 revisions (§14).
 - v3 (2026-10-29): round-2 revisions (§15).
+- v3.1 (2026-10-29): round-3 consistency edits (docs/reviews/design_r3_consistency.md, all accepted). Design frozen.
