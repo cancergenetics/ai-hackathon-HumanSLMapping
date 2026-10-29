@@ -32,7 +32,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from hsl import config, eval as E, final as F, p1, q2dev
+from hsl import config, eval as E, final as F, p1, q2dev, views
 
 ROOT = F.ROOT
 STAT = config.protocol()["stats"]
@@ -116,6 +116,16 @@ class Scorer:
         return {"arm": cid, "child": pc, "parent": pp, "n": n, "delta": w["delta"], "rel": w["rel_gain"],
                 "lo": w["ci95"][0], "hi": w["ci95"][1], "p": w["p_one_sided"], "R": w["R"]}
 
+    SEC = ("macro_auprc", "auroc", "p_at_10", "p_at_50")
+
+    def secondary(self, x) -> dict:
+        """DESIGN §3 secondary metrics of one unit: the harness values stored at run time (computed after the
+        predictions were saved), or recomputed from the saved predictions for rows that predate them."""
+        if all(x.get(k) is not None for k in self.SEC):
+            return {k: float(x[k]) for k in self.SEC}
+        m = E.summarise(self.L.y, self.eng.scores(x["pred_file"]), self.L.rows)
+        return {k: float(m[k]) for k in self.SEC}
+
     def point(self, pred_file, stratum):
         """Unit-weight AP on a stratum (no bootstrap) for descriptive tables."""
         k = (pred_file, stratum)
@@ -178,6 +188,7 @@ def brief_and_g(S: Scorer, fam: pd.DataFrame, out: dict) -> list[dict]:
                     "matches_delta": mt and mt["delta"], "matches_lo": mt and mt["lo"], "matches_hi": mt and mt["hi"],
                     "matches_p": mt and mt["p"], "matches_rejected": mt_rej, "c1_rejected_holm": c1_rej,
                     "G": G["G"], "G_lo": G["G_ci"][0], "G_hi": G["G_ci"][1], "G_defined": G["defined"],
+                    "G_frac_nonfinite": G["frac_nonfinite"],
                     "gap_r660_r160": G["den"], "gap_ci": G["den_ci"], "G_star": gs,
                     "G_star_discriminating": gs >= float(STAT["g_star_min"]), "matches_claim_allowed": allowed})
     out["brief_G"] = rec
@@ -249,19 +260,25 @@ def q1(S: Scorer, out: dict) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
             rr = [x for x in rows if int(x["n"]) == n]
             ok = np.isfinite(est[:, j])
             pr10 = [p1.precision_at_recall(S.L.y, S.eng.scores(x["pred_file"]), 0.1) for x in rr]
-            st = {f"auprc_{k}": float(np.mean([S.point(x["pred_file"], k) for x in rr])) for k in ("AO", "TT", "onrows")} \
-                if pk == "pstar" else {}
+            st = {f"auprc_{k}": float(np.mean([S.point(x["pred_file"], k) for x in rr]))
+                  for k in ("AO", "TT", "onrows", "offrows", "tert1", "tert2", "tert3")} if pk == "pstar" else {}
+            sec = pd.DataFrame([S.secondary(x) for x in rr]).mean().to_dict()
             lo, hi = q2dev.ci(Mb[:, j])
             curves.append({"predictor": pk, "n": n, "R": int(ok.sum()), "auprc_mean": float(np.nanmean(est[:, j])),
                            "auprc_sd": float(np.nanstd(est[:, j], ddof=1)) if ok.sum() > 1 else float("nan"),
                            "ci_lo": lo, "ci_hi": hi, "prevalence": prev,
                            "lift": float(np.nanmean(est[:, j])) / prev, "prec_at_recall10": float(np.mean(pr10)),
                            "sl_detected_frac": float(np.mean([x["sl_detected_frac"] for x in rr])),
-                           "fit_predict_s": float(np.median([x["fit_predict_s"] for x in rr])), **st})
+                           "fit_predict_s": float(np.median([x["fit_predict_s"] for x in rr])),
+                           "boot_reps_dropped": int(np.isnan(Mb[:, j]).sum()), **sec, **st})
         curve = np.nanmean(est, axis=0)
         anchor_is_pool = grid[-1] == pool_n
         base = {"predictor": pk, "R": len(tr), "grid": "|".join(map(str, grid)), "anchor_n": grid[-1],
-                "anchor_is_pool_max": anchor_is_pool, "auprc_anchor_pava": float(E.pava(curve)[-1])}
+                "anchor_is_pool_max": anchor_is_pool, "auprc_anchor_pava": float(E.pava(curve)[-1]),
+                "R_at_anchor": int(np.isfinite(est[:, -1]).sum()),
+                # replicates whose resampled trajectories include none observed at some budget (R < R_r there):
+                # their curve has a NaN point and n_X is NaN, dropped from the CI (review L; counted here)
+                "boot_reps_dropped": int(np.isnan(Mb).any(axis=1).sum())}
         for fr in (float(STAT["n80_frac"]), float(STAT["n90_frac"])):
             key = f"n{int(round(fr * 100))}"
             pt = E.n_req(fr * E.pava(curve)[-1], grid, curve)
@@ -277,6 +294,9 @@ def q1(S: Scorer, out: dict) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         from scipy.optimize import curve_fit
         fn = lambda n, a, b, c: a - b * n ** (-c)  # noqa: E731
         df = pd.DataFrame([{"traj": x["traj"], "n": x["n"], "auprc": S.point(x["pred_file"], "all")} for x in rows])
+        nt = df.traj.nunique()
+        common = sorted(n for n, k in df.groupby("n").traj.nunique().items() if k == nt)   # budgets every traj has
+        df = df[df.n.isin(common)]
         pars = []
         for _, d in df.groupby("traj"):
             d = d.sort_values("n")
@@ -292,7 +312,7 @@ def q1(S: Scorer, out: dict) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
             Pm = np.array(pars)
             rng = np.random.default_rng(F.boot_seed(S.P, "q1_satfit"))
             bs = np.array([Pm[rng.integers(0, len(Pm), len(Pm))].mean(0) for _ in range(2000)])
-            sat.append({"predictor": "pstar", "n_fits": len(Pm),
+            sat.append({"predictor": "pstar", "n_fits": len(Pm), "grid": "|".join(map(str, common)),
                         **{k: float(Pm[:, i].mean()) for i, k in enumerate("abc")},
                         **{f"{k}_lo": float(np.quantile(bs[:, i], .025)) for i, k in enumerate("abc")},
                         **{f"{k}_hi": float(np.quantile(bs[:, i], .975)) for i, k in enumerate("abc")}})
@@ -416,7 +436,9 @@ def per_arm_tables(S: Scorer) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]
                 disc.append({"arm": cid, "n": int(n), "R": len(d), "sl_detected_mean": d.sl_detected.mean(),
                              "sl_detected_frac_mean": d.sl_detected_frac.mean(),
                              "offarray_share_mean": d.offarray_share.mean(),
-                             "auprc_mean": float(np.mean([S.point(f, "all") for f in d.pred_file]))})
+                             "auprc_mean": float(np.mean([S.point(f, "all") for f in d.pred_file])),
+                             **pd.DataFrame([S.secondary(x) for x in S.by[(cid, pk)] if int(x["n"]) == int(n)])
+                             .mean().add_suffix("_mean").to_dict()})
             rt.append({"arm": cid, "pred": pk, "n": int(n), "R": len(d), "fit_predict_s_median": d.fit_predict_s.median(),
                        "eval_total_s_median": d.eval_total_s.median(), "unit_wall_s_median": d.unit_wall_s.median(),
                        "peak_rss_fit_gb_max": d.peak_rss_fit_gb.max(), "select_s_cum_mean": d.select_s_cum.mean()})
@@ -508,17 +530,22 @@ def write_summary(S, OUT, out, fam, bg, q2, nreq, q1c, nx, sat, cdf, eu, disc, r
           f"done {prog[0]}/{prog[1]}; evaluation set `{S.L.man['eset']}` ({S.L.man['counts']['n_cells']} cells, "
           f"prevalence {S.L.man['counts']['prevalence']:.5f}). Predictor P* `{S.P['preds']['pstar'][0]}`. Inference: "
           f"B = {S.P['B']} shared stratified query-bootstrap replicates; Welch SE (V_Q + σ̂²_s/R_s + σ̂²_r/R_r).", ""]
+    sw = out["scored_with"]
+    L += [f"Scored with git `{sw['git']['head'][:10]}` (tree dirty: {sw['git']['dirty']}); frozen check: "
+          f"{'ok' if sw['frozen_check']['ok'] else 'NOT OK — ' + sw['frozen_check']['detail']}; code SHA-256 in "
+          "summary.json `scored_with`. Headline rule: the shared sign must also be positive.", ""]
     L += ["## Confirmatory family (one-sided, Holm, familywise α = " + _f(S.alpha, 3) + ")", "",
           "| finalist | H | s | r | Δ | 95% CI | p | p (Holm) | reject |", "|---|---|---|---|---|---|---|---|---|"]
     for _, r in fam.iterrows():
         L.append(f"| {r.finalist} | {r.hypothesis}: {r.H1} | {_f(r.get('s_a'))} | {_f(r.get('s_b'))} | {_f(r.get('delta'))} | "
                  f"[{_f(r.get('lo'))}, {_f(r.get('hi'))}] | {_f(r.p, 4)} | {_f(r.p_holm, 4)} | {'**yes**' if r.reject else 'no'} |")
     L += ["", "## Brief example (s160 vs r660), gap closure G, G*, 'matches 20% random'", "",
-          "| finalist | s160 − r660 [CI] | G [95% CI] (defined) | G* | matches: s160 − 0.95·r660 [CI], p | claim allowed |",
+          "| finalist | s160 − r660 [CI] | G [95% CI] (defined; non-finite reps) | G* | matches: s160 − 0.95·r660 [CI], p | claim allowed |",
           "|---|---|---|---|---|---|"]
     for r in bg:
         L.append(f"| {r['finalist']} | {_f(r['brief_delta'])} [{_f(r['brief_lo'])}, {_f(r['brief_hi'])}] | "
-                 f"{_f(r['G'], 2)} [{_f(r['G_lo'], 2)}, {_f(r['G_hi'], 2)}] ({'yes' if r['G_defined'] else 'no'}) | "
+                 f"{_f(r['G'], 2)} [{_f(r['G_lo'], 2)}, {_f(r['G_hi'], 2)}] ({'yes' if r['G_defined'] else 'no'}; "
+                 f"{100 * r['G_frac_nonfinite']:.1f}%) | "
                  f"{_f(r['G_star'], 2)} | {_f(r['matches_delta'])} [{_f(r['matches_lo'])}, {_f(r['matches_hi'])}], "
                  f"p = {_f(r['matches_p'], 3)} | {'yes' if r['matches_claim_allowed'] else 'no'} |")
     L += ["", "'Matches' may be stated only if the matches contrast is rejected, c1 is rejected (Holm) and G* ≥ "
@@ -562,13 +589,13 @@ def write_summary(S, OUT, out, fam, bg, q2, nreq, q1c, nx, sat, cdf, eu, disc, r
     if len(nx):
         L += ["", "## Q1: n_80 / n_90 (PAVA + log-n interpolation of the random mean curve; anchor = AUPRC at the "
               "pool maximum; joint bootstrap)", "",
-              "| predictor | R | anchor n (pool max?) | AUPRC anchor | n_80 [CI] | n_90 [CI] | censored frac 80/90 |",
-              "|---|---|---|---|---|---|---|"]
+              "| predictor | R (at anchor) | anchor n (pool max?) | AUPRC anchor | n_80 [CI] | n_90 [CI] | censored frac 80/90 | boot reps dropped |",
+              "|---|---|---|---|---|---|---|---|"]
         for _, r in nx.iterrows():
-            L.append(f"| {r.predictor} | {r.R} | {r.anchor_n} ({'yes' if r.anchor_is_pool_max else 'NO'}) | "
+            L.append(f"| {r.predictor} | {r.R} ({r.R_at_anchor}) | {r.anchor_n} ({'yes' if r.anchor_is_pool_max else 'NO'}) | "
                      f"{_f(r.auprc_anchor_pava)} | {_f(r.n80, 0)} [{_f(r.n80_lo, 0)}, {_f(r.n80_hi, 0)}] | "
                      f"{_f(r.n90, 0)} [{_f(r.n90_lo, 0)}, {_f(r.n90_hi, 0)}] | {_f(r.n80_frac_censored, 2)}/"
-                     f"{_f(r.n90_frac_censored, 2)} |")
+                     f"{_f(r.n90_frac_censored, 2)} | {r.boot_reps_dropped} |")
     if len(q1c):
         L += ["", "## Q1 random curves (mean, SD, joint-bootstrap CI of the trajectory mean)", "",
               "| predictor | n | R | AUPRC | SD | CI | lift | prec@10% recall | SLs detected (frac) |",
@@ -578,7 +605,8 @@ def write_summary(S, OUT, out, fam, bg, q2, nreq, q1c, nx, sat, cdf, eu, disc, r
                      f"{_f(r.ci_hi)}] | {_f(r.lift, 2)} | {_f(r.prec_at_recall10, 3)} | {_f(r.sl_detected_frac, 3)} |")
     if len(sat):
         r = sat.iloc[0]
-        L += ["", f"Saturating fit a − b·n^−c (P*, per permutation, seed-cluster bootstrap): a = {_f(r.a)} "
+        L += ["", f"Saturating fit a − b·n^−c (P*, per permutation on the budgets every permutation has: {r.grid}; "
+              f"seed-cluster bootstrap): a = {_f(r.a)} "
               f"[{_f(r.a_lo)}, {_f(r.a_hi)}], b = {_f(r.b)}, c = {_f(r.c, 3)} [{_f(r.c_lo, 3)}, {_f(r.c_hi, 3)}] "
               f"({int(r.n_fits)} fits; descriptive)."]
     if len(cdf):
@@ -603,17 +631,19 @@ def write_summary(S, OUT, out, fam, bg, q2, nreq, q1c, nx, sat, cdf, eu, disc, r
         for _, r in eu.sort_values(["arm", "n"]).iterrows():
             L.append(f"| {r.arm} | {r.n} | {r.R} | {_f(r.auprc_mean)} | {_f(r.prevalence_mean, 5)} | {_f(r.lift_mean, 2)} |")
     if len(disc):
-        L += ["", "## Discovery and off-array share (P* rows)", "",
-              "| arm | n | SLs detected | frac of pool SLs | off-array share | AUPRC |", "|---|---|---|---|---|---|"]
+        L += ["", "## Discovery, off-array share and DESIGN §3 secondary metrics (P* rows; means over trajectories)", "",
+              "| arm | n | SLs detected | frac of pool SLs | off-array share | AUPRC | macro AUPRC | AUROC | p@10 | p@50 |",
+              "|---|---|---|---|---|---|---|---|---|---|"]
         for _, r in disc.sort_values(["arm", "n"]).iterrows():
             L.append(f"| {r.arm} | {r.n} | {_f(r.sl_detected_mean, 0)} | {_f(r.sl_detected_frac_mean, 3)} | "
-                     f"{_f(r.offarray_share_mean, 3)} | {_f(r.auprc_mean)} |")
+                     f"{_f(r.offarray_share_mean, 3)} | {_f(r.auprc_mean)} | {_f(r.macro_auprc_mean)} | "
+                     f"{_f(r.auroc_mean, 3)} | {_f(r.p_at_10_mean, 3)} | {_f(r.p_at_50_mean, 3)} |")
     L += ["", "## Runtime", "", f"See `runtime.csv` (per arm × predictor × n: fit+predict, unit wall, peak RSS). "
           f"Bootstrap vectors computed this run: {S.eng.n_vectors}.", "",
           "Files: " + ", ".join(f"`{x}`" for x in ["summary.json", "confirmatory.csv", "contrasts.csv", "q2_curves.csv",
                                                    "n_req.csv", "q1_curves.csv", "q1_nx.csv", "q1_satfit.csv",
                                                    "e_unobs.csv", "discovery.csv", "runtime.csv", "runs.csv",
-                                                   "selections.json.gz", "lock_record.json"] + figs), ""]
+                                                   "selections.json.gz", "lock_record.json", "run_ledger.jsonl"] + figs), ""]
     (OUT / "summary.md").write_text("\n".join(L) + "\n")
 
 
@@ -634,6 +664,15 @@ def score(mode: str, partial: bool = False) -> dict:
     done, tot = sum(d for d, _ in prog.values()), sum(t for _, t in prog.values())
     if done < tot and not partial:
         raise SystemExit(f"{tot - done} of {tot} units not done: finish (run_final.py resume) or pass --partial")
+    if done < tot and mode == "final":
+        raise SystemExit("score --partial is refused in final mode (no unplanned look at T; review F3)")
+    # F4: the scoring code and every frozen input must be the frozen versions; record what scored
+    fz = F.check_frozen(ROOT)
+    if mode == "final" and not fz.ok:
+        raise SystemExit(f"frozen files changed since the freeze: {fz.detail}")
+    code = {f: F.sha256_file(ROOT / f) for f in ("scripts/score_final.py", "src/hsl/final.py", "src/hsl/q2dev.py",
+                                                  "src/hsl/eval.py", "src/hsl/p1.py", "config/finalists.yaml",
+                                                  "config/protocol.yaml")}
     rows = {}
     for x in F.read_parts(P):
         if x.get("pred_file") and (ROOT / x["pred_file"]).exists():
@@ -647,7 +686,8 @@ def score(mode: str, partial: bool = False) -> dict:
     OUT = P["out"]
     OUT.mkdir(parents=True, exist_ok=True)
     out = {"mode": mode, "lock": lk, "units_done": done, "units_total": tot, "partial": bool(done < tot),
-           "inline_ap_checked": n_chk, "label_manifest": S.L.man, "R_s": P["R_s"], "R_r": P["R_r"], "B": P["B"]}
+           "inline_ap_checked": n_chk, "label_manifest": S.L.man, "R_s": P["R_s"], "R_r": P["R_r"], "B": P["B"],
+           "scored_with": {"git": views.git_state(), "frozen_check": fz.__dict__, "code_sha256": code}}
     contrasts = []
     fam = family(S, out)
     bg = brief_and_g(S, fam, out)
@@ -678,6 +718,8 @@ def score(mode: str, partial: bool = False) -> dict:
     with gzip.open(OUT / "selections.json.gz", "wt") as fh:
         json.dump(sels, fh)
     shutil.copyfile(P["lock"], OUT / "lock_record.json")
+    if (P["run"] / "LEDGER_final.jsonl").exists():                # crash / resume history (§10), committed copy
+        shutil.copyfile(P["run"] / "LEDGER_final.jsonl", OUT / "run_ledger.jsonl")
     tag = " (DRY RUN)" if mode == "dryrun" else ""
     figs = figures(S, OUT, q1c, q2[q2.role.isin(["finalist", "R1", "static"])] if len(q2) else q2, disc, tag)
     out["score_wall_s"] = time.time() - t0
@@ -717,7 +759,26 @@ def cost_projection() -> int:
             continue
         meas.append({"pred": k, "n": int(x["n"]), "t": float(x["wall_s"]), "rss": x.get("peak_rss_fit_gb"), "src": "p1"})
     md = pd.DataFrame(meas)
-    scale_T = P["n_targets"] / max(Pd["n_targets"], 1)
+    # time scaling to |T| targets: from the calibration pairs (same n, re-split ~1,050 vs dev1 526 targets, same day):
+    # r = fit+predict(re-split) / fit+predict(dev1); time(T) = time(dev) * (1 + (r - 1) * (|T| - |dev|) / (|rs| - |dev|))
+    cal = p1.read_rows([ROOT / "results" / "final_dryrun" / "rss_calibration.jsonl"])
+    ratios, n_rs = {}, None
+    for x in cal:
+        if x["split"] != "resplit":
+            continue
+        n_rs = x["n_targets"]
+        d = [y for y in cal if y["split"] != "resplit" and y["pred"] == x["pred"] and y["n"] == x["n"]]
+        if d:
+            ratios.setdefault(x["pred"], []).append(x["fit_predict_s"] / d[-1]["fit_predict_s"])
+    ratios = {k: float(np.mean(v)) for k, v in ratios.items()}
+    r_def = ratios.get("pstar")
+
+    def scale_for(pred):
+        r = ratios.get(pred, r_def)
+        if r is None or not n_rs:
+            return P["n_targets"] / max(Pd["n_targets"], 1)          # proportional (conservative) fallback
+        return max(1.0, 1 + (r - 1) * (P["n_targets"] - Pd["n_targets"]) / (n_rs - Pd["n_targets"]))
+    scale_T = {k: scale_for(k) for k in P["preds"]}
     tab = md.groupby(["src", "pred", "n"]).agg(t=("t", "median"), rss=("rss", "max"), k=("t", "size")).reset_index()
 
     def _curve(d, n):
@@ -776,7 +837,7 @@ def cost_projection() -> int:
             T = over + sel_t.get(roles[j["cid"]], 0.0)
             for c, r, n, pk, e in us:
                 t, _, _ = est(pk, int(n), how)
-                t *= scale_T
+                t *= scale_T[pk]
                 T += t
                 unit_rows.append({"role": roles[c], "pred": pk, "n": int(n), "t": t, "est": how})
             jobs.append({"name": j["name"], "role": roles[j["cid"]], "group": j["group"], "cls": j["cls"], "t": T,
@@ -837,13 +898,15 @@ def cost_projection() -> int:
     OUT = ROOT / "results" / "final_dryrun"
     OUT.mkdir(parents=True, exist_ok=True)
     tb = tab.copy()
-    tb["t_final_scaled"] = tb.t * scale_T
+    tb["t_final_scaled"] = tb.t * tb.pred.map(scale_T)
     lines = ["# Cost projection for the REAL final (plan of mode `final`)", "",
              f"Inputs: per-unit wall time (fit + predict + E_fixed scoring + save) = median of measured runs per "
              f"(predictor, n): dry-run rows on dev1 (this machine, 1 job, 2 threads, shared with a running batch) and "
              f"P1 random-curve rows (up to 4 concurrent jobs, loaded machine), interpolated in log n; above the largest "
-             f"measured n: power-law fit (time) / linear fit (RSS) over n >= max/3 (flagged). Scaled × {scale_T:.2f} (= |T| {P['n_targets']} / "
-             f"|dev1 targets| {Pd['n_targets']}) for the larger prediction grid. Selection per trajectory = dry-run "
+             f"measured n: power-law fit (time) / linear fit (RSS) over n >= max/3 (flagged). Scaled to |T| = {P['n_targets']} targets per predictor "
+             f"(" + ", ".join(f"{k} ×{v:.2f}" for k, v in scale_T.items()) + f"; from same-day calibration pairs, re-split "
+             f"{n_rs} vs dev1 {Pd['n_targets']} targets, fit+predict ratios " + ", ".join(f"{k} {v:.2f}" for k, v in ratios.items())
+             + f"; predictors without a pair use P*'s ratio) for the larger prediction grid. Selection per trajectory = dry-run "
              f"median by arm role (full trajectories to 660): " + ", ".join(f"{k} {v:.0f} s" for k, v in sel_t.items())
              + f". Per-job overhead {over:.0f} s. Job memory = the launch.py `rss_gb` hint (finalists.yaml compute: "
                "fitted on measured peak RSS, scaled for |T|), the same number the gate uses.", "",

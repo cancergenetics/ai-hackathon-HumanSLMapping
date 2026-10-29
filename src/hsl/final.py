@@ -58,10 +58,10 @@ FROZEN_SPEC = {
                   "config/feature_provenance.yaml", "DATA.md", "config/yeast_sls_commit.txt",
                   "results/data_checksums/checksums.json"],
     "final_plan": [FINALISTS],
-    "extended": ["config/strategies.yaml", "config/paths.yaml", "src/hsl/__init__.py", "src/hsl/config.py",
-                 "src/hsl/paths.py", "src/hsl/features.py", "src/hsl/upstream.py", "src/hsl/p1.py",
-                 "src/hsl/q2dev.py", "src/hsl/final.py", "src/hsl/strategies/*.py", "scripts/run_final.py",
-                 "scripts/score_final.py", "scripts/launch.py", "third_party/ysl/**/*.py"],
+    "extended": ["config/strategies.yaml", "config/paths.yaml", "src/hsl/**/*.py", "scripts/run_final.py",
+                 "scripts/score_final.py", "scripts/launch.py", "scripts/make_frozen.py", "third_party/ysl/**/*.py"],
+    # untracked (gitignored) files the jobs read, hashed from disk: the k-means clusters of the H/F/C batch cap
+    "untracked_cache": ["data/cache/clusters_*.npz"],
 }
 
 
@@ -322,13 +322,16 @@ def plan_job(plan: dict, name: str) -> Job:
 
 
 def rss_hint_gb(P: dict, pred: str, n: int) -> float:
-    """Expected peak RSS (GB) of one unit (finalists.yaml compute: fitted on measured runs, scaled for |T|)."""
+    """Expected peak RSS (GB) of one unit: a + b·n/1000 (fit on dev runs with ~rss_ref_targets targets)
+    + k·(n_targets − rss_ref_targets)/100 (k from the re-split calibration) + margin (finalists.yaml compute)."""
     c = P.get("compute") or {}
     fit = (c.get("rss_fit_gb") or {}).get(pred)
     if not fit:
         return float(config.protocol()["compute"]["rss_cap_gb_per_job"])
     a, b = fit
-    return float(c.get("rss_scale", 1.0)) * (a + b * int(n) / 1000.0) + float(c.get("rss_margin_gb", 0.0))
+    k = float((c.get("rss_target_gb_per_100") or {}).get(pred, 0.0))
+    dt = max(0, int(P.get("n_targets", 0)) - int(c.get("rss_ref_targets", 0)))
+    return float(c.get("rss_scale", 1.0)) * (a + b * int(n) / 1000.0 + k * dt / 100.0) + float(c.get("rss_margin_gb", 0.0))
 
 
 def job_rss(P: dict, units) -> tuple[float, float]:
@@ -404,12 +407,15 @@ def sha256_file(p: Path) -> str:
 
 
 def frozen_hashes(root: Path = ROOT, spec: dict | None = None) -> dict:
+    """{group: {path: sha256}}; groups named 'untracked_*' are globbed on disk (gitignored inputs), the rest are
+    tracked files only (git pathspec globs)."""
     spec = FROZEN_SPEC if spec is None else spec
     out = {}
     for grp, pats in spec.items():
         files = {}
         for pat in pats:
-            got = tracked_files(root, pat)
+            got = (sorted(str(x.relative_to(root)) for x in Path(root).glob(pat) if x.is_file())
+                   if grp.startswith("untracked_") else tracked_files(root, pat))
             if not got:
                 raise FileNotFoundError(f"frozen pattern {pat!r} matches no tracked file")
             for f in got:
@@ -450,8 +456,33 @@ def check_lock_absent(lock: Path) -> Check:
     return Check("lock_absent", not Path(lock).exists(), f"{lock} {'exists' if Path(lock).exists() else 'absent'}")
 
 
-def preflight(root: Path, lock: Path) -> list[Check]:
-    return [check_finalists_committed(root), check_tree_clean(root), check_frozen(root), check_lock_absent(lock)]
+def check_readonly(root: Path = ROOT) -> Check:
+    """scripts/check_readonly.sh: YEAST_SLs stamp + upstream `git status` (DESIGN §11)."""
+    r = subprocess.run(["bash", str(Path(root) / "scripts" / "check_readonly.sh")], capture_output=True, text=True,
+                       cwd=root)
+    return Check("yeast_sls_readonly", r.returncode == 0, (r.stdout.strip().splitlines() or ["?"])[-1])
+
+
+def check_upstream_checksums(root: Path = ROOT) -> Check:
+    """Re-hash every upstream data file in results/data_checksums/checksums.json (bytes + SHA-256; ~15 GB)."""
+    t = json.loads((Path(root) / "results" / "data_checksums" / "checksums.json").read_text())
+    up = paths.yeast_sls_root()
+    bad = []
+    for x in t["files"]:
+        f = up / x["path"]
+        if not f.exists():
+            bad.append(f"missing {x['path']}")
+        elif f.stat().st_size != int(x["bytes"]) or sha256_file(f) != x["sha256"]:
+            bad.append(f"changed {x['path']}")
+    return Check("upstream_checksums", not bad, "; ".join(bad[:5]) if bad else f"{len(t['files'])} files match")
+
+
+def preflight(root: Path, lock: Path, deep: bool = False) -> list[Check]:
+    """DESIGN §10 refusals; deep=True (start) adds the read-only stamp and the upstream data checksums."""
+    out = [check_finalists_committed(root), check_tree_clean(root), check_frozen(root), check_lock_absent(lock)]
+    if deep:
+        out += [check_readonly(root), check_upstream_checksums(root)]
+    return out
 
 
 def write_lock(lock: Path, info: dict) -> dict:
@@ -469,8 +500,11 @@ def read_lock(lock: Path) -> dict | None:
     return json.loads(lock.read_text()) if lock.exists() else None
 
 
-def guard_final(P: dict, plan: dict | None = None) -> None:
-    """Every final job: HSL_FINAL=1, lock present, HEAD == the locked commit, clean tree, same plan."""
+def guard_final(P: dict, plan: dict | None = None, root: Path = ROOT) -> None:
+    """Every final job (DESIGN deviation (iv), review F1): HSL_FINAL=1, lock present, plan hash == locked plan,
+    every frozen-file hash (frozen.yaml, incl. the extended group and the clusters cache) == its locked value.
+    Non-frozen files (notes, the tree, other results) may change during the run; `start` keeps the full §10 check.
+    Recovery if a frozen file changed: restore it (git checkout <locked sha> -- <file>), then `resume`."""
     if P["mode"] != "final":
         return
     if os.environ.get("HSL_FINAL") != "1":
@@ -478,13 +512,14 @@ def guard_final(P: dict, plan: dict | None = None) -> None:
     lk = read_lock(P["lock"])
     if lk is None:
         raise Refusal(f"no lock at {P['lock']}: run `scripts/run_final.py start --mode final` first")
-    gs = views.git_state()
-    if gs["dirty"]:
-        raise Refusal("git tree is dirty")
-    if gs["head"] != lk["git_head"]:
-        raise Refusal(f"HEAD {gs['head'][:10]} != locked commit {lk['git_head'][:10]}")
     if plan is not None and plan["sha256"] != lk["plan_sha256"]:
         raise Refusal("plan differs from the locked plan")
+    c = check_frozen(root)
+    if not c.ok:
+        raise Refusal(f"frozen files changed since the lock: {c.detail} (restore them, then resume)")
+    fz = Path(root) / FROZEN
+    if lk.get("frozen_sha256") and (not fz.exists() or sha256_file(fz) != lk["frozen_sha256"]):
+        raise Refusal("config/frozen.yaml differs from the one recorded in the lock")
 
 
 def ledger_event(P: dict, event: str, **kw) -> None:
@@ -515,21 +550,75 @@ def sel_path(P: dict, cid: str, r: int) -> Path:
 
 
 def _atomic_write(p: Path, text: str) -> None:
+    """Exclusive temp file (O_EXCL) + atomic rename."""
     p.parent.mkdir(parents=True, exist_ok=True)
     tmp = p.with_name(f".{p.name}.tmp{os.getpid()}")
-    tmp.write_text(text)
+    tmp.unlink(missing_ok=True)                               # stale temp of a dead process with a reused PID
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
+    with os.fdopen(fd, "w") as f:
+        f.write(text)
     os.replace(tmp, p)
+
+
+def _pid_alive(pid: int) -> bool:
+    try:
+        os.kill(int(pid), 0)
+        return True
+    except (OSError, ValueError):
+        return False
+
+
+def claim(path: Path, wait_for: Path, timeout_s: float = 3600.0, poll_s: float = 5.0) -> bool:
+    """Exclusive claim file (O_EXCL, holds our PID). True = we hold it. If another LIVE process holds it, wait until
+    `wait_for` exists (False) or the holder dies (stale claim removed, retry)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    t0 = time.time()
+    while True:
+        try:
+            fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
+            with os.fdopen(fd, "w") as f:
+                f.write(str(os.getpid()))
+            return True
+        except FileExistsError:
+            if wait_for.exists():
+                return False
+            try:
+                holder = int(path.read_text().strip() or 0)
+            except (OSError, ValueError):
+                holder = 0
+            if not _pid_alive(holder):
+                path.unlink(missing_ok=True)                  # stale claim of a dead process
+                continue
+            if time.time() - t0 > timeout_s:
+                raise TimeoutError(f"{path} held by live pid {holder} for > {timeout_s} s")
+            time.sleep(poll_s)
 
 
 def ensure_selection(P: dict, plan: dict, cid: str, r: int, bundle, counter: dict | None = None) -> tuple[dict, bool]:
     """(selection record, loaded_from_disk). Existing selections are loaded and never recomputed."""
     p = sel_path(P, cid, r)
     need = int(plan["sel_max_n"][cid])
-    if p.exists():
+
+    def load():
         rec = json.loads(p.read_text())
         if rec["cid"] != cid or int(rec["traj"]) != int(r) or len(rec["selected"]) < need:
             raise AssertionError(f"selection file {p} does not match the plan")
         return rec, True
+    if p.exists():
+        return load()
+    cl = p.with_name(f".{p.name}.claim")
+    if not claim(cl, p):                                      # another live process computed it meanwhile
+        return load()
+    try:
+        if p.exists():
+            return load()
+        return _select(P, plan, cid, r, need, bundle, counter, p)
+    finally:
+        cl.unlink(missing_ok=True)
+
+
+def _select(P, plan, cid, r, need, bundle, counter, p):
+    """Compute and save one selection (called under the claim)."""
     A = plan_arms(plan)
     a = A[cid]
     s0 = []
@@ -563,14 +652,44 @@ def part_path(P: dict, job: str) -> Path:
     return P["run"] / "parts" / f"{job}.jsonl"
 
 
+def read_rows_tolerant(files) -> list[dict]:
+    """JSON-lines rows; a malformed LAST line (process killed mid-append) is skipped (its unit is re-run)."""
+    out = []
+    for f in files:
+        f = Path(f)
+        if not f.exists():
+            continue
+        lines = [ln for ln in f.read_text().splitlines() if ln.strip()]
+        for i, ln in enumerate(lines):
+            try:
+                out.append(json.loads(ln))
+            except json.JSONDecodeError:
+                if i != len(lines) - 1:
+                    raise
+                print(f"[final] skipping truncated last line of {f}", flush=True)
+    return out
+
+
+def repair_part(path: Path) -> bool:
+    """Truncate a partial trailing line (no final newline) so the next append starts on a fresh line."""
+    if not path.exists() or path.stat().st_size == 0:
+        return False
+    b = path.read_bytes()
+    if b.endswith(b"\n"):
+        return False
+    with open(path, "r+b") as f:
+        f.truncate(b.rfind(b"\n") + 1)
+    return True
+
+
 def read_parts(P: dict, jobs=None) -> list[dict]:
     d = P["run"] / "parts"
     files = sorted(d.glob("*.jsonl")) if jobs is None else [part_path(P, j) for j in jobs]
-    return p1.read_rows(files)
+    return read_rows_tolerant(files)
 
 
 def done_uids(P: dict, job: str) -> set:
-    return {x["uid"] for x in p1.read_rows([part_path(P, job)])
+    return {x["uid"] for x in read_rows_tolerant([part_path(P, job)])
             if x.get("pred_file") and (ROOT / x["pred_file"]).exists()}
 
 
@@ -608,7 +727,8 @@ def run_unit(P: dict, u: Unit, sel: dict, bundle) -> dict:
     row = {"uid": u.uid, "cid": u.cid, "traj": u.traj, "n": u.n, "pred": u.pred, "method": method, "params": params,
            "model_seed": int(sel["model_seed"]), "traj_id": sel["traj_id"], "run_id": res.run_id,
            "eset": es.name, "eset_digest": es.digest(), "n_cells": m["n_cells"], "n_pos": m["n_pos"],
-           "auprc_inline": m["auprc"],
+           "auprc_inline": m["auprc"], "macro_auprc": m.get("macro_auprc"), "macro_n_used": m.get("macro_n_used"),
+           "auroc": m.get("auroc"), "p_at_10": m.get("p_at_10"), "p_at_50": m.get("p_at_50"),
            "pred_file": preds.get("E_fixed", {}).get("file"),
            "pred_file_unobs": preds.get("E_unobs", {}).get("file"),
            "sl_detected": k, "sl_detected_frac": k / _pool_sl_total(P["split"], bundle),
@@ -630,6 +750,8 @@ def work(P: dict, plan: dict, job_name: str, bundle, runner=None, counter: dict 
     """Run every not-yet-done unit of one job. Returns {'ran': k, 'skipped': m}."""
     guard_final(P, plan)
     job = plan_job(plan, job_name)
+    if repair_part(part_path(P, job.name)):
+        ledger_event(P, "part_repaired", job=job.name)
     done = done_uids(P, job.name)
     todo = [u for u in job.units if u.uid not in done]
     ledger_event(P, "job_start", job=job.name, n_units=len(job.units), n_todo=len(todo))
@@ -679,6 +801,14 @@ def read_lockbox() -> np.ndarray:
     return np.array(sorted(paths.lockbox_file().read_text().split()), dtype=str)
 
 
+def sl_tertiles(counts) -> np.ndarray:
+    """SL-count tertile (1, 2, 3) of each target query (DESIGN §3 per-stratum report): cut points = the 1/3 and 2/3
+    quantiles of the targets' strong-SL counts (all arrays of the query row); ties go to the lower tertile."""
+    c = np.asarray(counts, dtype=float)
+    q1, q2 = np.quantile(c, [1 / 3, 2 / 3])
+    return np.where(c <= q1, 1, np.where(c <= q2, 2, 3)).astype(np.int8)
+
+
 def write_labels(P: dict, bundle) -> dict:
     """E_fixed cell labels + strata + bootstrap strata for the score step (label-only manifest, DESIGN §3)."""
     split = views.get_split(P["split"])
@@ -697,7 +827,8 @@ def write_labels(P: dict, bundle) -> dict:
     arrays = dict(y=es.y, rows=es.rows, cols=es.cols, targets=tg, AO=np.asarray(es.strata["AO"], bool),
                   TT=np.asarray(es.strata[tcol], bool), query_strata=views.query_strata(tg, bundle),
                   on_array_rows=np.array([t in bundle.orf_to_col for t in tg]), lockbox_rows=np.isin(tg, lb),
-                  same_chr=same_chr, col_target=col_target, chr_unresolved=(chr_r[es.rows] == "") | (chr_c[es.cols] == ""))
+                  same_chr=same_chr, col_target=col_target, chr_unresolved=(chr_r[es.rows] == "") | (chr_c[es.cols] == ""),
+                  sl_tertile=sl_tertiles(views.query_sl_counts(bundle, tg)))
     P["run"].mkdir(parents=True, exist_ok=True)
     tmp = P["run"] / f".labels.tmp{os.getpid()}.npz"
     np.savez(tmp, **arrays)
@@ -708,6 +839,7 @@ def write_labels(P: dict, bundle) -> dict:
            "n_same_chr_pos": int(es.y[same_chr].sum()), "n_chr_unresolved_cells": int(arrays["chr_unresolved"].sum()),
            "n_lockbox_rows": int(arrays["lockbox_rows"].sum()), "n_non_lockbox_rows": int((~arrays["lockbox_rows"]).sum()),
            "n_on_array_rows": int(arrays["on_array_rows"].sum()),
+           "sl_tertile_rows": {int(k): int(v) for k, v in zip(*np.unique(arrays["sl_tertile"], return_counts=True))},
            "query_strata_counts": {int(k): int(v) for k, v in zip(*np.unique(arrays["query_strata"], return_counts=True))},
            "written": time.strftime("%Y-%m-%dT%H:%M:%S")}
     _atomic_write(P["run"] / "label_manifest.json", json.dumps(man, indent=1))
@@ -735,6 +867,10 @@ class Labels:
             return z["TT"]
         if stratum == "onrows":
             return z["on_array_rows"][self.rows]
+        if stratum == "offrows":
+            return ~z["on_array_rows"][self.rows]
+        if stratum in ("tert1", "tert2", "tert3"):
+            return z["sl_tertile"][self.rows] == int(stratum[-1])
         if stratum == "lockbox":
             return z["lockbox_rows"][self.rows]
         if stratum == "nosamechr":

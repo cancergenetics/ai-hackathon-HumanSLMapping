@@ -134,13 +134,13 @@ def test_recompute_n80_pstar(ctx):
 def test_q2dev_ci_drops_right_censored_replicates():
     """REVIEW FINDING: q2dev.ci keeps only finite values, so +inf (right-censored) n_req replicates are dropped and the
     upper CI bound is finite even when most replicates are censored (dry run: H@490 97% right-censored, CI [624, 974]).
-    E.percentile_ci keeps ±inf by design (P0 review M1). This test documents the defect (xfail until fixed)."""
+    E.percentile_ci keeps ±inf by design (P0 review M1). Fixed (F2): q2dev.ci now keeps ±inf."""
     v = np.r_[np.full(90, np.inf), np.linspace(500, 900, 10)]
     lo_e, hi_e = E.percentile_ci(v)
     lo_q, hi_q = q2dev.ci(v)
     assert hi_e == np.inf
-    if np.isfinite(hi_q):
-        pytest.xfail(f"q2dev.ci drops +inf: CI ({lo_q:.0f}, {hi_q:.0f}) vs percentile_ci ({lo_e}, {hi_e})")
+    assert (lo_q, hi_q) == (lo_e, hi_e)
+    assert q2dev.ci(np.r_[np.nan, v]) == (lo_e, hi_e)                 # NaN still dropped
 
 
 def test_final_split_pool_excludes_T_and_efixed_columns_exclude_D(dev_b):

@@ -437,8 +437,11 @@ def check_est(rows: list[dict], split: str, cache_dir: Path, tol: float = 1e-9) 
 
 # ============================================================================ DESIGN §6.4 statistics
 def ci(x) -> tuple[float, float]:
+    """Percentile interval keeping ±inf (censored n_req codes, undefined G) as bounds; NaN dropped (final pipeline
+    review F2, 2026-10-29: the previous version dropped ±inf, so a mostly right-censored n_req had a finite upper bound)."""
     x = np.asarray(x, float)
-    return E.percentile_ci(x[np.isfinite(x)]) if np.isfinite(x).any() else (float("nan"), float("nan"))
+    x = x[~np.isnan(x)]
+    return E.percentile_ci(x) if len(x) else (float("nan"), float("nan"))
 
 
 def gap_closure_joint(pairs, rng) -> dict:
@@ -458,7 +461,8 @@ def gap_closure_joint(pairs, rng) -> dict:
         Gb = num_b / den_b
     lo_den = float(np.quantile(den_b, 0.025))
     return {"G": num / den if den else float("nan"), "G_ci": ci(Gb), "num": num, "den": den,
-            "den_ci": ci(den_b), "defined": bool(lo_den > 0), "G_boot_median": float(np.nanmedian(Gb))}
+            "den_ci": ci(den_b), "defined": bool(lo_den > 0), "G_boot_median": float(np.nanmedian(Gb)),
+            "frac_nonfinite": float(np.mean(~np.isfinite(Gb)))}
 
 
 def welch_at(As, es, Ar, er, margin: float = 0.0, scale_r: float = 1.0) -> dict:

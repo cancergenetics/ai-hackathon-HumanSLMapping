@@ -89,7 +89,8 @@ secondary:
 # ---------------------------------------------------------------------------------------------------- evaluation sets
 e_unobs: {predictor: pstar, save: true}          # E_unobs per arm (descriptive) for every strategy-arm P* checkpoint
 sensitivities:
-  strata: [AO, TT, onrows]                       # E_AO, E_TT (dev: VV), on-array target rows
+  strata: [AO, TT, onrows, offrows, tert1, tert2, tert3]   # E_AO, E_TT (dev: VV), on-/off-array target rows,
+                                                 # SL-count tertiles of target queries (DESIGN §3)
   lockbox_only: true                             # T minus the 23 non-lockbox test genes (DESIGN §1)
   no_same_chromosome: true                       # E_fixed minus same-chromosome cells (DESIGN §1)
   two_way_bootstrap: true                        # query x array (B = protocol B_two_way) for the family contrasts
@@ -111,7 +112,8 @@ compute:
     headroom_gb: 2.0                             # start only if unused memory >= job hint + headroom
     max_jobs: 6
     max_big: 2                                   # jobs with n >= protocol alone_min_n (1970)
-    budget_gb: 12.0                              # for the cost simulation: memory available to us (others hold ~12)
+    budget_gb: 18.0                              # cost simulation: memory for us (PI 2026-10-29: free+inactive ~15 GB
+                                                 #  of 24, other non-project use ~0.7 GB)
 
 # ---------------------------------------------------------------------------------------------------- seeds
 # Trajectory r of every arm uses SeedSequence(<trajectories>).spawn(.)[r] (selection stream = child 0, evaluation /

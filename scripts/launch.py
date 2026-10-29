@@ -11,7 +11,8 @@ Concurrency policy (config/protocol.yaml `compute`):
   * n >= alone_min_n: runs alone (RSS cap rss_cap_gb_alone).
 Optional MEMORY GATE (opt-in, `--min-free-gb H`; D10, 2026-10-29): replaces the class limits above. A job starts only
 if fewer than --gate-max-jobs (default 6) run, at most --gate-max-big (default 2) jobs with n >= alone_min_n run, and
-the machine's unused memory (macOS vm_stat free + speculative pages; Linux MemAvailable) minus the memory running jobs
+the machine's unused memory (macOS vm_stat free + inactive + speculative pages, inactive = reclaimable file
+cache; Linux MemAvailable) minus the memory running jobs
 have not yet claimed (their `rss_gb` hint minus current RSS) is >= the job's `rss_gb` hint + H. With nothing running a
 job always starts (progress). Jobs may carry "rss_gb" (expected peak RSS; default rss_cap_gb_per_job) and
 "rss_cap_gb" (kill cap overriding the class cap). Without the flag, behaviour is unchanged.
@@ -20,7 +21,7 @@ its RSS cap is killed (process group). stdout+stderr -> logs/<name>.log; one JSO
 logs/launch_<timestamp>.jsonl. Exit code = number of failed jobs (capped at 255).
 
     .venv/bin/python scripts/launch.py jobs.json [--max-concurrent 2] [--dry-run]
-        [--min-free-gb 2 --gate-max-jobs 6 --gate-max-big 2]
+        [--min-free-gb 2 --gate-max-jobs 6 --gate-max-big 2] [--pid-lock results/final/run/launcher.pid]
 """
 from __future__ import annotations
 
@@ -108,7 +109,8 @@ def can_start(cls: str, running: list[dict], c: dict, max_conc: int | None) -> b
 
 
 def unused_gb() -> float | None:
-    """Unused physical memory (GB): macOS vm_stat (free + speculative pages); Linux /proc/meminfo MemAvailable."""
+    """Unused physical memory (GB): macOS vm_stat free + inactive (reclaimable file cache) + speculative pages
+    (PI decision 2026-10-29); Linux /proc/meminfo MemAvailable."""
     try:
         out = subprocess.run(["vm_stat"], capture_output=True, text=True, timeout=10).stdout
         ps = int(re.search(r"page size of (\d+) bytes", out).group(1))
@@ -118,7 +120,8 @@ def unused_gb() -> float | None:
             v = v.strip().rstrip(".")
             if v.isdigit():
                 pages[k.strip()] = int(v)
-        return (pages.get("Pages free", 0) + pages.get("Pages speculative", 0)) * ps / 2**30
+        return (pages.get("Pages free", 0) + pages.get("Pages inactive", 0)
+                + pages.get("Pages speculative", 0)) * ps / 2**30
     except (OSError, AttributeError, ValueError, subprocess.SubprocessError):
         pass
     try:
@@ -160,10 +163,62 @@ def main(argv=None) -> int:
                     help="enable the memory gate with this headroom (GB) above each job's rss_gb hint")
     ap.add_argument("--gate-max-jobs", type=int, default=6)
     ap.add_argument("--gate-max-big", type=int, default=2)
+    ap.add_argument("--pid-lock", type=Path, default=None,
+                    help="refuse to start if a LIVE launcher holds this PID file; hold it while running")
     a = ap.parse_args(argv)
+    if a.pid_lock is not None and not acquire_pid_lock(a.pid_lock):
+        print(f"[launch] REFUSED: a live launcher holds {a.pid_lock}", flush=True)
+        return 255
+    try:
+        return _run(a)
+    finally:
+        if a.pid_lock is not None:
+            release_pid_lock(a.pid_lock)
+
+
+def acquire_pid_lock(path: Path) -> bool:
+    """O_EXCL PID file; a stale file (dead PID) is replaced. False if a live process other than us holds it."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    for _ in range(3):
+        try:
+            fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
+            with os.fdopen(fd, "w") as f:
+                f.write(str(os.getpid()))
+            return True
+        except FileExistsError:
+            try:
+                pid = int(path.read_text().strip() or 0)
+            except (OSError, ValueError):
+                pid = 0
+            if pid == os.getpid():
+                return True
+            if pid and pid_alive(pid):
+                return False
+            path.unlink(missing_ok=True)
+    return False
+
+
+def release_pid_lock(path: Path) -> None:
+    try:
+        if int(Path(path).read_text().strip() or 0) == os.getpid():
+            Path(path).unlink()
+    except (OSError, ValueError):
+        pass
+
+
+def pid_alive(pid: int) -> bool:
+    try:
+        os.kill(int(pid), 0)
+        return True
+    except (OSError, ValueError):
+        return False
+
+
+def _run(a) -> int:
     c = config.protocol()["compute"]
     jobs = load_jobs(a.jobs)
-    LOGS.mkdir(exist_ok=True)
+    LOGS.mkdir(parents=True, exist_ok=True)
     summary = LOGS / f"launch_{time.strftime('%Y%m%d_%H%M%S')}.jsonl"
     queue = list(jobs)
     running: list[dict] = []

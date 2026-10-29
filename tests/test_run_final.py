@@ -227,69 +227,139 @@ def _redirect(monkeypatch, tmp_path, mode="final"):
     return mp(mode)[1]
 
 
+DEEP = (("yeast_sls_readonly", "check_readonly"), ("upstream_checksums", "check_upstream_checksums"))
+
+
 def test_start_refuses_in_real_repo_state_and_writes_no_lock(monkeypatch, tmp_path):
     rf = _script("run_final.py")
     P = _redirect(monkeypatch, tmp_path)
-    fails = {"finalists_committed": False, "tree_clean": False, "frozen_hashes": False}
-    for name in fails:                                              # each refusal alone blocks the start
-        for nm, fn in (("finalists_committed", "check_finalists_committed"), ("tree_clean", "check_tree_clean"),
-                       ("frozen_hashes", "check_frozen")):
+    checks = (("finalists_committed", "check_finalists_committed"), ("tree_clean", "check_tree_clean"),
+              ("frozen_hashes", "check_frozen")) + DEEP
+    for name, _ in checks:                                          # each refusal alone blocks the start
+        for nm, fn in checks:
             monkeypatch.setattr(F, fn, (lambda nm_=nm: (lambda root=ROOT: F.Check(nm_, nm_ != name, "test")))())
         with pytest.raises(F.Refusal, match=name):
             rf.start("final")
-        assert not P["lock"].exists()
-    for fn, nm in (("check_finalists_committed", "a"), ("check_tree_clean", "b"), ("check_frozen", "c")):
+        assert not P["lock"].exists() and not (P["run"] / "plan.json").exists()
+    for nm, fn in checks:
         monkeypatch.setattr(F, fn, (lambda nm_=nm: (lambda root=ROOT: F.Check(nm_, True, "")))())
     lk = rf.start("final")                                          # all pass -> lock + plan + jobs
     assert P["lock"].exists() and lk["git_head"] == views.git_state()["head"]
+    assert not (P["run"] / "plan.json.tmp").exists()
     plan = json.loads((P["run"] / "plan.json").read_text())
     assert plan["sha256"] == lk["plan_sha256"]
     jobs = json.loads((P["run"] / "jobs.json").read_text())
     assert jobs[0]["name"].endswith(F.LABELS_JOB) and all(j["env"]["HSL_FINAL"] == "1" for j in jobs)
     with pytest.raises(F.Refusal, match="lock_absent"):
         rf.start("final")                                           # second start refused by the lock
+    # crash between lock and plan.json: resume promotes plan.json.tmp only if its hash matches the lock
+    (P["run"] / "plan.json").rename(P["run"] / "plan.json.tmp")
+    P2, jf, jobs2 = rf.resume("final")
+    assert (P["run"] / "plan.json").exists() and len(jobs2) == len(jobs)
+    pid = P["run"] / "launcher.pid"
+    pid.write_text(str(os.getppid()))                               # a live process holds the launcher lock
+    with pytest.raises(F.Refusal, match="live launcher"):
+        rf.resume("final")
+    pid.write_text("999999")                                        # stale
+    rf.resume("final")
 
 
 def test_dryrun_start_enforces_only_the_lock(monkeypatch, tmp_path):
     rf = _script("run_final.py")
     P = _redirect(monkeypatch, tmp_path, "dryrun")
     monkeypatch.setattr(F, "check_tree_clean", lambda root=ROOT: F.Check("tree_clean", False, "dirty (test)"))
-    lk = rf.start("dryrun")
+    lk = rf.start("dryrun", deep=False)
     assert P["lock"].exists() and any(c["name"] == "tree_clean" and not c["ok"] for c in lk["preflight"])
     with pytest.raises(F.Refusal, match="lock_absent"):
-        rf.start("dryrun")
+        rf.start("dryrun", deep=False)
 
 
-def test_guard_final_and_unblinded_loader(monkeypatch, tmp_path):
+def test_guard_final_per_job_integrity_and_loader(monkeypatch, tmp_path):
+    """Deviation (iv) / review F1: jobs check HSL_FINAL, lock, plan hash and frozen hashes (not a clean HEAD)."""
     rf = _script("run_final.py")
     P = _redirect(monkeypatch, tmp_path)
     monkeypatch.delenv("HSL_FINAL", raising=False)
     with pytest.raises(F.Refusal, match="HSL_FINAL"):
         F.guard_final(P)
-    with pytest.raises(PermissionError):                            # the guard's own refusal (no HSL_FINAL)
+    with pytest.raises(PermissionError):                            # the frozen loader's own refusal
         views.final_bundle()
     monkeypatch.setenv("HSL_FINAL", "1")
     with pytest.raises(F.Refusal, match="no lock"):
         F.guard_final(P)
-    F.write_lock(P["lock"], {"git_head": "0" * 40, "plan_sha256": "x"})
-    monkeypatch.setattr(views, "git_state", lambda: {"head": "1" * 40, "dirty": False, "diff_sha256": ""})
-    with pytest.raises(F.Refusal, match="locked commit"):
-        F.guard_final(P)
-    monkeypatch.setattr(views, "git_state", lambda: {"head": "0" * 40, "dirty": True, "diff_sha256": ""})
-    with pytest.raises(F.Refusal, match="dirty"):
-        F.guard_final(P)
-    calls = []
-    monkeypatch.setattr(views, "final_bundle", lambda: calls.append(1) or "MOCK_BUNDLE")
-    with pytest.raises(F.Refusal):
-        rf.get_bundle(P)                                            # guard fails -> loader never called
-    assert calls == []
-    monkeypatch.setattr(views, "git_state", lambda: {"head": "0" * 40, "dirty": False, "diff_sha256": ""})
-    assert rf.get_bundle(P) == "MOCK_BUNDLE" and calls == [1]
+    F.write_lock(P["lock"], {"git_head": "0" * 40, "plan_sha256": "x", "frozen_sha256": None})
     with pytest.raises(F.Refusal, match="plan differs"):
         F.guard_final(P, {"sha256": "y"})
+    monkeypatch.setattr(F, "check_frozen", lambda root=ROOT: F.Check("frozen_hashes", False, "changed src/hsl/eval.py"))
+    with pytest.raises(F.Refusal, match="frozen files changed"):
+        F.guard_final(P, {"sha256": "x"})
+    calls = []
+    monkeypatch.setattr(views, "final_bundle", lambda: calls.append("frozen") or "FROZEN_LOADER")
+    monkeypatch.setattr(rf, "_final_bundle_frozen_integrity", lambda P_: calls.append("dev_iv") or "IV_LOADER")
+    with pytest.raises(F.Refusal):
+        rf.get_bundle(P)                                            # integrity fails -> no loader called
+    assert calls == []
+    monkeypatch.setattr(F, "check_frozen", lambda root=ROOT: F.Check("frozen_hashes", True, "ok"))
+    monkeypatch.setattr(views, "git_state", lambda: {"head": "1" * 40, "dirty": False, "diff_sha256": ""})
+    assert rf.get_bundle(P) == "FROZEN_LOADER"                      # clean tree: the frozen loader itself
+    monkeypatch.setattr(views, "git_state", lambda: {"head": "1" * 40, "dirty": True, "diff_sha256": ""})
+    assert rf.get_bundle(P) == "IV_LOADER" and calls == ["frozen", "dev_iv"]   # other HEAD / dirty: allowed (iv)
+    lk = json.loads(P["lock"].read_text())
+    P["lock"].chmod(0o644)
+    P["lock"].write_text(json.dumps({**lk, "frozen_sha256": "deadbeef"}))
+    with pytest.raises(F.Refusal, match="frozen.yaml differs"):
+        F.guard_final(P)
     monkeypatch.delenv("HSL_FINAL")
     _, Pd = F.mode_params("dryrun")
     assert rf.get_bundle(Pd) is views.dev_bundle()                  # dry run: dev bundle only
+
+
+def test_replica_loader_mirrors_frozen_loader():
+    """The deviation-(iv) loader repeats views.final_bundle's steps except the whole-tree-clean check."""
+    import inspect
+    src = inspect.getsource(views.final_bundle)
+    rf = (ROOT / "scripts" / "run_final.py").read_text()
+    for step in ("load_bundle(paths.costanzo_dataset(), unblind=True, cache=False)", "_assert_full_names(b)",
+                 'hsl_view="final_bundle"', ".freeze()"):
+        assert step in src and step in rf
+    assert 'os.environ.get("HSL_FINAL") != "1"' in rf
+
+
+def test_selection_claim_and_tolerant_parts(tmp_path):
+    target = tmp_path / "sel.json"
+    cl = tmp_path / ".sel.json.claim"
+    cl.write_text("999999")                                         # stale claim (dead pid) is taken over
+    assert F.claim(cl, target)
+    assert cl.read_text() == str(os.getpid())
+    cl.write_text(str(os.getppid()))                                # live holder ...
+    target.write_text("{}")                                         # ... finished: we load instead of selecting
+    assert F.claim(cl, target, timeout_s=5, poll_s=0.1) is False
+    target.unlink()
+    with pytest.raises(TimeoutError):
+        F.claim(cl, target, timeout_s=0.3, poll_s=0.1)
+    part = tmp_path / "p.jsonl"
+    part.write_text('{"uid": "a"}\n{"uid": "b"}\n{"uid": "c", "pred_fi')   # killed mid-append
+    assert [x["uid"] for x in F.read_rows_tolerant([part])] == ["a", "b"]
+    assert F.repair_part(part) and part.read_text().endswith('"b"}\n')
+    assert not F.repair_part(part)
+    part.write_text('{"uid": "a"}\n{bad\n{"uid": "c"}\n')               # corruption NOT at the end -> error
+    with pytest.raises(json.JSONDecodeError):
+        F.read_rows_tolerant([part])
+
+
+def test_untracked_cache_group_is_hashed(repo):
+    _g(repo, "add", "-A")
+    _g(repo, "commit", "-qm", "init")
+    (repo / "out").mkdir()
+    (repo / "out" / "clusters_x.npz").write_bytes(b"abc")
+    spec = {**SPEC, "untracked_cache": ["out/clusters_*.npz"]}
+    h = F.frozen_hashes(repo, spec)
+    assert list(h["untracked_cache"]) == ["out/clusters_x.npz"]
+
+
+def test_sl_tertiles():
+    t = F.sl_tertiles([0, 0, 0, 1, 2, 3, 10, 20, 30])
+    assert list(t) == [1, 1, 1, 2, 2, 2, 3, 3, 3]
+    assert set(F.sl_tertiles(np.arange(100))) == {1, 2, 3}
 
 
 # ----------------------------------------------------------------------------- crash-resume (stub predictor)
@@ -413,8 +483,10 @@ def test_frozen_spec_covers_design_list():
                  "config/feature_provenance.yaml", "DATA.md", "config/yeast_sls_commit.txt",
                  "results/data_checksums/checksums.json"):
         assert must in s8
+    assert F.FROZEN_SPEC["untracked_cache"] == ["data/cache/clusters_*.npz"]
+    assert F.frozen_hashes(ROOT, {"untracked_cache": F.FROZEN_SPEC["untracked_cache"]})["untracked_cache"]
     for grp, pats in F.FROZEN_SPEC.items():
-        if grp == "final_plan":
+        if grp == "final_plan" or grp.startswith("untracked_"):
             continue                                                  # finalists.yaml is committed at the freeze
         for p in pats:
             assert F.tracked_files(ROOT, p) or p in ("scripts/run_final.py", "scripts/score_final.py",

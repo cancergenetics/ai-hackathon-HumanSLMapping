@@ -76,3 +76,21 @@ def test_gate_runs_jobs_and_job_rss_cap(tmp_path, monkeypatch):
     assert L.main([str(jf), "--min-free-gb", "0.1"]) == 0
     recs = [r for f in tmp_path.glob("launch_*.jsonl") for r in map(json.loads, f.read_text().splitlines())]
     assert len(recs) == 3 and all(r["status"] == "ok" and r["rss_cap_gb"] == 7.5 for r in recs)
+
+
+def test_pid_lock(tmp_path):
+    import os
+    L = _mod()
+    f = tmp_path / "launcher.pid"
+    assert L.acquire_pid_lock(f) and f.read_text() == str(os.getpid())
+    assert L.acquire_pid_lock(f)                                    # we already hold it
+    L.release_pid_lock(f)
+    assert not f.exists()
+    f.write_text(str(os.getppid()))                                 # live holder -> refuse
+    assert not L.acquire_pid_lock(f)
+    f.write_text("999999")                                          # stale -> replaced
+    assert L.acquire_pid_lock(f)
+    jf = tmp_path / "jobs.json"
+    jf.write_text("[]")
+    f.write_text(str(os.getppid()))
+    assert L.main([str(jf), "--pid-lock", str(f)]) == 255           # second launcher refused
