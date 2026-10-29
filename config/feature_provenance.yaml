@@ -1,7 +1,7 @@
 # Feature/data provenance (DESIGN v3 §1, §6.1(e)); checked by tests/test_provenance.py: every file under YEAST_SLs that
 # a predictor or selector opens must match a `files` pattern (fnmatch, relative to the YEAST_SLs root) of a store
 # whose `used_by` lists that consumer, and every store's `data_md` token must appear in DATA.md.
-# Consumers: harness (labels, via hsl.views only), stack_lr, stack_lr_wr2, m1_hgb (genome dropped), selector
+# Consumers: harness (labels, via hsl.views only), stack_lr, stack_lr_wr2, stack_lr_wr2_lb (frozen P*, P2), m1_hgb (genome dropped), selector
 # (SelectorView: hsl.features whitelist + array SMF from the bundle). Recorded with hsl.guard.record_reads on
 # 2026-10-29 (stack_lr_wr2 / m1_hgb at n = 30 on dev split 1; selector features + clusters).
 # Human analogues: DESIGN §1. "label_free" = built without Costanzo GI labels/ε; "gi_text_go_free" = no GI data from
@@ -22,7 +22,7 @@ stores:
     label_free: true
     gi_text_go_free: true
     human_analogue: "HGNC/Ensembl identifier mapping"
-    used_by: [m1_hgb, selector]
+    used_by: [m1_hgb, selector, stack_lr_wr2_lb]
   coexpression:
     files: ["data/processed/features/coexpression_combined_fisherz.npy",
             "data/processed/features/coexpression_combined_nstudies.npy",
@@ -36,7 +36,7 @@ stores:
     label_free: true
     gi_text_go_free: true
     human_analogue: "COXPRESdb human / ARCHS4"
-    used_by: [m1_hgb, selector]
+    used_by: [m1_hgb, selector, stack_lr_wr2_lb]
   esm2_embeddings:
     files: ["data/processed/features/esm2_650m_mean.npy", "data/processed/features/esm2_650m_genes.txt"]
     data_md: "esm2-650m-weights"
@@ -44,7 +44,7 @@ stores:
     label_free: true
     gi_text_go_free: true
     human_analogue: "same model on the human proteome"
-    used_by: [m1_hgb, selector]
+    used_by: [m1_hgb, selector, stack_lr_wr2_lb]
   abundance:
     files: ["data/processed/features/abundance.parquet"]
     data_md: "paxdb5-single"
@@ -52,7 +52,7 @@ stores:
     label_free: true
     gi_text_go_free: true
     human_analogue: "PaxDb human"
-    used_by: [m1_hgb, selector]
+    used_by: [m1_hgb, selector, stack_lr_wr2_lb]
   sequence:
     files: ["data/processed/features/sequence.parquet"]
     data_md: "sgd-sequences"
@@ -60,7 +60,7 @@ stores:
     label_free: true
     gi_text_go_free: true
     human_analogue: "Ensembl human sequences"
-    used_by: [m1_hgb, selector]
+    used_by: [m1_hgb, selector, stack_lr_wr2_lb]
   popgen:
     files: ["data/processed/features/popgen.parquet"]
     data_md: "y1002-genomes"
@@ -68,7 +68,7 @@ stores:
     label_free: true
     gi_text_go_free: true
     human_analogue: "gnomAD constraint (LOEUF/pLI)"
-    used_by: [m1_hgb, selector]
+    used_by: [m1_hgb, selector, stack_lr_wr2_lb]
   alphafold:
     files: ["data/processed/features/alphafold.parquet"]
     data_md: "alphafold-api-yeast"
@@ -76,7 +76,7 @@ stores:
     label_free: true
     gi_text_go_free: true
     human_analogue: "AlphaFold DB human proteome"
-    used_by: [m1_hgb, selector]
+    used_by: [m1_hgb, selector, stack_lr_wr2_lb]
   uniprot_domains:
     files: ["data/processed/features/uniprot.parquet"]
     data_md: "uniprot-UP000002311"
@@ -84,7 +84,7 @@ stores:
     label_free: true
     gi_text_go_free: true
     human_analogue: "UniProt human Pfam/InterPro"
-    used_by: [m1_hgb, selector]
+    used_by: [m1_hgb, selector, stack_lr_wr2_lb]
   apms:
     files: ["data/processed/features/ppi_nodes.parquet", "data/processed/features/michaelis2023_edges.parquet"]
     data_md: "michaelis2023-apms"
@@ -92,7 +92,7 @@ stores:
     label_free: true
     gi_text_go_free: true
     human_analogue: "BioPlex / OpenCell"
-    used_by: [m1_hgb, selector]
+    used_by: [m1_hgb, selector, stack_lr_wr2_lb]
   compara:
     files: ["data/processed/features/compara_phylo_profile.parquet",
             "data/processed/features/compara_paralog_pairs.parquet"]
@@ -101,7 +101,7 @@ stores:
     label_free: true
     gi_text_go_free: true
     human_analogue: "Ensembl Compara (vertebrates)"
-    used_by: [m1_hgb, selector]
+    used_by: [m1_hgb, selector, stack_lr_wr2_lb]
   pair_store_nongenome:
     files: ["data/processed/features/pairs/genes.txt", "data/processed/features/pairs/manifest.json",
             "data/processed/features/pairs/masks.npz", "data/processed/features/pairs/coex_*.npy",
@@ -113,7 +113,7 @@ stores:
     label_free: true
     gi_text_go_free: true
     human_analogue: "as the source stores above"
-    used_by: [stack_lr_wr2, m1_hgb]
+    used_by: [stack_lr_wr2, m1_hgb, stack_lr_wr2_lb]
   pair_store_genome:
     files: ["data/processed/features/pairs/gen_*.npy"]
     data_md: "Pair store"

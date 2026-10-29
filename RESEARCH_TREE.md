@@ -99,7 +99,9 @@ then DESIGN.md and up to three review rounds.
   - [!] P* frozen = stack_lr_wr2_lb (stack_lr_wr2 + array-side dense ε degree + EB array-degree prior + w_gi=n/(n+300)):
     mean rel. gain +4.45% at n∈{30,160,330} (3/3 splits CI>0 at 160; re-split +4.1%; +1.1% at 660); 10 configs (cap),
     4 passed. Oracle decomposition: low-n loss is degree estimation (oracle query degree +92% at n=30, inadmissible).
-    Commit c1154c7; results/p2/summary.md. Independent review running (docs/reviews/p2_predictor_review.md).
+    Commit c1154c7; results/p2/summary.md. Review ACCEPT WITH FIXES (fixes applied): read the gain as +4.0–4.5%, the best of
+    10 adaptive dev configs with no independent confirmation (+0.001–0.003 AUPRC absolute); leakage, gate and
+    reproduction verified independently.
   - [ ] Re-run power pilot + universe subsampling (50% and 25%) + random curves with frozen P* (DESIGN §9), after review
 - [ ] M4 Q1: performance vs. fraction screened (random)
 - [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets

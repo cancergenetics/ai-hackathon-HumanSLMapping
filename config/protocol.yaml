@@ -19,6 +19,8 @@ stats:
 gate:
   gate_min_rel_gain: 0.02           # predictor-change gate: mean relative gain over budgets and splits
   gate_budgets: [30, 160, 330]
+  gate_max_rel_loss_660: 0.01        # P2 addition, stricter than DESIGN §8: <= 1% relative loss at n = 660 (not-worse rule)
+  gate_max_configs: 10              # P2 addition (multiplicity cap; not a DESIGN §8 rule)
   surrogate_within_n_spearman_min: 0.8
   surrogate_delta_spearman_min: 0.7
 folds:

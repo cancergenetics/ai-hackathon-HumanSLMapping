@@ -6,6 +6,11 @@ lists were recorded with `hsl.guard.record_reads` on 2026-10-29 (stack_lr_wr2 an
 n = 30 on dev split 1; SelectorView features and clusters). Full source/version/checksum/licence: DATA.md and
 `YEAST_SLs/DATA.md`.
 
+Frozen P* `stack_lr_wr2_lb` (P2, 2026-10-29) opens the stores stack_lr_wr2 opens plus the gene-scalar stores already
+cleared for m1_hgb (abundance, alphafold, apms, coexpression, compara, esm2_embeddings, popgen, sequence,
+sgd_feature_names, uniprot_domains), recorded with `hsl.guard.record_reads` at n = 30 on dev split 1; `used_by` in
+config/feature_provenance.yaml lists it. No new store.
+
 | store | label-free? | GI / text-mining / GO-free? | human analogue | used by predictor | used by selector |
 |---|---|---|---|---|---|
 | Costanzo 2016 S1 bundle (ε, P, labels, array SMF) | no (it is the label source) | no (GI data) | HAP1 qGI screens; HAP1 single-KO fitness ↔ array SMF | all (screened rows only, via ScreenView) | screened rows (ε, P, labels; T/D_val columns masked) + array SMF (masked for excluded genes); **no DMF** |

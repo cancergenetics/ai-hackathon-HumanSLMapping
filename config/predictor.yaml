@@ -34,6 +34,10 @@ primary:
     dense_arr_aprior_gi300); frozen = the passing configuration with the largest mean relative gain.
   runtime_fit_predict_s: {n30: 21, n160: 21, n330: 24, n660: 42}   # 2 threads, M2, loaded machine; parent 21/18/26/43
   frozen_by: P2
+  caveat: >-
+    Gain best read as +4.0-4.5%: best of 10 adaptive dev configurations, no independent confirmation (re-split not
+    blind for configurations 7-10); 660 not-worse rule, 10-config cap and max-gain selection are P2 additions
+    (protocol.yaml gate). Review: docs/reviews/p2_predictor_review.md (ACCEPT WITH FIXES).
 reference:
   method: stack_lr_wr2               # previous P*; reported as sensitivity ("unmodified predictor", DESIGN §4)
   params: {}

@@ -9,3 +9,4 @@ results/**/predictions/
 results/**/*.parquet
 !results/**/summary*.parquet
 results/runtime_benchmark/jobs/
+/results/p2/boot/

@@ -248,7 +248,7 @@ positive count of E_fixed_dev at 25% (noise check). Caveat: subsampling mimics f
 - **Ledger** (`results/LEDGER.jsonl`, append-only, one line per configuration: id, parent, config hash, split,
   outcome, metrics); the count is reported.
 - **Freeze:** `config/finalists.yaml` + `config/frozen.yaml` (hashes of hsl/eval.py, hsl/views.py, hsl/guard.py,
-  harness, protocol.yaml, split files, seeds, budgets, third_party/ysl/PROVENANCE.md, config/feature_provenance.yaml
+  harness, protocol.yaml, split files, seeds, budgets, config/predictor.yaml, src/hsl/predictors/*.py (added after P2), third_party/ysl/PROVENANCE.md, config/feature_provenance.yaml
   (source; docs/feature_provenance.md rendered from it), DATA.md, yeast_sls_commit.txt, data checksum table).
   Sub-agents never edit frozen files; a failing frozen test is reported, never worked around.
 

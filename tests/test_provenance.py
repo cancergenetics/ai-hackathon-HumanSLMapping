@@ -62,11 +62,15 @@ def test_broken_twin_unlisted_store_is_caught(dev_b):
     assert _uncovered(ps, "selector") and _uncovered(ps, "stack_lr_wr2")
 
 
-@pytest.mark.parametrize("method", ["stack_lr", "stack_lr_wr2"])
+@pytest.mark.parametrize("method", ["stack_lr", "stack_lr_wr2", "stack_lr_wr2_lb"])
 def test_predictor_only_opens_listed_stores(method):
     S = tuple(np.sort(np.random.default_rng(0).choice(views.dev_split(1).pool, 30, replace=False)))
     with guard.record_reads() as ps:
-        H.run_predictor(H.RunSpec("dev1", S), method, seeds={"model_seed": 1}, save=False, ledger=False)
+        params = None
+        if method == "stack_lr_wr2_lb":          # frozen P*: params from config/predictor.yaml
+            import hsl.predictors  # noqa: F401
+            params = yaml.safe_load((paths.PROJECT_ROOT / "config" / "predictor.yaml").read_text())["primary"]["params"]
+        H.run_predictor(H.RunSpec("dev1", S), method, params, seeds={"model_seed": 1}, save=False, ledger=False)
     assert not _uncovered(ps, method)
 
 
