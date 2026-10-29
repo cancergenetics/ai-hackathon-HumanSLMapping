@@ -130,6 +130,34 @@ def cmd_jobs(a) -> int:
     return 0
 
 
+def cmd_import_p2(a) -> int:
+    """Reuse P2's frozen-P* runs (config dense_arr_aprior_gi300 = stack_lr_wr2_lb, bit-identical stand-alone rerun
+    checked at dev1 r0 n = 30/160) as P1 curve rows for the frozen P* (dev splits; predictor = p1.PSTAR)."""
+    from hsl import harness as H
+    r = pd.read_csv("results/p2/runs.csv")
+    r = r[(r.config == a.config) & r.split.str.startswith("dev")]
+    part = PARTS / "p2_reuse_frozen_pstar.jsonl"
+    done = _done(part)
+    b = views.dev_bundle()
+    for _, x in r.iterrows():
+        key = (x.split, int(x.perm), int(x.n), p1.PSTAR, "curve")
+        if key in done:
+            continue
+        t = p1.random_traj(x.split, int(x.perm))
+        if int(x.model_seed) != t.model_seed:
+            raise AssertionError("model seed mismatch")
+        es = H.get_eset(b, views.get_split(x.split), "E_fixed")
+        prev = float(x.n_pos) / float(x.n_cells)
+        row = {k: (None if pd.isna(v) else v) for k, v in x.items() if k not in ("config", "lr_coef", "params")}
+        row.update(predictor=p1.PSTAR, method_run=x.method, params=json.loads(x.params), kind="curve",
+                   source="p2_reuse", traj_id=t.traj_id, eset="E_fixed_dev", eset_digest=es.digest(), prevalence=prev,
+                   lift=float(x.auprc) / prev, peak_rss_fit_gb=x.peak_rss_gb, perm=int(x.perm), n=int(x.n),
+                   **p1.sl_detected(t.perm[:int(x.n)]))
+        p1.append_row(part, row)
+    print(f"imported {len(r)} P2 rows -> {part}")
+    return 0
+
+
 def cmd_merge(a) -> int:
     rows = p1.read_rows(sorted(PARTS.glob("*.jsonl")))
     cur = pd.DataFrame([r for r in rows if r.get("kind", "curve") == "curve"])
@@ -163,8 +191,10 @@ def main(argv=None) -> int:
     j.add_argument("--segments", default="small,large,alone")
     j.add_argument("--m1", action="store_true")
     sub.add_parser("merge")
+    ip = sub.add_parser("import-p2")
+    ip.add_argument("--config", default="dense_arr_aprior_gi300")
     a = ap.parse_args(argv)
-    return {"run": cmd_run, "jobs": cmd_jobs, "merge": cmd_merge}[a.cmd](a)
+    return {"run": cmd_run, "jobs": cmd_jobs, "merge": cmd_merge, "import-p2": cmd_import_p2}[a.cmd.replace("_", "-")](a)
 
 
 if __name__ == "__main__":

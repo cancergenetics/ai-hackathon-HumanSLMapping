@@ -48,9 +48,15 @@ from hsl import config, eval as E, harness as H, paths, views
 RESULTS = paths.output_root() / "results"
 P1_DIR = RESULTS / "p1"
 PRED_P1 = RESULTS / "predictions" / "p1"
-PREDICTORS = {"stack_lr_wr2": {}, "stack_lr": {}, "B1_array_rate": {}, "B2_product": {},
-              "m1_hgb": {"drop": ["genome"]}}
-PSTAR = "stack_lr_wr2"
+import yaml as _yaml
+
+import hsl.predictors  # noqa: F401,E402  (registers the frozen P* method in the upstream registry)
+
+_FROZEN = _yaml.safe_load((paths.PROJECT_ROOT / "config" / "predictor.yaml").read_text())
+REF_PSTAR = "stack_lr_wr2"                         # pre-P2 P* ("stack_lr_wr2 (pre-P2 P*)"), reference predictor
+PSTAR = str(_FROZEN["primary"]["method"])          # frozen P* (config/predictor.yaml; P2, 2026-10-29)
+PREDICTORS = {REF_PSTAR: {}, "stack_lr": {}, "B1_array_rate": {}, "B2_product": {},
+              "m1_hgb": {"drop": ["genome"]}, PSTAR: dict(_FROZEN["primary"]["params"] or {})}
 # PI disk policy history: 10:00 only P*/m1_hgb saved (review P0 M2); later 2026-10-29: all predictors saved
 NO_SAVE: tuple = ()          # 2026-10-29 PI: disk no longer constrained -> save all predictors (jobs launched after this)
 
@@ -240,7 +246,7 @@ def upstream_strata(b, split, es, S) -> dict:
             "array_screened": ta >= 0}
 
 
-def run_upstream_protocol(t: RandomTraj, n: int, method: str = PSTAR, n_threads: int | None = None) -> dict:
+def run_upstream_protocol(t: RandomTraj, n: int, method: str = REF_PSTAR, n_threads: int | None = None) -> dict:
     """Score `method` on E_fixed_dev and on the upstream-protocol dev set (all measured D_val cells, minus test-gene
     columns and identity self pairs; screened arrays INCLUDED). Mirrors harness.run_predictor (predictions saved
     before scoring; one ledger line, tag 'p1_upstream_protocol')."""

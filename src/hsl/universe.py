@@ -116,13 +116,13 @@ def scaled_grid(pool_n: int, full_pool: int = 2101) -> list[int]:
 
 
 def run_sub(sb, split: views.Split, es, S, method: str, model_seed: int, traj_index: int, parent: str,
-            tag: str = "p1_universe", n_threads: int | None = None, save: bool = True) -> dict:
+            tag: str = "p1_universe", n_threads: int | None = None, save: bool = True, params: dict | None = None) -> dict:
     from hsl import upstream as U
     pr = config.protocol()
     n_threads = int(n_threads or os.environ.get("HSL_THREADS") or pr["compute"]["threads_default"])
     S = np.sort(np.asarray(S, dtype=str))
     n_folds = int(min(int(pr["predictor"]["n_folds"]), max(len(S), 2)))
-    prm = H._method_params(method, {}, len(S))
+    prm = H._method_params(method, params or {}, len(S))
     seeds = {"model_seed": int(model_seed), "traj_index": int(traj_index), "split_seed": 0}
     cfg = {"split": split.name, "split_digest": split.digest(), "method": method, "params": prm, "seeds": seeds,
            "screened_sha": H._hash(S.tolist()), "n_folds": n_folds, "tag": tag,

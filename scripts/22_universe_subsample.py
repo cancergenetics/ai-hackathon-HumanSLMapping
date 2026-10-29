@@ -56,17 +56,18 @@ def cmd_run(a) -> int:
     U, sb, sp, es = _setup(a.level, a.draw)
     grid = _ints(a.budgets) if a.budgets else UV.scaled_grid(len(sp.pool))
     part = PARTS / f"{a.job}.jsonl"
-    done = {(r["perm"], r["n"]) for r in p1.read_rows([part])}
+    done = {(r["perm"], r["n"], r.get("predictor", p1.REF_PSTAR)) for r in p1.read_rows([part])}
     c = es.counts()
     for r in _ints(a.perms):
         t = p1.random_traj(sp.name, r, pool=sp.pool, arm="R0_random_universe")
         for n in sorted(grid):
-            if (r, n) in done:
+            if (r, n, a.method) in done:
                 continue
             with p1.PeakRSS() as pk:
-                res = UV.run_sub(sb, sp, es, t.perm[:n], p1.PSTAR, t.model_seed, r, t.traj_id)
+                res = UV.run_sub(sb, sp, es, t.perm[:n], a.method, t.model_seed, r, t.traj_id,
+                                 params=p1.PREDICTORS.get(a.method, {}))
             m = res["metrics"]
-            row = {"level": a.level, "draw": a.draw, "split": sp.name, "perm": r, "n": int(n), "predictor": p1.PSTAR,
+            row = {"level": a.level, "draw": a.draw, "split": sp.name, "perm": r, "n": int(n), "predictor": a.method,
                    "universe_genes": int(len(U)), "n_query_rows": int(len(sb.query_orfs)), "n_arrays": int(sb.n_arrays),
                    "n_val": int(len(sp.targets)), "pool_n": int(len(sp.pool)), "eset_digest": es.digest(),
                    "E_n_cells": c["n_cells"], "E_n_pos": c["n_pos"], "E_AO_pos": c["AO"]["n_pos"],
@@ -210,6 +211,7 @@ def main(argv=None) -> int:
     r.add_argument("--perms", required=True)
     r.add_argument("--budgets", default="")
     r.add_argument("--job", required=True)
+    r.add_argument("--method", default=p1.REF_PSTAR)   # default = pre-P2 P* (already-queued jobs); frozen P*: pass it
     j = sub.add_parser("jobs")
     j.add_argument("--out", required=True)
     j.add_argument("--levels", default="50,25")
