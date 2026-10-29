@@ -8,3 +8,4 @@ __pycache__/
 results/**/predictions/
 results/**/*.parquet
 !results/**/summary*.parquet
+results/runtime_benchmark/jobs/

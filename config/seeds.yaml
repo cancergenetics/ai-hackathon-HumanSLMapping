@@ -2,3 +2,6 @@
 # with a dated note in RESEARCH_TREE.md.
 # 2026-10-29: test/dev split of S1 query genes (scripts/01_make_split.py). Used once; the split is frozen in config/split/.
 split_seed: 20261029
+# 2026-10-29: draw of screened sets (nested, from the dev pool only) for the runtime-only benchmark
+# (scripts/02_runtime_benchmark.py). Not used for any accuracy evaluation.
+runtime_benchmark_draw_seed: 1
