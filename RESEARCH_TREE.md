@@ -56,6 +56,11 @@ then DESIGN.md and up to three review rounds.
   - [x] Independent P0 code review: safe with fixes; no leakage, AP/stats correct. Fixed M1 (censored CI), L2, L3, disk
         guard (M2). L1 (dev k-means clusters include D_val; label-free external features) accepted as deviation D4.
 - [~] P1 dev random curves + power pilot + upstream-protocol sanity + universe subsampling
+  - [x] Power pilot (dev1, R=10, P*): r160 0.0389 (σ_r 0.0021), r210 0.0411, g = 0.0021. Frozen provisional rule
+        (ρ=0) gives V_Q(Δ) ≫ (g/3.5)² → "bounds only" provisionally; shared-weight correlation (ρ_boot 0.994) implies
+        R_s ≈ 21 suffices. Per DESIGN, V_Q(Δ) is measured directly in P4 and R fixed at freeze.
+  - [~] Upstream-protocol sanity: P* all D_val cells @660 = 0.0657 ± 0.0027 (lift 6.0) vs upstream dev 0.0754 (lift
+        6.6) → diagnosing (composition vs plumbing). E_fixed_dev @660: P* 0.0544, stack_lr 0.0450, B1 0.0417.
 - [~] Strategy selectors implementation (R1, H, F, C, M, static variants) + toy controls — no dev evaluation before P* freeze
 - [ ] M4 Q1: performance vs. fraction screened (random)
 - [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
