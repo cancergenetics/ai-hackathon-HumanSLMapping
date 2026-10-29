@@ -1,0 +1,6 @@
+# Data/code locations. Relative paths are resolved against the humanSLmapping project root.
+# Env-var overrides: HSL_YEAST_SLS_ROOT (or YSL_UPSTREAM_ROOT), HSL_OUTPUT_ROOT (or YSL_OUTPUT_ROOT).
+yeast_sls_root: ../YEAST_SLs        # upstream checkout (commit in config/yeast_sls_commit.txt); STRICTLY READ-ONLY
+output_root: .                      # where anything we generate goes (results/, data/ — data/ is gitignored)
+# Upstream data read in place (never copied, never written):
+costanzo_dataset: s1                # Costanzo 2016 Science Data File S1 NxN (upstream primary)

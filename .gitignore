@@ -1,0 +1,10 @@
+/data/
+logs/*.log
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+results/**/predictions/
+results/**/*.parquet
+!results/**/summary*.parquet

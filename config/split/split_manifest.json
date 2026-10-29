@@ -1,0 +1,229 @@
+{
+ "description": "Fixed held-out test split of S1 query genes; stratified by #strong SLs; prefers upstream lockbox",
+ "script": "scripts/01_make_split.py",
+ "split_seed": 20261029,
+ "seed_source": "config/seeds.yaml:split_seed",
+ "test_fraction_target": 0.2,
+ "rounding": "per stratum n_test = floor(0.2 n + 0.5)",
+ "strata_rule": "zero-SL stratum + pandas.qcut(nonzero counts, 10, duplicates='drop')",
+ "universe": {
+  "n": 3283,
+  "definition": "all S1 NxN query ORFs (upstream gene level)"
+ },
+ "n_test": 656,
+ "n_dev_pool": 2627,
+ "strata": [
+  {
+   "stratum": 0,
+   "label": "zero",
+   "n": 20,
+   "n_test": 4,
+   "n_dev": 16,
+   "sl_min": 0,
+   "sl_max": 0,
+   "n_lockbox_in_stratum": 2,
+   "n_test_from_lockbox": 2,
+   "n_test_filled_from_non_lockbox": 2
+  },
+  {
+   "stratum": 1,
+   "label": "[1, 7]",
+   "n": 367,
+   "n_test": 73,
+   "n_dev": 294,
+   "sl_min": 1,
+   "sl_max": 7,
+   "n_lockbox_in_stratum": 80,
+   "n_test_from_lockbox": 73,
+   "n_test_filled_from_non_lockbox": 0
+  },
+  {
+   "stratum": 2,
+   "label": "(7, 11]",
+   "n": 336,
+   "n_test": 67,
+   "n_dev": 269,
+   "sl_min": 8,
+   "sl_max": 11,
+   "n_lockbox_in_stratum": 73,
+   "n_test_from_lockbox": 67,
+   "n_test_filled_from_non_lockbox": 0
+  },
+  {
+   "stratum": 3,
+   "label": "(11, 16]",
+   "n": 339,
+   "n_test": 68,
+   "n_dev": 271,
+   "sl_min": 12,
+   "sl_max": 16,
+   "n_lockbox_in_stratum": 73,
+   "n_test_from_lockbox": 68,
+   "n_test_filled_from_non_lockbox": 0
+  },
+  {
+   "stratum": 4,
+   "label": "(16, 21]",
+   "n": 321,
+   "n_test": 64,
+   "n_dev": 257,
+   "sl_min": 17,
+   "sl_max": 21,
+   "n_lockbox_in_stratum": 59,
+   "n_test_from_lockbox": 59,
+   "n_test_filled_from_non_lockbox": 5
+  },
+  {
+   "stratum": 5,
+   "label": "(21, 27]",
+   "n": 292,
+   "n_test": 58,
+   "n_dev": 234,
+   "sl_min": 22,
+   "sl_max": 27,
+   "n_lockbox_in_stratum": 53,
+   "n_test_from_lockbox": 53,
+   "n_test_filled_from_non_lockbox": 5
+  },
+  {
+   "stratum": 6,
+   "label": "(27, 34]",
+   "n": 309,
+   "n_test": 62,
+   "n_dev": 247,
+   "sl_min": 28,
+   "sl_max": 34,
+   "n_lockbox_in_stratum": 63,
+   "n_test_from_lockbox": 62,
+   "n_test_filled_from_non_lockbox": 0
+  },
+  {
+   "stratum": 7,
+   "label": "(34, 44]",
+   "n": 321,
+   "n_test": 64,
+   "n_dev": 257,
+   "sl_min": 35,
+   "sl_max": 44,
+   "n_lockbox_in_stratum": 62,
+   "n_test_from_lockbox": 62,
+   "n_test_filled_from_non_lockbox": 2
+  },
+  {
+   "stratum": 8,
+   "label": "(44, 59]",
+   "n": 329,
+   "n_test": 66,
+   "n_dev": 263,
+   "sl_min": 45,
+   "sl_max": 59,
+   "n_lockbox_in_stratum": 57,
+   "n_test_from_lockbox": 57,
+   "n_test_filled_from_non_lockbox": 9
+  },
+  {
+   "stratum": 9,
+   "label": "(59, 87]",
+   "n": 325,
+   "n_test": 65,
+   "n_dev": 260,
+   "sl_min": 60,
+   "sl_max": 87,
+   "n_lockbox_in_stratum": 67,
+   "n_test_from_lockbox": 65,
+   "n_test_filled_from_non_lockbox": 0
+  },
+  {
+   "stratum": 10,
+   "label": "(87, 454]",
+   "n": 324,
+   "n_test": 65,
+   "n_dev": 259,
+   "sl_min": 88,
+   "sl_max": 454,
+   "n_lockbox_in_stratum": 67,
+   "n_test_from_lockbox": 65,
+   "n_test_filled_from_non_lockbox": 0
+  }
+ ],
+ "sl_count_distribution": {
+  "test": {
+   "n": 656,
+   "mean": 38.263719512195124,
+   "sd": 36.631137977175726,
+   "n_zero": 4,
+   "total_SL": 25101,
+   "q00": 0.0,
+   "q10": 6.0,
+   "q25": 13.0,
+   "q50": 27.0,
+   "q75": 51.0,
+   "q90": 85.0,
+   "q99": 171.45000000000005,
+   "q100": 247.0
+  },
+  "dev_pool": {
+   "n": 2627,
+   "mean": 39.53330795584317,
+   "sd": 41.13078834669367,
+   "n_zero": 16,
+   "total_SL": 103854,
+   "q00": 0.0,
+   "q10": 7.0,
+   "q25": 13.0,
+   "q50": 27.0,
+   "q75": 51.0,
+   "q90": 87.0,
+   "q99": 205.6999999999989,
+   "q100": 454.0
+  },
+  "all": {
+   "n": 3283,
+   "mean": 39.27962229667987,
+   "sd": 40.2697535251172,
+   "n_zero": 20,
+   "total_SL": 128955,
+   "q00": 0.0,
+   "q10": 7.0,
+   "q25": 13.0,
+   "q50": 27.0,
+   "q75": 51.0,
+   "q90": 86.80000000000018,
+   "q99": 200.17999999999984,
+   "q100": 454.0
+  }
+ },
+ "ks_test_vs_dev": {
+  "statistic": 0.01606035355176544,
+  "pvalue": 0.9989098250363513
+ },
+ "mannwhitney_test_vs_dev": {
+  "statistic": 859201.0,
+  "pvalue": 0.9100007100552416
+ },
+ "lockbox": {
+  "file": "YEAST_SLs/config/lockbox_s1.txt",
+  "sha256": "3493f0cfa6b048c69cd59b7de9152bd5e15a7ea6b95323c18871af4e111b4c73",
+  "n_lockbox": 656,
+  "n_test_in_lockbox": 633,
+  "frac_test_in_lockbox": 0.9649390243902439,
+  "n_lockbox_in_dev_pool": 23,
+  "frac_lockbox_in_test": 0.9649390243902439
+ },
+ "test_on_array": {
+  "n": 533
+ },
+ "input": {
+  "dataset": "s1",
+  "bundle_file": "YEAST_SLs/data/processed/costanzo2016_bundle_s1.npz",
+  "bundle_sha256_verified_on_load": "8e89ba3fa3bbea2b2346005456309ec3830176e16ee8ca62df429652e7588a71",
+  "raw_nxn_sha256_recorded_by_upstream": "ff6e7e754a05258e0b9e2df965dec7d703408a14b68d4acac1e5f81c67ac3681",
+  "processed_parquet_sha256_recorded_by_upstream": "4b97918dd407da821b9ee512b31e24fcc64d4fd9a421451e140269cf34d9aab8",
+  "n_query_orfs": 3283,
+  "label": "P < 0.05 and eps < -0.12 (ysl.eval.labels)"
+ },
+ "sha256": {
+  "test_queries.txt": "0f0ca772db9dc43ba96a73aff64ddf1bf7820a8ab0d5067975ad95e8d226b134",
+  "dev_pool.txt": "514c7626f12a89ee70866fcf21a1be616281354507572db274451c2159a6d0ae"
+ }
+}

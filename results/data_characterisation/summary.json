@@ -1,0 +1,211 @@
+{
+ "dataset": "s1",
+ "source": "Costanzo et al. 2016 Science Data File S1, SGA_NxN.txt (via upstream bundle)",
+ "bundle_meta": {
+  "raw_nxn_sha256": "ff6e7e754a05258e0b9e2df965dec7d703408a14b68d4acac1e5f81c67ac3681",
+  "processed_parquet_sha256": "4b97918dd407da821b9ee512b31e24fcc64d4fd9a421451e140269cf34d9aab8",
+  "bundle_sha256": "8e89ba3fa3bbea2b2346005456309ec3830176e16ee8ca62df429652e7588a71",
+  "shape": [
+   3283,
+   3827
+  ],
+  "n_observed": 11295484,
+  "n_positive": 128955
+ },
+ "label": "stringent negative: P < 0.05 and epsilon < -0.12",
+ "genes": {
+  "n_query_orfs": 3283,
+  "n_array_orfs": 3827,
+  "n_query_and_array": 2652,
+  "n_array_only": 1175,
+  "n_query_only_off_array": 631,
+  "frac_queries_on_array": 0.8077977459640573,
+  "n_union": 4458
+ },
+ "cells": {
+  "n_grid": 12564041,
+  "n_observed": 11295484,
+  "frac_observed": 0.8990327236276927,
+  "n_positive": 128955,
+  "prevalence": 0.011416509465198657,
+  "observed_per_query": {
+   "n": 3283,
+   "mean": 3440.59823332318,
+   "sd": 268.42109215695564,
+   "quantiles": {
+    "q00": 1567.0,
+    "q05": 2921.1,
+    "q10": 3117.2,
+    "q25": 3412.0,
+    "q50": 3524.0,
+    "q75": 3589.0,
+    "q90": 3634.8,
+    "q95": 3668.0,
+    "q99": 3731.5399999999995,
+    "q100": 3811.0
+   },
+   "n_zero": 0,
+   "frac_zero": 0.0
+  },
+  "observed_per_array": {
+   "n": 3827,
+   "mean": 2951.5244316697153,
+   "sd": 81.09287890631902,
+   "quantiles": {
+    "q00": 2542.0,
+    "q05": 2783.0,
+    "q10": 2817.6,
+    "q25": 2924.0,
+    "q50": 2974.0,
+    "q75": 3004.0,
+    "q90": 3031.0,
+    "q95": 3046.0,
+    "q99": 3068.0,
+    "q100": 3098.0
+   },
+   "n_zero": 0,
+   "frac_zero": 0.0
+  }
+ },
+ "per_query_sl_counts": {
+  "n": 3283,
+  "mean": 39.27962229667987,
+  "sd": 40.2697535251172,
+  "quantiles": {
+   "q00": 0.0,
+   "q05": 4.0,
+   "q10": 7.0,
+   "q25": 13.0,
+   "q50": 27.0,
+   "q75": 51.0,
+   "q90": 86.80000000000018,
+   "q95": 119.0,
+   "q99": 200.17999999999984,
+   "q100": 454.0
+  },
+  "n_zero": 20,
+  "frac_zero": 0.006091989034419738,
+  "hub_share_of_all_SLs": {
+   "top1pct_n33": 0.06140901864991664,
+   "top5pct_n164": 0.21393509363731533,
+   "top10pct_n328": 0.3418401768058625,
+   "top20pct_n657": 0.5228257919429258,
+   "gini": 0.4862749277496029
+  },
+  "per_query_prevalence": {
+   "n": 3283,
+   "mean": 0.011496677884249195,
+   "sd": 0.011791629563123933,
+   "quantiles": {
+    "q00": 0.0,
+    "q05": 0.0011344621313605517,
+    "q10": 0.0019558535903883767,
+    "q25": 0.003765388111197597,
+    "q50": 0.007799442896935933,
+    "q75": 0.014951145791853103,
+    "q90": 0.024982530179156366,
+    "q95": 0.035300621303369285,
+    "q99": 0.0580624897218471,
+    "q100": 0.12357103973870441
+   },
+   "n_zero": 20,
+   "frac_zero": 0.006091989034419738
+  }
+ },
+ "per_array_sl_counts": {
+  "n": 3827,
+  "mean": 33.69610661092239,
+  "sd": 41.90219479817818,
+  "quantiles": {
+   "q00": 0.0,
+   "q05": 4.0,
+   "q10": 6.0,
+   "q25": 10.0,
+   "q50": 18.0,
+   "q75": 37.5,
+   "q90": 85.40000000000009,
+   "q95": 120.0,
+   "q99": 199.0,
+   "q100": 383.0
+  },
+  "n_zero": 9,
+  "frac_zero": 0.0023517115233864646,
+  "hub_share_of_all_SLs": {
+   "top1pct_n38": 0.07583265480206274,
+   "top5pct_n191": 0.2575937342483812,
+   "top10pct_n383": 0.40786320809584736,
+   "top20pct_n765": 0.59361792873483,
+   "gini": 0.5393291455626446
+  }
+ },
+ "query_vs_array_side_sl_count_same_gene": {
+  "counts": {
+   "n": 2652,
+   "pearson": 0.35045347872738375,
+   "spearman": 0.31186713436100233
+  },
+  "rates": {
+   "n": 2652,
+   "pearson": 0.3428200165530263,
+   "spearman": 0.3077218679204411
+  }
+ },
+ "reciprocal_AB_BA": {
+  "n_genes_query_and_array": 2652,
+  "n_unordered_pairs_measured_any_direction": 3330497,
+  "n_unordered_pairs_measured_both_directions": 2979976,
+  "frac_of_measured_pairs_in_both_directions": 0.8947541463030892,
+  "frac_of_all_observed_cells_that_are_part_of_a_reciprocal_pair": 0.527640249855606,
+  "prevalence_AB": 0.011977277669350358,
+  "prevalence_BA": 0.011750430204807018,
+  "n_pos_both_directions": 5168,
+  "n_pos_exactly_one_direction": 60372,
+  "P_BA_pos_given_AB_pos": 0.14479435167544547,
+  "P_AB_pos_given_BA_pos": 0.1475896732922093,
+  "jaccard_pos": 0.07885260909368325,
+  "cohen_kappa": 0.13592836756835777,
+  "overall_label_agreement": 0.9797407764357834,
+  "epsilon_pearson": 0.12921783328056335,
+  "epsilon_spearman": 0.046098483655286494,
+  "self_pairs_observed(query ORF == array ORF)": 0
+ },
+ "strains_and_alleles": {
+  "n_query_strains": 3283,
+  "n_query_orfs": 3283,
+  "query_strains_per_orf_max": 1,
+  "query_strain_types": {
+   "sn": 3283
+  },
+  "query_strains_with_suppressor_allele": 0,
+  "screen_temperatures_C": [
+   30
+  ],
+  "n_array_strains": 3827,
+  "n_array_orfs": 3827,
+  "array_strain_types": {
+   "dma": 3827
+  },
+  "array_strain_type_note": "dma = deletion mutant array (non-essential gene deletions); no TS/DAmP alleles in NxN",
+  "array_smf": {
+   "n_missing": 0,
+   "n": 3827,
+   "mean": 0.9653042342415484,
+   "sd": 0.08944610216784597,
+   "quantiles": {
+    "q00": 0.226500004529953,
+    "q05": 0.7744400084018708,
+    "q10": 0.8629999756813049,
+    "q25": 0.9616000056266785,
+    "q50": 0.9927999973297119,
+    "q75": 1.0110000371932983,
+    "q90": 1.0262999534606934,
+    "q95": 1.034999966621399,
+    "q99": 1.0523700189590453,
+    "q100": 1.0997999906539917
+   },
+   "n_zero": 0,
+   "frac_zero": 0.0
+  }
+ },
+ "runtime_s": 0.9
+}

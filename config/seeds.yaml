@@ -1,0 +1,4 @@
+# Fixed random seeds for humanSLmapping. APPEND-ONLY: never edit or remove an entry after first use; add new entries
+# with a dated note in RESEARCH_TREE.md.
+# 2026-10-29: test/dev split of S1 query genes (scripts/01_make_split.py). Used once; the split is frozen in config/split/.
+split_seed: 20261029
