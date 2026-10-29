@@ -151,7 +151,7 @@ def cmd_analyze(a) -> int:
     nx.to_csv(OUT / f"universe_nx{sfx}.csv", index=False)
     out = {"n_draws": int(len(nx)), "levels": sorted(nx.level.unique().tolist())}
     rng = np.random.default_rng(p1.boot_seed("p1_universe_slope"))
-    for k in ("n80", "n90"):
+    for k in ("n80", "n90") if nx.level.nunique() >= 2 else ():
         ok = np.isfinite(nx[k]) & (nx[k] > 0)
         x, y = np.log(nx.pool_n[ok].to_numpy(float)), np.log(nx[k][ok].to_numpy(float))
         lv = nx.level[ok].to_numpy()
@@ -181,7 +181,10 @@ def cmd_analyze(a) -> int:
                  f"{r.n90:.0f}{' (' + r.n90_censored + ')' if r.n90_censored else ''} | "
                  f"{r.n80 / r.pool_n:.3f} | {r.n90 / r.pool_n:.3f} |")
     L += ["", "Slope of log n_X on log N (OLS over draws; 95% CI = draw bootstrap stratified by level, B = 2,000):", ""]
-    for k in ("n80", "n90"):
+    if nx.level.nunique() < 2:
+        L.append("- Slope not estimable: fewer than two universe levels with a (sub-)pool-maximum anchor for this "
+                 "predictor (the pre-P2 reference has no pool-maximum run at 100%, PI decision for batch6).")
+    for k in ("n80", "n90") if nx.level.nunique() >= 2 else ():
         s = out[k]
         L.append(f"- **{k}: b = {s['b']:.2f}** [{s['ci95_draw_bootstrap'][0]:.2f}, {s['ci95_draw_bootstrap'][1]:.2f}] "
                  f"({s['n_points']} draws). b ≈ 0 → count scaling, b ≈ 1 → fraction scaling.")
