@@ -118,8 +118,8 @@ def main(argv=None) -> int:
             job = queue.pop(0)
             cls = job_class(job, c)
             th = threads_for(cls, c)
-            env = dict(os.environ, **{k: str(th) for k in THREAD_VARS}, **{k: str(v) for k, v in
-                                                                        job.get("env", {}).items()})
+            env = {**os.environ, **{k: str(th) for k in THREAD_VARS},
+                   **{k: str(v) for k, v in job.get("env", {}).items()}}  # job env overrides thread caps
             if not job.get("env", {}).get("HSL_FINAL"):
                 env.pop("HSL_FINAL", None)              # final mode only when a job asks for it explicitly
             cmd = job["cmd"] if isinstance(job["cmd"], list) else shlex.split(job["cmd"])
