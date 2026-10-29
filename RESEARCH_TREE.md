@@ -20,8 +20,9 @@ then DESIGN.md and up to three review rounds.
   genes have more SLs in yeast (52 vs 37, a yeast strain-collection artefact), so the submodel split acted as the
   forbidden off-array score term (DESIGN §1).
 - 2026-10-29 Seeds appended by the strategy agent (see config/seeds.yaml tail; dated there).
-- 2026-10-29 D4: Dev k-means clusters (R1, H batch cap) are computed once on all non-test genes incl. D_val. They use
-  label-free external features only, so no label leakage; per-split reclustering not worth the complexity.
+- 2026-10-29 D4 (corrected after strategy review L-2): H/F batch-cap clusters (`features.clusters`) are computed once on
+  all non-test genes incl. D_val (label-free external features only; no label leakage); R1 uses `visible_clusters`,
+  which excludes D_val as DESIGN §6.2 says. H prior text in DESIGN §6.2 is superseded by D5.
 - 2026-10-29 D3: Rejected `.claude` permission deny rules proposed by a reviewer (user's settings); guard + check script instead.
 - 2026-10-29 D2: Evaluation unit = directed cell (t,a) with its own label; AB/BA not merged (κ 0.14, merging would
   change the label). Primary set E_fixed is strategy-invariant so hub-selection cannot shrink the evaluation set.
