@@ -51,6 +51,8 @@ PRED_P1 = RESULTS / "predictions" / "p1"
 PREDICTORS = {"stack_lr_wr2": {}, "stack_lr": {}, "B1_array_rate": {}, "B2_product": {},
               "m1_hgb": {"drop": ["genome"]}}
 PSTAR = "stack_lr_wr2"
+# PI disk policy (2026-10-29, review P0 M2): only P* (stack_lr_wr2) and m1_hgb predictions are saved; others metrics only
+NO_SAVE = ("stack_lr", "B1_array_rate", "B2_product")
 
 
 def use_p1_prediction_dir(root: Path | None = None) -> Path:
@@ -196,7 +198,8 @@ def run_cell(t: RandomTraj, n: int, method: str, n_threads: int | None = None, p
     t0 = time.perf_counter()
     with PeakRSS() as pk:
         res = H.run_predictor(H.RunSpec(t.split, tuple(S), ("E_fixed",), ("E_fixed",), label=label), method, prm,
-                              {"model_seed": t.model_seed, "traj_index": t.r}, n_threads=n_threads, parent=t.traj_id)
+                              {"model_seed": t.model_seed, "traj_index": t.r}, n_threads=n_threads, parent=t.traj_id,
+                              save=method not in NO_SAVE)
     wall = time.perf_counter() - t0
     es = res.esets["E_fixed"]
     s = res.scores["E_fixed"]
