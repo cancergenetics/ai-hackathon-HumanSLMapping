@@ -15,6 +15,8 @@ then DESIGN.md and up to three review rounds.
 
 ## Decision log
 - 2026-10-29 D1: Test split drawn preferentially from the upstream lockbox (upstream tuned on non-lockbox rows).
+- 2026-10-29 D4: Dev k-means clusters (R1, H batch cap) are computed once on all non-test genes incl. D_val. They use
+  label-free external features only, so no label leakage; per-split reclustering not worth the complexity.
 - 2026-10-29 D3: Rejected `.claude` permission deny rules proposed by a reviewer (user's settings); guard + check script instead.
 - 2026-10-29 D2: Evaluation unit = directed cell (t,a) with its own label; AB/BA not merged (κ 0.14, merging would
   change the label). Primary set E_fixed is strategy-invariant so hub-selection cannot shrink the evaluation set.
@@ -51,7 +53,8 @@ then DESIGN.md and up to three review rounds.
       E_fixed (final, labels only): 999,102 cells, prevalence 0.00939 (E_AO 0.00806, E_TT 0.01232); 15 identity-excluded
       arrays (rule as written; DESIGN text said 4 — accepted, conservative). E_fixed_dev ≈ 745k cells, prev 0.009–0.010.
       Dev smoke (split 1, random): stack_lr_wr2 AUPRC 0.029 @30, 0.036 @100.
-  - [~] Independent P0 code review
+  - [x] Independent P0 code review: safe with fixes; no leakage, AP/stats correct. Fixed M1 (censored CI), L2, L3, disk
+        guard (M2). L1 (dev k-means clusters include D_val; label-free external features) accepted as deviation D4.
 - [~] P1 dev random curves + power pilot + upstream-protocol sanity + universe subsampling
 - [~] Strategy selectors implementation (R1, H, F, C, M, static variants) + toy controls — no dev evaluation before P* freeze
 - [ ] M4 Q1: performance vs. fraction screened (random)
