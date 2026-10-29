@@ -14,6 +14,15 @@ arbitrary screened set, runtime vs. number screened, data characterisation), in 
 then DESIGN.md and up to three review rounds.
 
 ## Decision log
+- 2026-10-29 D9 (pre-freeze, dev only):
+  - Proposed finalists H, C, F_r16 (§8 rule), pending independent P4 review.
+  - R_s = 20, R_r = 40. Reason: measured dev V_Q(Δ) ≈ 0.9–3e-5 dominates SE², while σ_s²/R_s + σ_r²/R_r < 3% of SE²
+    at these R. The frozen ρ = 0 pilot rule gave no attainable R (V_Q alone > (g/3.5)²), so it set no floor, and Q2
+    claims are phrased as bounds per §5. The pilot's ρ_boot = 0.993 figure (R_s ≈ 39) was a sensitivity, not the
+    provisional R.
+  - Deterministic runs of C and F are not off-array-neutral (argmax under route calibration). They stay descriptive
+    with that caveat; strategy code unchanged.
+  - M is not a finalist (C wins the C/M slot by the rule; M also never picks off-array genes).
 - 2026-10-29 D8: P* frozen after P2 (stack_lr_wr2_lb). Old P* (stack_lr_wr2) results at n ≤ 1640 are kept as the
   reference-predictor sensitivity; every downstream curve (pilot, universe, n ≥ 1970, P3, P4) uses the frozen P*. The
   25% universe level is un-deferred (P2 freed the CPU). New-P* reruns start only after the independent review passes.
@@ -118,7 +127,19 @@ then DESIGN.md and up to three review rounds.
   - [!] Hub-first oracle (true query degree): pooled G = 0.49 [0.27, 0.72]; split-dependent (dev1 0.02, dev2 0.69,
     dev3 0.64). Its top picks are 60% off-array (base rate 19.5%, D5 yeast artefact), so on-array and E_TT strata are requested.
   - [x] §11 end-to-end controls: shuffled labels → 1.05× prevalence; back door → 1.000. Seed p3_e2e_control_seed appended.
-- [~] P4 strategies on dev (R1, H, H-static, F r4/8/16, F-static, C, M + λ screen; ≥3 traj/split), 2×2 threads
+- [x] P4 strategies on dev (commit 01ec9ad; results/p4/summary.md, shortlist_proposal.md)
+  - [!] Adaptive selection gives large gains at n = 160 (mean over 3 splits): H +32.7% (G 0.84 [0.63, 1.05]),
+    C +29.9% (G 0.77), F_r16 +28.0% (G 0.72), M +28.5%. Static versions gain much less: H-static +13.4%, F-static −6.5%.
+    R1 (Billmann-like diverse panel) ≈ random (+0.7%). Same sign on E_AO, E_VV and on-array rows; held at n = 660 (+23–28%).
+  - [!] s160 ≈ r490 on dev (c1 is borderline); 'matches 20%' (vs 0.95·r660) is not met on any split.
+  - [x] Held-out greedy oracle G = 0.61 [0.21, 0.98] (attainable ceiling); the in-sample G = 2.05 is not attainable.
+  - [!] H beats the true-degree hub oracle on dev1 and dev2 despite degree Spearman 0.02–0.21. Mechanism to be checked in review.
+  - [x] Scenarios (H, C):
+    - warm start (220 R1): +25% vs R1-continuation at 440/660;
+    - batch 110: −5% at 160 (still +26% vs random); batch 50: −1 to −4%;
+    - feasible pool: −6 to −9%;
+    - minimal features: ±2%.
+  - [ ] Independent P4 review → freeze (finalists.yaml, frozen.yaml) → run_final.py build + dry run on dev
 - [ ] M4 Q1: performance vs. fraction screened (random)
 - [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
 - [ ] M6 Q3: translation to HAP1 (query numbers, choice of query lines, role of prediction)
