@@ -1,0 +1,307 @@
+{
+ "scenarios": [
+  {
+   "scenario": "1-job speed (lower bound): as configured",
+   "jobs": 453,
+   "job_hours": 52.7204755667356,
+   "wall_h_k3_alone": 20.644342194410722,
+   "wall_h_k3_ram": 17.99106460272134,
+   "wall_h_k4_alone": 17.144364469147643,
+   "wall_h_k4_ram": 14.505939597939822
+  },
+  {
+   "scenario": "1-job speed (lower bound): random n > 660 at R = 10",
+   "jobs": 393,
+   "job_hours": 46.2506327937785,
+   "wall_h_k3_alone": 16.999078741498774,
+   "wall_h_k3_ram": 15.83445034506897,
+   "wall_h_k4_alone": 13.499101016235695,
+   "wall_h_k4_ram": 12.34932534028745
+  },
+  {
+   "scenario": "1-job speed (lower bound): random n > 660 at R = 5",
+   "jobs": 383,
+   "job_hours": 45.17232566495232,
+   "wall_h_k3_alone": 16.35075099024005,
+   "wall_h_k3_ram": 15.409419973099181,
+   "wall_h_k4_alone": 12.886666234731853,
+   "wall_h_k4_ram": 11.945335217590983
+  },
+  {
+   "scenario": "1-job speed (lower bound): random n > 660 at R = 5 and no reference predictor",
+   "jobs": 343,
+   "job_hours": 42.381188279568,
+   "wall_h_k3_alone": 15.43631110735942,
+   "wall_h_k3_ram": 14.49498009021855,
+   "wall_h_k4_alone": 12.186826382245716,
+   "wall_h_k4_ram": 11.245495365104846
+  },
+  {
+   "scenario": "P1 loaded speed (upper bound): as configured",
+   "jobs": 453,
+   "job_hours": 71.40728936901569,
+   "wall_h_k3_alone": 27.976279329910152,
+   "wall_h_k3_ram": 24.43784840962294,
+   "wall_h_k4_alone": 23.226977194582993,
+   "wall_h_k4_ram": 19.688546274295767
+  },
+  {
+   "scenario": "P1 loaded speed (upper bound): random n > 660 at R = 10",
+   "jobs": 393,
+   "job_hours": 63.011609575070025,
+   "wall_h_k3_alone": 23.259051065390928,
+   "wall_h_k3_ram": 21.6392884783077,
+   "wall_h_k4_alone": 18.50974893006376,
+   "wall_h_k4_ram": 16.889986342980535
+  },
+  {
+   "scenario": "P1 loaded speed (upper bound): random n > 660 at R = 5",
+   "jobs": 383,
+   "job_hours": 61.612329609412406,
+   "wall_h_k3_alone": 22.42314742361811,
+   "wall_h_k3_ram": 21.091185086515484,
+   "wall_h_k4_alone": 17.70083656906967,
+   "wall_h_k4_ram": 16.368874231967034
+  },
+  {
+   "scenario": "P1 loaded speed (upper bound): random n > 660 at R = 5 and no reference predictor",
+   "jobs": 343,
+   "job_hours": 56.232022546168444,
+   "wall_h_k3_alone": 20.633792285822356,
+   "wall_h_k3_ram": 19.30182994871973,
+   "wall_h_k4_alone": 16.35370429711863,
+   "wall_h_k4_ram": 15.021741960015996
+  }
+ ],
+ "by_arm": [
+  {
+   "est": "calibrated",
+   "role": "R1",
+   "pred": "pstar",
+   "units": 180,
+   "job_h": 2.885939189111522
+  },
+  {
+   "est": "calibrated",
+   "role": "batch",
+   "pred": "pstar",
+   "units": 240,
+   "job_h": 4.049325049438342
+  },
+  {
+   "est": "calibrated",
+   "role": "det",
+   "pred": "pstar",
+   "units": 24,
+   "job_h": 0.373338501485758
+  },
+  {
+   "est": "calibrated",
+   "role": "finalist",
+   "pred": "m1_hgb",
+   "units": 45,
+   "job_h": 3.182238473145166
+  },
+  {
+   "est": "calibrated",
+   "role": "finalist",
+   "pred": "pstar",
+   "units": 480,
+   "job_h": 7.4667700297151605
+  },
+  {
+   "est": "calibrated",
+   "role": "finalist",
+   "pred": "ref",
+   "units": 240,
+   "job_h": 1.8728544648184717
+  },
+  {
+   "est": "calibrated",
+   "role": "random",
+   "pred": "B1_array_rate",
+   "units": 685,
+   "job_h": 0.13008089373077808
+  },
+  {
+   "est": "calibrated",
+   "role": "random",
+   "pred": "B2_product",
+   "units": 685,
+   "job_h": 0.14435826083207282
+  },
+  {
+   "est": "calibrated",
+   "role": "random",
+   "pred": "m1_hgb",
+   "units": 30,
+   "job_h": 2.9192631014893973
+  },
+  {
+   "est": "calibrated",
+   "role": "random",
+   "pred": "pstar",
+   "units": 685,
+   "job_h": 15.25538814369007
+  },
+  {
+   "est": "calibrated",
+   "role": "random",
+   "pred": "ref",
+   "units": 80,
+   "job_h": 0.6242848216061572
+  },
+  {
+   "est": "calibrated",
+   "role": "random",
+   "pred": "stack_lr",
+   "units": 685,
+   "job_h": 1.4350409959307202
+  },
+  {
+   "est": "calibrated",
+   "role": "static",
+   "pred": "pstar",
+   "units": 320,
+   "job_h": 4.977846686476773
+  },
+  {
+   "est": "calibrated",
+   "role": "ws",
+   "pred": "pstar",
+   "units": 160,
+   "job_h": 3.098711727936134
+  },
+  {
+   "est": "calibrated",
+   "role": "ws_random",
+   "pred": "pstar",
+   "units": 80,
+   "job_h": 1.549355863968067
+  },
+  {
+   "est": "loaded",
+   "role": "R1",
+   "pred": "pstar",
+   "units": 180,
+   "job_h": 3.7467541744443555
+  },
+  {
+   "est": "loaded",
+   "role": "batch",
+   "pred": "pstar",
+   "units": 240,
+   "job_h": 5.257153577562414
+  },
+  {
+   "est": "loaded",
+   "role": "det",
+   "pred": "pstar",
+   "units": 24,
+   "job_h": 0.4846975273076378
+  },
+  {
+   "est": "loaded",
+   "role": "finalist",
+   "pred": "m1_hgb",
+   "units": 45,
+   "job_h": 5.05541207056318
+  },
+  {
+   "est": "loaded",
+   "role": "finalist",
+   "pred": "pstar",
+   "units": 480,
+   "job_h": 9.693950546152758
+  },
+  {
+   "est": "loaded",
+   "role": "finalist",
+   "pred": "ref",
+   "units": 240,
+   "job_h": 3.814731723213207
+  },
+  {
+   "est": "loaded",
+   "role": "random",
+   "pred": "B1_array_rate",
+   "units": 685,
+   "job_h": 0.18033941509659523
+  },
+  {
+   "est": "loaded",
+   "role": "random",
+   "pred": "B2_product",
+   "units": 685,
+   "job_h": 0.19462979155013724
+  },
+  {
+   "est": "loaded",
+   "role": "random",
+   "pred": "m1_hgb",
+   "units": 30,
+   "job_h": 4.63764046753952
+  },
+  {
+   "est": "loaded",
+   "role": "random",
+   "pred": "pstar",
+   "units": 685,
+   "job_h": 19.805749693477317
+  },
+  {
+   "est": "loaded",
+   "role": "random",
+   "pred": "ref",
+   "units": 80,
+   "job_h": 1.271577241071069
+  },
+  {
+   "est": "loaded",
+   "role": "random",
+   "pred": "stack_lr",
+   "units": 685,
+   "job_h": 2.0118516479233515
+  },
+  {
+   "est": "loaded",
+   "role": "static",
+   "pred": "pstar",
+   "units": 320,
+   "job_h": 6.462633697435171
+  },
+  {
+   "est": "loaded",
+   "role": "ws",
+   "pred": "pstar",
+   "units": 160,
+   "job_h": 4.022992288211982
+  },
+  {
+   "est": "loaded",
+   "role": "ws_random",
+   "pred": "pstar",
+   "units": 80,
+   "job_h": 2.011496144105991
+  }
+ ],
+ "selection_s": {
+  "batch": 5.901302020531148,
+  "det": 20.417080542072654,
+  "ws": 7.9032264170236886,
+  "finalist": 15.159739958471619,
+  "static": 9.397732228972018,
+  "ws_random": 0.23775879153981805,
+  "random": 0.36009575007483363,
+  "R1": 12.565510187996551
+ },
+ "scale_T": 1.247148288973384,
+ "speed_factors": {
+  "B1_array_rate": 0.7213114984381137,
+  "B2_product": 0.7417069076749521,
+  "m1_hgb": 0.6294716293603067,
+  "pstar": 0.7702504767448499,
+  "ref": 0.49095312611942665,
+  "stack_lr": 0.7132936453897983
+ }
+}

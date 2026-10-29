@@ -1,0 +1,36 @@
+{
+ "created": "2026-10-29T21:34:22+0000",
+ "finalists_sha256": "97c8854db83242546393aa5ae936a6366322a59f63affd74f0e3ec34cb7f30ac",
+ "frozen_sha256": null,
+ "git_dirty_at_start": true,
+ "git_head": "c0f791a4f7b3bc0cce55cb785b64cf12d7e2541c",
+ "host": "Colms-MacBook-Air.local",
+ "mode": "dryrun",
+ "n_jobs": 49,
+ "n_units": 179,
+ "plan_sha256": "adc1b9b838f851ced94b6d4c19c3ace273daed2919fc8978576bba66eb877f3b",
+ "preflight": [
+  {
+   "detail": "config/finalists.yaml is not tracked by git",
+   "name": "finalists_committed",
+   "ok": false
+  },
+  {
+   "detail": "18 dirty paths:  M .gitignore;  M config/seeds.yaml;  M results/LEDGER.jsonl; ?? config/finalists.yaml; ?? logs/; ?? results/p1/n80_n90.csv; ?? results/p1/parts/p1_dev1_r0_alone.jsonl; ?? results/p1/parts/p1_dev1_r1_alone.jsonl",
+   "name": "tree_clean",
+   "ok": false
+  },
+  {
+   "detail": "config/frozen.yaml missing (scripts/make_frozen.py writes it at the freeze)",
+   "name": "frozen_hashes",
+   "ok": false
+  },
+  {
+   "detail": "/Users/colmclaude/claude_experiments/humanSLmapping/results/final_dryrun/.lock absent",
+   "name": "lock_absent",
+   "ok": true
+  }
+ ],
+ "python": "3.12.15",
+ "split": "dev1"
+}

@@ -1,0 +1,129 @@
+# FINAL EVALUATION PLAN (DESIGN v3.1 §5, §6.2–§6.4, §7.1, §8 freeze, §10). Read by hsl.final / scripts/run_final.py /
+# scripts/score_final.py; code never hardcodes these values.
+#
+# STATUS: PI-decided (D9; independent P4 review ACCEPT WITH FIXES, docs/reviews/p4_review.md, commit 1938d80). Binding
+# when committed together with config/frozen.yaml (scripts/make_frozen.py) at the freeze; never edited after the lock.
+# Evidence: results/p4/shortlist_proposal.md §1 (shortlist rule), results/p4/summary.md.
+status: decided_pending_freeze
+design: v3.1
+
+# ---------------------------------------------------------------------------------------------------- predictors
+# Keys used below. pstar / ref resolve from config/predictor.yaml (primary = frozen P*, reference = pre-P2 P*).
+predictors:
+  pstar: {from: primary}
+  ref: {from: reference}
+  m1_hgb: {method: m1_hgb, params: {drop: [genome]}}        # DESIGN §1/§4: genome dropped
+  stack_lr: {method: stack_lr, params: {}}
+  B1_array_rate: {method: B1_array_rate, params: {}}
+  B2_product: {method: B2_product, params: {}}
+
+# ---------------------------------------------------------------------------------------------------- finalists
+# Confirmatory family (DESIGN §6.4): for each finalist, (c1) AUPRC_s(160) > AUPRC_r(490) and (a) Δ(160) > 0, one-sided,
+# Holm over all hypotheses at protocol.yaml stats.alpha_familywise. Order = §8 rule rank (not evidence of superiority).
+# `selector` = hsl.strategies registry name; `knobs` = overrides of config/strategies.yaml (dev defaults otherwise).
+finalists:
+  H: {selector: H, knobs: {}}                    # hub-first, fitted degree model (strategies.yaml defaults)
+  C: {selector: C, knobs: {normalize: false}}    # coverage / facility location on the mk kernel
+  F_r16: {selector: F, knobs: {r: 16}}           # Fisher-D, rank 16
+# Global selector settings the finalists were tuned with; asserted at run time (refuse on mismatch).
+expected_global_knobs:
+  offarray_calibration: quantile                 # strategies.yaml (route-stratified calibration, D5 / review F-1)
+  randomised_greedy_top_k: 20                    # protocol.yaml selector
+  cluster_cap_per_batch: 2                       # protocol.yaml selector (cap = max(2, ceil(b/k)))
+deterministic_traj: 0                            # the temperature-0 run uses trajectory seed 0 (model seed of r = 0)
+
+# ---------------------------------------------------------------------------------------------------- R (D9)
+R: {strategy: 20, random: 40}                    # R_s, R_r (D9; final per P4 review, declared deviation in DESIGN
+                                                 # revision history); never changed after the freeze (§12)
+
+# ---------------------------------------------------------------------------------------------------- Q1 / random arm
+random:
+  predictors: [pstar, B1_array_rate, B2_product, stack_lr]    # DESIGN §7.1
+  grid: random_grid                              # budgets.yaml key; budgets above the pool map to the pool max
+  # Trajectories per budget where it differs from R_r. At the pool maximum every permutation screens the SAME set
+  # (the whole pool), so trajectories differ only by model seed; 5 as in dev P1 batch6. PI to confirm (cost note).
+  R_by_n: {2627: 5}
+  e_unobs_at: q2_checkpoints                     # E_unobs (descriptive) for P* at these random budgets only
+
+# ---------------------------------------------------------------------------------------------------- descriptive arms
+# Outside the confirmatory family; all at R_s unless stated (DESIGN §8). The feasible-pool and 'no AP-MS'
+# (minimal-features) scenarios are dev-only (§8) and are never run on T.
+descriptive:
+  R1: {selector: R1, extra_checkpoints: [440]}   # status quo; 440 = R1-continuation reference of the warm start
+  static:                                        # static counterparts of the finalists (value of iteration)
+    H: {selector: H-static, knobs: {}}
+    F_r16: {selector: F-static, knobs: {r: 16}}  # F-static at the finalist's r = 16 (P4 review); dev P4 ran r = 8
+    # C: no DESIGN static arm. Code has a diagnostic C-static (external kernel at every round; not an arm, never run
+    # in P4); DESIGN §6.2 reports C's static part as its round-0 behaviour. Set to the block below to run it.
+    C: null                                      # {selector: C-static, knobs: {normalize: false}}
+  deterministic: [H, C, F_r16]                   # one temperature-0 trajectory per finalist (deterministic_traj)
+  # D9 / P4 review: under temperature 0 a route-calibrated off-array gene can never win the argmax for C and F, so
+  # their deterministic runs are labelled in every output (descriptive only; strategy code unchanged).
+  deterministic_caveat:
+    C: not off-array-neutral (descriptive only)
+    F_r16: not off-array-neutral (descriptive only)
+  warm_start:
+    finalists: [H, C]                            # best <= 2 (rule rank)
+    n0: warm_start_n0                            # budgets.yaml: S_0 = first 220 genes of R1 trajectory r
+    checkpoints: warm_start_checkpoints          # budgets.yaml; only n > n0 are evaluated (n0 = R1's own prefix)
+    random_continuation: true                    # DESIGN §6.3 lists random continuation too (PI brief did not)
+  batch:
+    finalists: [H, C]
+    sizes: [50, 110]                             # batch 10 = the finalist arm itself
+    checkpoints: [160, 330, 660]                 # DESIGN §6.3
+dev_only: [feasible_pool, no_AP-MS]               # 'no AP-MS' = selector features without AP-MS
+
+# ---------------------------------------------------------------------------------------------------- secondary predictors
+secondary:
+  m1_hgb:
+    random: {checkpoints: m1_hgb_q1_grid, R: m1_hgb_q1_trajectories}             # §7.1: {30,...,2627} x 5
+    # P4 review (1938d80): strategies at {160, 490, 660} x 5 on T (supports the headline condition); budgets.yaml
+    # m1_hgb_q2_checkpoints.strategies still says {160, 660} (frozen file, not edited): this list supersedes it.
+    strategies: {checkpoints: [160, 490, 660], R: m1_hgb_q2_trajectories}
+    # random {160, 490, 660} x 5 (§4) is a subset of the Q1 set above (same trajectories 0-4): not run twice.
+  reference:                                     # stack_lr_wr2 (pre-P2 P*): "also reported with the unmodified
+    arms: [finalists, R0]                        #  predictor" (DESIGN §4), on the SAME trajectories 0..R-1
+    checkpoints: q2_checkpoints
+    R: 10                                        # SE(Δ(160)) dominated by V_Q: R = 10 inflates SE ~3% vs R = ∞
+
+# ---------------------------------------------------------------------------------------------------- evaluation sets
+e_unobs: {predictor: pstar, save: true}          # E_unobs per arm (descriptive) for every strategy-arm P* checkpoint
+sensitivities:
+  strata: [AO, TT, onrows]                       # E_AO, E_TT (dev: VV), on-array target rows
+  lockbox_only: true                             # T minus the 23 non-lockbox test genes (DESIGN §1)
+  no_same_chromosome: true                       # E_fixed minus same-chromosome cells (DESIGN §1)
+  two_way_bootstrap: true                        # query x array (B = protocol B_two_way) for the family contrasts
+  contrast_budgets: [160, 660]                   # strata/sensitivity Δ(n); c1 always included
+
+# ---------------------------------------------------------------------------------------------------- seeds
+# Trajectory r of every arm uses SeedSequence(<trajectories>).spawn(.)[r] (selection stream = child 0, evaluation /
+# model seed = child 1; hsl.harness.stream_seeds), common random numbers across arms; bootstrap = named children of
+# SeedSequence(<bootstrap>). Keys of config/seeds.yaml.
+seeds:
+  final: {trajectories: final_traj_base_seed, bootstrap: final_bootstrap_seed}
+  dryrun: {trajectories: final_dryrun_traj_base_seed, bootstrap: final_dryrun_bootstrap_seed}
+
+# ---------------------------------------------------------------------------------------------------- modes
+modes:
+  final:
+    split: final                                 # targets = T, pool = D minus identity removals (DESIGN §10)
+    out: results/final                           # lock = results/final/.lock; working files in results/final/run/
+    enforce_refusals: true
+    threads: null                                # launch.py protocol policy
+  dryrun:                                        # pseudo-final: dev1 stands in for T; reduced R and grids
+    split: dev1
+    out: results/final_dryrun
+    enforce_refusals: false                      # refusals are evaluated and reported, only the lock is enforced
+    threads: 2
+    overrides:
+      R: {strategy: 2, random: 3}
+      q2_checkpoints: [30, 160, 490, 660]
+      random_grid: [30, 160, 490, 660, 980]
+      random_R_by_n: {}
+      warm_start_checkpoints: [220, 330, 440, 660]
+      batch_checkpoints: [160, 660]
+      m1_random: {checkpoints: [160, 490], R: 2}
+      m1_strategies: {checkpoints: [160], R: 1}
+      reference: {checkpoints: [160, 660], R: 2}
+      B_query_bootstrap: 400
+      B_two_way: 100

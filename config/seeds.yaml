@@ -32,3 +32,11 @@ p3_e2e_control_seed: 1210317
 # strata; SeedSequence(seed, spawn_key=(k,)) for dev k) for the HELD-OUT greedy oracle: select on half A, score on
 # half B (hsl.q2dev.heldout_halves). Evaluation-only diagnostic.
 p3_heldout_half_seed: 1310319
+# 2026-10-29 (final-evaluation build, DESIGN §5/§6.4/§10; config/finalists.yaml `seeds`): FINAL bootstrap stream
+# (stratified query weights on T, joint-bootstrap trajectory resampling, two-way bootstrap, saturating-fit bootstrap;
+# named children SeedSequence(final_bootstrap_seed, spawn_key=(crc32(name),))). Disjoint from bootstrap_seed (dev).
+final_bootstrap_seed: 1410323
+# 2026-10-29 (final-evaluation DRY RUN on dev1 as stand-in for T; pipeline proof only, never a decision input):
+# trajectory and bootstrap bases of the pseudo-final, disjoint from the dev and final streams.
+final_dryrun_traj_base_seed: 1510327
+final_dryrun_bootstrap_seed: 1610329
