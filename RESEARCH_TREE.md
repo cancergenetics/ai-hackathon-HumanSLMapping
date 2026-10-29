@@ -102,7 +102,13 @@ then DESIGN.md and up to three review rounds.
     Commit c1154c7; results/p2/summary.md. Review ACCEPT WITH FIXES (fixes applied): read the gain as +4.0–4.5%, the best of
     10 adaptive dev configs with no independent confirmation (+0.001–0.003 AUPRC absolute); leakage, gate and
     reproduction verified independently.
-  - [ ] Re-run power pilot + universe subsampling (50% and 25%) + random curves with frozen P* (DESIGN §9), after review
+  - [~] Re-run power pilot + universe subsampling (50% and 25%) + random curves with frozen P* (DESIGN §9)
+    - [x] Random arm, frozen P*: dev1–3 × R=10, n ≤ 660 (12 budgets), 0 failures (results/p1/curves.csv).
+    - [x] Power pilot (frozen P*, dev1): r160 0.0416, r210 0.0433, r490 0.0509, r660 0.0553; g = 0.0017 [0.0009, 0.0025].
+      Under the frozen ρ = 0 rule, Q2 claims are bounds only (V_Q(Δ) 4.5e-6 ≫ (g/3.5)²); the shared-weight sensitivity
+      gives R_s ≈ 35–39. V_Q(Δ) is measured directly in P4 and R is fixed at the freeze.
+    - [~] Universe subsampling with frozen P* (50%, 25%); [ ] n 820–1640 (batch5); [ ] n ≥ 1970 alone (batch6, held)
+- [~] P3 oracle ceilings (go/no-go) → P4 strategies on dev (agent launched 2026-10-29, 1×2 until universe drains)
 - [ ] M4 Q1: performance vs. fraction screened (random)
 - [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
 - [ ] M6 Q3: translation to HAP1 (query numbers, choice of query lines, role of prediction)
