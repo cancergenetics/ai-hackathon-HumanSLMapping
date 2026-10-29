@@ -52,4 +52,5 @@ def configure_ysl_env() -> None:
 from hsl import guard as _guard  # noqa: E402
 
 _guard.install([yeast_sls_root()])
+_guard.install_label_gate(yeast_sls_root())
 configure_ysl_env()

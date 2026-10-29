@@ -1,0 +1,16 @@
+# Budgets (DESIGN v3.1 §5). Single source; code reads this file. Budget n = number of screened query genes |S|.
+batch_size: 10                      # brief: batches of 10 queries per round
+batch_sizes_scenario: [10, 50, 110] # batch-size scenario (§6.3); one-shot = static selector
+random_grid: [10, 30, 60, 100, 120, 160, 210, 220, 330, 410, 490, 660, 820, 980, 1310, 1640, 1970, 2627]
+q2_checkpoints: [30, 60, 100, 160, 220, 330, 490, 660]
+q2_max_n: 660                       # trajectories run to 660 (dev: to 660 or pool exhaustion)
+m1_hgb_q1_grid: [30, 160, 490, 660, 1310, 2627]       # 5 trajectories
+m1_hgb_q1_trajectories: 5
+m1_hgb_q2_checkpoints: {strategies: [160, 660], random: [160, 490, 660]}   # 5 trajectories per arm
+m1_hgb_q2_trajectories: 5
+warm_start_n0: 220                  # S_0 chosen by R1 (≈ Billmann's 222 lines)
+warm_start_checkpoints: [220, 330, 440, 490, 660]
+# Confirmatory contrasts (DESIGN §6.4)
+contrast_c1: {strategy_n: 160, random_n: 490}
+contrast_a: {n: 160}
+brief_example: {strategy_n: 160, random_n: 660}

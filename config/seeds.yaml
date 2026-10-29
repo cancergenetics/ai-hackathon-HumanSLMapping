@@ -5,3 +5,18 @@ split_seed: 20261029
 # 2026-10-29: draw of screened sets (nested, from the dev pool only) for the runtime-only benchmark
 # (scripts/02_runtime_benchmark.py). Not used for any accuracy evaluation.
 runtime_benchmark_draw_seed: 1
+# 2026-10-29 (P0 infrastructure, DESIGN v2 §5/§8): named seeds, fixed before first use.
+# Inner 5-fold assignment of the dev pool (hsl.views.inner_folds; same strata rule as scripts/01_make_split.py).
+inner_fold_seed: 310291
+# Trajectory seeds: numpy.random.SeedSequence(base).spawn(R)[r] -> trajectory r (selection stream = child 0,
+# evaluation/model-seed stream = child 1). Dev and final bases differ, so the dev and final streams are disjoint.
+dev_traj_base_seed: 410293
+final_traj_base_seed: 920297
+# Stratified query bootstrap (hsl.eval.bootstrap_weights): SeedSequence(bootstrap_seed) (+ spawn per analysis).
+bootstrap_seed: 510299
+# Gene sub-universe draws for the scaling-law experiment (DESIGN §7.3).
+universe_subsample_seed: 610301
+# Test fixtures only (pseudo-test genes drawn from the dev pool for leakage/poisoning tests; never an analysis).
+test_fixture_seed: 710303
+# 2026-10-29 (P0, design r2 patch F): k-means (k = 100) clusters on the external-kernel embedding of non-test genes.
+cluster_seed: 810307

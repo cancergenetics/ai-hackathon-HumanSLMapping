@@ -72,3 +72,21 @@ def run_method(view, method: str, model_seed: int = 17, split_seed: int = 0, n_t
             "n_screened": int(view.n), "n_targets": int(view.n_targets), "n_arrays": int(view.n_arrays),
             "finite": bool(np.isfinite(S).all()), "logit_scale": bool(spec.logit_scale), "method_info": ctx.info}
     return S, info
+
+
+def construct_view(bundle, screened, targets):
+    """ScreenView via the upstream private constructor `ScreenView._construct(_BundleSource(bundle), ...)` — the same
+    constructor from_split/without_queries use — WITHOUT the upstream lockbox refusal. Used for dev views on
+    hsl.views.dev_bundle() (Bundle.blind(T): unblinded=False, yet 23 upstream-lockbox genes sit in D). Training rows
+    must exist in `bundle` (gene_rows raises otherwise); targets enter by name only."""
+    from ysl.models.view import ScreenView, _BundleSource
+    scr = np.unique(np.asarray(list(screened), dtype=str))
+    tg = np.unique(np.asarray(list(targets), dtype=str))
+    if len(scr) != len(list(screened)) or len(tg) != len(list(targets)):
+        raise ValueError("duplicate ORFs in screened/targets")
+    if np.isin(scr, tg).any():
+        raise ValueError("an ORF is both screened and a target")
+    unknown = np.setdiff1d(np.concatenate([scr, tg]), bundle.all_query_orfs)
+    if len(unknown):
+        raise KeyError(f"not query ORFs of {bundle.dataset}: {unknown[:5].tolist()}")
+    return ScreenView._construct(_BundleSource(bundle), scr, tg)

@@ -1,4 +1,9 @@
-"""Tests of the frozen test/dev split (scripts/01_make_split.py -> config/split/)."""
+"""Tests of the frozen test/dev split (scripts/01_make_split.py -> config/split/).
+
+Since P0 the label gate (hsl.guard) refuses unblinded reads outside hsl.views unless HSL_FINAL=1; the tests that
+recompute per-query SL counts of ALL queries (incl. test queries) therefore run only with HSL_FINAL=1 (they passed at
+M2 when the split was made; the list files themselves are pinned by SHA-256 in test_manifest_checksums).
+Names-only checks (partition, gene counts, strata sizes on dev rows) also run in tests/test_views.py."""
 from __future__ import annotations
 
 import hsl  # noqa: F401
@@ -14,6 +19,8 @@ from scipy import stats
 from hsl import paths
 
 SPLIT = paths.PROJECT_ROOT / "config" / "split"
+final_only = pytest.mark.skipif(__import__("os").environ.get("HSL_FINAL") != "1",
+                                reason="needs unblinded labels of all queries (HSL_FINAL=1); label gate since P0")
 
 
 def _load_script():
@@ -47,6 +54,7 @@ def test_sorted_unique(lists):
         assert lst == sorted(lst) and len(lst) == len(set(lst))
 
 
+@final_only
 def test_disjoint_and_union_is_universe(lists, counts):
     test, dev = map(set, lists)
     assert not test & dev
@@ -54,6 +62,7 @@ def test_disjoint_and_union_is_universe(lists, counts):
     assert len(counts) == 3283
 
 
+@final_only
 def test_fraction_within_one_gene_per_stratum(ms, lists, counts):
     test = set(lists[0])
     st, labels = ms.strata(counts)
@@ -73,18 +82,21 @@ def test_manifest_checksums(lists):
     assert man["n_test"] == len(lists[0]) and man["n_dev_pool"] == len(lists[1])
 
 
+@final_only
 def test_deterministic_rerun(ms, tmp_path):
     ms.main(["--out-dir", str(tmp_path)])
     for name in ("test_queries.txt", "dev_pool.txt", "split_manifest.json"):
         assert (tmp_path / name).read_bytes() == (SPLIT / name).read_bytes(), name
 
 
+@final_only
 def test_stratification_ks_not_significant(lists, counts):
     t = counts.loc[lists[0]].to_numpy()
     d = counts.loc[lists[1]].to_numpy()
     assert stats.ks_2samp(t, d).pvalue > 0.05
 
 
+@final_only
 def test_lockbox_preferred(ms, lists, counts):
     """Every stratum takes lockbox members first: a stratum's test set contains a non-lockbox gene only if all its
     lockbox members are already in test."""

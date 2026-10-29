@@ -21,6 +21,13 @@ under a protected root:
 Python's bytecode cache writes (importlib) go through os.open and are therefore also refused; importlib swallows the
 OSError, so importing from a protected tree still works without writing __pycache__.
 
+LABEL GATE (DESIGN v3 §6.1; `install_label_gate`): Costanzo label/data files of the upstream checkout — raw
+`data/raw/costanzo2016/**`, processed `data/processed/costanzo2016_*` (bundle, sidecar, parquet tables) and upstream
+predictions `data/processed/predictions/**` — may not even be READ unless (a) env `HSL_FINAL=1` (final evaluation),
+or (b) inside `with label_access():`, which only code in module `hsl.views` may enter (checked on the caller's frame;
+thread-local depth). Covered: the "open" audit event (open/io.open/os.open/np.load/np.memmap/pandas text readers) and
+wrapped pyarrow/pandas parquet/feather readers (C++ opens). Violations raise `LabelGateViolation`.
+
 Limits (documented, not silently assumed): C extensions that write via their own C file APIs (other than the pyarrow
 writers above) and child processes started with a cwd outside the root are not audited. Every entry point imports
 this module (via `import hsl`), and the final read-only check (`find -newer .yeast_readonly_stamp`, upstream
@@ -32,14 +39,21 @@ import os
 import sys
 import threading
 
-__all__ = ["ReadOnlyViolation", "install", "protected_roots", "is_protected", "check_open"]
+__all__ = ["ReadOnlyViolation", "LabelGateViolation", "install", "protected_roots", "is_protected", "check_open",
+           "install_label_gate", "label_access", "label_gate_open", "is_label_file", "record_reads"]
 
 
 class ReadOnlyViolation(PermissionError):
     """Raised when code tries to modify a protected (read-only) tree."""
 
 
+class LabelGateViolation(PermissionError):
+    """Raised when code outside hsl.views (and without HSL_FINAL=1) tries to read Costanzo label/data files."""
+
+
 _STATE = {"roots": [], "hook": False, "pyarrow": False}
+_LABEL = {"dirs": [], "prefix_dirs": [], "installed": False, "readers": False}
+_TL = threading.local()
 _LOCK = threading.Lock()
 
 _WRITE_FLAGS = os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND
@@ -126,6 +140,8 @@ def _hook(event: str, args: tuple) -> None:
     if event == "open":
         if args:
             check_open(args[0], args[1] if len(args) > 1 else None, args[2] if len(args) > 2 else None)
+            if _LABEL["installed"]:
+                check_label_read(args[0])
         return
     idx = _PATH_EVENTS.get(event)
     if idx is not None:
@@ -163,6 +179,8 @@ def _wrap_osfile(cls):
         def __new__(klass, path, mode="r", *a, **k):
             if mode != "r" and is_protected(path):
                 _deny(f"pyarrow.OSFile(mode={mode!r})", path)
+            if _LABEL["installed"]:
+                check_label_read(path)
             return super().__new__(klass, path, mode, *a, **k)
     GuardedOSFile.__name__ = "OSFile"
     return GuardedOSFile
@@ -202,6 +220,116 @@ def _wrap_parquet_writer(cls):
             super().__init__(where, *a, **k)
     GuardedParquetWriter.__name__ = "ParquetWriter"
     return GuardedParquetWriter
+
+
+# ----------------------------------------------------------------------------- label gate
+def is_label_file(path) -> bool:
+    """True for Costanzo label/data files of the upstream checkout (see module docstring)."""
+    p = _norm(path)
+    if p is None:
+        return False
+    for d in _LABEL["dirs"]:                       # whole directories
+        if p == d or p.startswith(d + os.sep):
+            return True
+    d, name = os.path.split(p)
+    return d in _LABEL["prefix_dirs"] and name.startswith("costanzo2016_")
+
+
+def label_gate_open() -> bool:
+    return os.environ.get("HSL_FINAL") == "1" or getattr(_TL, "depth", 0) > 0
+
+
+_RECORDERS: list = []
+
+
+class record_reads:
+    """Test helper: `with record_reads() as paths:` collects every file path opened for reading via the audited
+    channels (open event + wrapped pyarrow/pandas readers) while active (used by the feature-provenance test)."""
+
+    def __enter__(self):
+        self.paths = set()
+        _RECORDERS.append(self.paths)
+        return self.paths
+
+    def __exit__(self, *exc):
+        _RECORDERS.remove(self.paths)
+        return False
+
+
+def check_label_read(path) -> None:
+    if _RECORDERS:
+        p = _norm(path)
+        if p is not None:
+            for r in _RECORDERS:
+                r.add(p)
+    if not label_gate_open() and is_label_file(path):
+        raise LabelGateViolation(f"label gate: {os.fsdecode(os.fspath(path))!r} may only be read inside hsl.views "
+                                 "(dev_bundle/final_bundle) or with HSL_FINAL=1")
+
+
+class label_access:
+    """`with label_access():` opens the label gate for this thread; only module hsl.views may enter it."""
+
+    def __enter__(self):
+        caller = sys._getframe(1).f_globals.get("__name__", "")
+        if caller != "hsl.views":
+            raise LabelGateViolation(f"label_access() may only be used by hsl.views (called from {caller!r})")
+        _TL.depth = getattr(_TL, "depth", 0) + 1
+        return self
+
+    def __exit__(self, *exc):
+        _TL.depth -= 1
+        return False
+
+
+def _wrap_reader(fn, what: str, path_pos: int = 0, path_kw=("source", "path", "where", "path_or_paths",
+                                                              "filepath_or_buffer")):
+    def wrapper(*a, **k):
+        src = a[path_pos] if len(a) > path_pos else next((k[x] for x in path_kw if x in k), None)
+        for c in (src if isinstance(src, (list, tuple)) else [src]):
+            if isinstance(c, (str, bytes, os.PathLike)):
+                check_label_read(c)
+        return fn(*a, **k)
+    wrapper.__wrapped__ = fn
+    wrapper.__name__ = getattr(fn, "__name__", what)
+    return wrapper
+
+
+def _guard_readers() -> None:
+    if _LABEL["readers"]:
+        return
+    try:
+        import pandas as pd
+        import pyarrow as pa
+        import pyarrow.dataset as pds
+        import pyarrow.feather as pf
+        import pyarrow.parquet as pq
+    except ImportError:
+        return
+    for mod, name in [(pq, "read_table"), (pq, "ParquetFile"), (pq, "ParquetDataset"), (pq, "read_metadata"),
+                      (pq, "read_schema"), (pq, "read_pandas"), (pds, "dataset"), (pf, "read_table"),
+                      (pf, "read_feather"), (pa, "memory_map"), (pa, "input_stream"), (pd, "read_parquet"),
+                      (pd, "read_feather")]:
+        if hasattr(mod, name):
+            setattr(mod, name, _wrap_reader(getattr(mod, name), f"{mod.__name__}.{name}"))
+    _LABEL["readers"] = True
+
+
+def install_label_gate(yeast_root) -> None:
+    """Gate reads of Costanzo label/data files under `yeast_root` (idempotent)."""
+    r = os.path.realpath(os.path.abspath(os.fspath(yeast_root)))
+    for d in (os.path.join(r, "data", "raw", "costanzo2016"), os.path.join(r, "data", "processed", "predictions")):
+        if d not in _LABEL["dirs"]:
+            _LABEL["dirs"].append(d)
+    pdir = os.path.join(r, "data", "processed")
+    if pdir not in _LABEL["prefix_dirs"]:
+        _LABEL["prefix_dirs"].append(pdir)
+    with _LOCK:
+        if not _STATE["hook"]:
+            sys.addaudithook(_hook)
+            _STATE["hook"] = True
+    _LABEL["installed"] = True
+    _guard_readers()
 
 
 # ----------------------------------------------------------------------------- install

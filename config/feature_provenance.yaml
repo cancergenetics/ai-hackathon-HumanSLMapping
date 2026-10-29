@@ -1,0 +1,132 @@
+# Feature/data provenance (DESIGN v3 §1, §6.1(e)); checked by tests/test_provenance.py: every file under YEAST_SLs that
+# a predictor or selector opens must match a `files` pattern (fnmatch, relative to the YEAST_SLs root) of a store
+# whose `used_by` lists that consumer, and every store's `data_md` token must appear in DATA.md.
+# Consumers: harness (labels, via hsl.views only), stack_lr, stack_lr_wr2, m1_hgb (genome dropped), selector
+# (SelectorView: hsl.features whitelist + array SMF from the bundle). Recorded with hsl.guard.record_reads on
+# 2026-10-29 (stack_lr_wr2 / m1_hgb at n = 30 on dev split 1; selector features + clusters).
+# Human analogues: DESIGN §1. "label_free" = built without Costanzo GI labels/ε; "gi_text_go_free" = no GI data from
+# any source, no text mining (STRING etc.), no GO.
+stores:
+  costanzo_s1_bundle:
+    files: ["data/processed/costanzo2016_bundle_s1.npz", "data/processed/costanzo2016_bundle_s1.json"]
+    data_md: "costanzo2016_bundle_s1.npz"
+    role: "labels / screened-row GI data (ε, P, labels); array SMF (single-mutant phenotype, not a GI)"
+    label_free: false
+    gi_text_go_free: false
+    human_analogue: "HAP1 qGI screens (Billmann 2026); HAP1 single-KO fitness for array SMF"
+    used_by: [harness]
+  sgd_feature_names:
+    files: ["data/raw/sgd/SGD_features.tab"]
+    data_md: "sgd-features"
+    role: "retired -> current systematic-name mapping only (ysl.data.features.orf_synonyms); no annotation columns"
+    label_free: true
+    gi_text_go_free: true
+    human_analogue: "HGNC/Ensembl identifier mapping"
+    used_by: [m1_hgb, selector]
+  coexpression:
+    files: ["data/processed/features/coexpression_combined_fisherz.npy",
+            "data/processed/features/coexpression_combined_nstudies.npy",
+            "data/processed/features/coexpression_genes.parquet",
+            "data/processed/features/expression_rnaseq.npy", "data/processed/features/expression_microarray.npy",
+            "data/processed/features/expression_rnaseq_genes.parquet",
+            "data/processed/features/expression_microarray_genes.parquet",
+            "data/processed/features/expression_sample_metadata.parquet"]
+    data_md: "coxpresdb-sce"
+    role: "COXPRESdb expression / within-study coexpression; genetic-perturbation studies removed upstream"
+    label_free: true
+    gi_text_go_free: true
+    human_analogue: "COXPRESdb human / ARCHS4"
+    used_by: [m1_hgb, selector]
+  esm2_embeddings:
+    files: ["data/processed/features/esm2_650m_mean.npy", "data/processed/features/esm2_650m_genes.txt"]
+    data_md: "esm2-650m-weights"
+    role: "ESM-2 650M mean protein embeddings (PCs, cosine kernel)"
+    label_free: true
+    gi_text_go_free: true
+    human_analogue: "same model on the human proteome"
+    used_by: [m1_hgb, selector]
+  abundance:
+    files: ["data/processed/features/abundance.parquet"]
+    data_md: "paxdb5-single"
+    role: "PaxDb single-experiment protein abundance (integrated set excluded: STRING-weighted)"
+    label_free: true
+    gi_text_go_free: true
+    human_analogue: "PaxDb human"
+    used_by: [m1_hgb, selector]
+  sequence:
+    files: ["data/processed/features/sequence.parquet"]
+    data_md: "sgd-sequences"
+    role: "protein/CDS length, GC, GC3, ENC, CAI (header descriptions discarded)"
+    label_free: true
+    gi_text_go_free: true
+    human_analogue: "Ensembl human sequences"
+    used_by: [m1_hgb, selector]
+  popgen:
+    files: ["data/processed/features/popgen.parquet"]
+    data_md: "y1002-genomes"
+    role: "dN/dS, pangenome presence, copy number, LoF frequency (1,011 isolates)"
+    label_free: true
+    gi_text_go_free: true
+    human_analogue: "gnomAD constraint (LOEUF/pLI)"
+    used_by: [m1_hgb, selector]
+  alphafold:
+    files: ["data/processed/features/alphafold.parquet"]
+    data_md: "alphafold-api-yeast"
+    role: "mean pLDDT, fraction disordered"
+    label_free: true
+    gi_text_go_free: true
+    human_analogue: "AlphaFold DB human proteome"
+    used_by: [m1_hgb, selector]
+  uniprot_domains:
+    files: ["data/processed/features/uniprot.parquet"]
+    data_md: "uniprot-UP000002311"
+    role: "Pfam/InterPro counts and id sets (no GO fields)"
+    label_free: true
+    gi_text_go_free: true
+    human_analogue: "UniProt human Pfam/InterPro"
+    used_by: [m1_hgb, selector]
+  apms:
+    files: ["data/processed/features/ppi_nodes.parquet", "data/processed/features/michaelis2023_edges.parquet"]
+    data_md: "michaelis2023-apms"
+    role: "Michaelis 2023 AP-MS interactome (literature columns dropped upstream)"
+    label_free: true
+    gi_text_go_free: true
+    human_analogue: "BioPlex / OpenCell"
+    used_by: [m1_hgb, selector]
+  compara:
+    files: ["data/processed/features/compara_phylo_profile.parquet",
+            "data/processed/features/compara_paralog_pairs.parquet"]
+    data_md: "ensembl-fungi-compara116"
+    role: "fungal phylogenetic profile (conservation) and paralog pairs"
+    label_free: true
+    gi_text_go_free: true
+    human_analogue: "Ensembl Compara (vertebrates)"
+    used_by: [m1_hgb, selector]
+  pair_store_nongenome:
+    files: ["data/processed/features/pairs/genes.txt", "data/processed/features/pairs/manifest.json",
+            "data/processed/features/pairs/masks.npz", "data/processed/features/pairs/coex_*.npy",
+            "data/processed/features/pairs/apms_*.npy", "data/processed/features/pairs/para_*.npy",
+            "data/processed/features/pairs/esm_cos.npy", "data/processed/features/pairs/dom_*.npy",
+            "data/processed/features/pairs/phylo_*.npy", "data/processed/features/pairs/abund_*.npy"]
+    data_md: "Pair store"
+    role: "gene x gene external kernels (coexpression, AP-MS, paralogy, ESM cosine, domains, phylogeny, abundance)"
+    label_free: true
+    gi_text_go_free: true
+    human_analogue: "as the source stores above"
+    used_by: [stack_lr_wr2, m1_hgb]
+  pair_store_genome:
+    files: ["data/processed/features/pairs/gen_*.npy"]
+    data_md: "Pair store"
+    role: "genome coordinates (same chromosome/distance): SGA meiotic-linkage artefact, no HAP1 analogue"
+    label_free: true
+    gi_text_go_free: true
+    human_analogue: "none (excluded from primary recipes; m1_hgb runs with drop=['genome'])"
+    used_by: []
+  hoepfner_cofitness_tier2:
+    files: ["data/processed/features/hoepfner/*"]
+    data_md: "hoepfner2014-hiphop"
+    role: "TIER 2 chemogenomic co-fitness (sensitivity only, never headline)"
+    label_free: true
+    gi_text_go_free: true
+    human_analogue: "human chemogenomic CRISPR screens (partial)"
+    used_by: []
