@@ -321,6 +321,13 @@ def full(a) -> dict:
          "Rows: `results/p1/curves.csv`; per-(split, predictor, n) table: `results/p1/curve_table.csv`.", "",
          f"Figures: `fig_q1_dev_curves{sfx}.png` (AUPRC vs n, mean ± SD band), `fig_q1_dev_strata{sfx}.png` "
          "(strata).", ""]
+    has_max = all(((df.split == sp) & (df.predictor == PS) & (df.n == len(views.get_split(sp).pool))).any()
+                  for sp in df.split.unique())
+    if not interim and not has_max:
+        L[0] = "# P1 — dev random curves (R0), DEV DATA ONLY — PROVISIONAL (pool maximum pending)"
+        L += ["**Provisional:** the n ≥ 1970 phase (batch6: 1970 and the dev-pool maximum, run alone) is held by the PI, "
+              "so the 'max' column below is the largest budget run so far (1640) and n_80/n_90 (anchored at the pool "
+              "maximum) are not yet available.", ""]
     if interim:
         L[0] = "# P1 — INTERIM: dev random curves n ≤ 660 (R0), DEV DATA ONLY"
         L += ["**Interim (PI decision D6):** n ≥ 820, the pool maximum, m1_hgb at 1310/max and universe subsampling "

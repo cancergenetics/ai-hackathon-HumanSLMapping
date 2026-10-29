@@ -180,6 +180,9 @@ def cmd_analyze(a) -> int:
                  f"{r.n80:.0f}{' (' + r.n80_censored + ')' if r.n80_censored else ''} | "
                  f"{r.n90:.0f}{' (' + r.n90_censored + ')' if r.n90_censored else ''} | "
                  f"{r.n80 / r.pool_n:.3f} | {r.n90 / r.pool_n:.3f} |")
+    if 100 not in set(nx.level):
+        L += ["", "**Provisional:** level 100% (dev splits 1–3) needs the dev-pool-maximum runs (batch6, held), so the "
+              "slope below uses the 50% and 25% levels only (6 draws)."]
     L += ["", "Slope of log n_X on log N (OLS over draws; 95% CI = draw bootstrap stratified by level, B = 2,000):", ""]
     if nx.level.nunique() < 2:
         L.append("- Slope not estimable: fewer than two universe levels with a (sub-)pool-maximum anchor for this "

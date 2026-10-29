@@ -160,7 +160,7 @@ def cmd_import_p2(a) -> int:
 
 def cmd_merge(a) -> int:
     rows = p1.read_rows(sorted(PARTS.glob("*.jsonl")))
-    cur = pd.DataFrame([r for r in rows if r.get("kind", "curve") == "curve"])
+    cur = pd.DataFrame([r for r in rows if r.get("kind", "curve") == "curve" and "predictor" in r and "split" in r])
     ups = pd.DataFrame([r for r in rows if r.get("kind") == "upstream"])
     if len(cur):
         cur = cur.drop_duplicates(["split", "perm", "n", "predictor"], keep="last")
