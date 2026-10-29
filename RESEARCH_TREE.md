@@ -46,7 +46,14 @@ then DESIGN.md and up to three review rounds.
         rule; predictor development moved before strategies (freeze P* first); F/H/M fully specified; V dropped;
         warm start vs R1-continuation; batch 110 (= 6 HAP1 rounds); scaling slope b; Bundle.blind + runtime guard.
   - [x] Review round 3 (consistency) → v3.1, all 16 edits accepted. **Design frozen** (commit after 5270a0e).
-- [~] P0 infrastructure (eval module, views, SelectorView, harness, launcher, tests) — started in parallel with round 2
+- [x] P0 infrastructure (8ed970f): eval engine (tie-grouped AP, exact WeightedAP bootstrap, Welch, PAVA n_req, Holm),
+      views (Bundle.blind dev bundle + runtime label gate), SelectorView, harness/Trajectory, launcher; 97+5 tests pass.
+      E_fixed (final, labels only): 999,102 cells, prevalence 0.00939 (E_AO 0.00806, E_TT 0.01232); 15 identity-excluded
+      arrays (rule as written; DESIGN text said 4 — accepted, conservative). E_fixed_dev ≈ 745k cells, prev 0.009–0.010.
+      Dev smoke (split 1, random): stack_lr_wr2 AUPRC 0.029 @30, 0.036 @100.
+  - [~] Independent P0 code review
+- [~] P1 dev random curves + power pilot + upstream-protocol sanity + universe subsampling
+- [~] Strategy selectors implementation (R1, H, F, C, M, static variants) + toy controls — no dev evaluation before P* freeze
 - [ ] M4 Q1: performance vs. fraction screened (random)
 - [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
 - [ ] M6 Q3: translation to HAP1 (query numbers, choice of query lines, role of prediction)
