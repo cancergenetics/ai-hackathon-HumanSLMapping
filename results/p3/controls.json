@@ -1,0 +1,26 @@
+{
+ "split": "dev1",
+ "n": 160,
+ "traj": 0,
+ "predictor": "stack_lr_wr2_lb",
+ "params": {
+  "extra": [
+   "dense_arr",
+   "aprior"
+  ],
+  "gi_n0": 300.0
+ },
+ "shuffled": {
+  "auprc": 0.009493624850109813,
+  "prevalence": 0.009028853569504796,
+  "ratio": 1.0514762230915777,
+  "pass": true,
+  "wall_s": 30.474102542037144
+ },
+ "backdoor": {
+  "auprc": 1.0,
+  "pass": true,
+  "wall_s": 27.99333058297634
+ },
+ "reference_auprc": 0.04613089822840836
+}

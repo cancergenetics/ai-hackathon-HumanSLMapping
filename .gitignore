@@ -10,3 +10,5 @@ results/**/*.parquet
 !results/**/summary*.parquet
 results/runtime_benchmark/jobs/
 /results/p2/boot/
+/results/p3/boot/
+/results/p4/boot/

@@ -1,0 +1,38 @@
+[
+ {
+  "name": "p3_oracle_hub_dev3_r0",
+  "n": 660,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/40_p3_oracles.py",
+   "run",
+   "--config",
+   "oracle_hub",
+   "--split",
+   "dev3",
+   "--traj",
+   "0"
+  ]
+ },
+ {
+  "name": "p3_controls",
+  "n": 160,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/40_p3_oracles.py",
+   "controls"
+  ]
+ },
+ {
+  "name": "p4_smoke",
+  "n": 330,
+  "timeout_s": 14400,
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/41_p4_strategies.py",
+   "smoke",
+   "--configs",
+   "R1,H,H-static,F_r4,F_r8,F_r16,F-static_r8,C,M_lam0.3,H__det,H__b50,F_r8__b110,H__feas,R0__feas,H__min,F_r8__min,F_r8__ws220,R0__ws220"
+  ]
+ }
+]
