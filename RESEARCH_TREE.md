@@ -64,8 +64,10 @@ then DESIGN.md and up to three review rounds.
   - [x] Power pilot (dev1, R=10, P*): r160 0.0389 (σ_r 0.0021), r210 0.0411, g = 0.0021. Frozen provisional rule
         (ρ=0) gives V_Q(Δ) ≫ (g/3.5)² → "bounds only" provisionally; shared-weight correlation (ρ_boot 0.994) implies
         R_s ≈ 21 suffices. Per DESIGN, V_Q(Δ) is measured directly in P4 and R fixed at freeze.
-  - [~] Upstream-protocol sanity: P* all D_val cells @660 = 0.0657 ± 0.0027 (lift 6.0) vs upstream dev 0.0754 (lift
-        6.6) → diagnosing (composition vs plumbing). E_fixed_dev @660: P* 0.0544, stack_lr 0.0450, B1 0.0417.
+  - [x] Upstream-protocol sanity: harness reproduces upstream dev split 0 on its T-free subset (P* 0.0774 vs recorded
+        0.0775; no T rows touched — upstream dev splits exclude the lockbox). dev1 is a hard query fold (upstream's
+        own predictions restricted to dev1 rows: 0.0673; dev2 0.0864; dev3 0.0750) → absolute dev AUPRC varies ±10%
+        across folds; paired contrasts unaffected. E_fixed_dev @660 (dev1): P* 0.0544, stack_lr 0.0450, B1 0.0417.
 - [x] Strategy selectors (b71a4df, 767563c): R1, H, H-static, F, F-static, C, M (+ diagnostic C-static), oracles in
       src/hsl/oracles.py (dev-only, import-guarded). Toy controls pass (planted hub/cluster, null; F r=1 ≡ H order);
       per-channel poisoning + broken twins pass; selection ≤ 1 s/round (F 0.6–0.9 s). 208 fast tests pass.
