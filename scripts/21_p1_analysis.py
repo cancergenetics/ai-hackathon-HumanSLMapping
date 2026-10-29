@@ -223,7 +223,7 @@ def fmt(m, s=None, d=4):
     return f"{m:.{d}f}" + (f" ± {s:.{d}f}" if s is not None and np.isfinite(s) else "")
 
 
-def figures(df: pd.DataFrame):
+def figures(df: pd.DataFrame, sfx: str = ""):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -246,14 +246,19 @@ def figures(df: pd.DataFrame):
         ax.axhline(prev, color="#8a8984", lw=1, ls=":")
         ax.text(11, prev * 1.04, "prevalence", color="#52514e", fontsize=7)
         ax.set_xscale("log")
-        ax.set_title(f"{sp} (pool {len(views.get_split(sp).pool)}, |D_val| {df[df.split == sp].n_cells.iloc[0]:,} "
+        ax.set_title(f"{sp} (pool {len(views.get_split(sp).pool)}; E_fixed_dev {df[df.split == sp].n_cells.iloc[0]:,} "
                      "cells)", fontsize=9)
         ax.set_xlabel("screened query genes n (log)")
     axes[0][0].set_ylabel("pooled AUPRC on E_fixed_dev (mean ± SD)")
-    axes[0][-1].legend(fontsize=7, frameon=False, loc="upper left")
+    hl = {}
+    for ax in axes[0]:
+        for h, lab in zip(*ax.get_legend_handles_labels()):
+            hl.setdefault(lab.split(" (R=")[0], (h, lab))
+    order = [hl[LABEL[p]] for p in PRED_ORDER if LABEL[p] in hl]
+    axes[0][0].legend([h for h, _ in order], [lab for _, lab in order], fontsize=7, frameon=False, loc="upper left")
     fig.suptitle("P1 dev random curves (R0)", fontsize=10)
     fig.tight_layout()
-    fig.savefig(OUT / "fig_q1_dev_curves.png", dpi=150)
+    fig.savefig(OUT / f"fig_q1_dev_curves{sfx}.png", dpi=150)
     plt.close(fig)
     # per-stratum panel for P* (mean over permutations; one line per split)
     strata = [("auprc", "all E_fixed_dev"), ("auprc_AO", "E_AO (array-only columns)"),
@@ -274,12 +279,16 @@ def figures(df: pd.DataFrame):
     axes[0].set_ylabel("pooled AUPRC (mean over permutations)")
     axes[0].legend(fontsize=6, frameon=False)
     fig.tight_layout()
-    fig.savefig(OUT / "fig_q1_dev_strata.png", dpi=150)
+    fig.savefig(OUT / f"fig_q1_dev_strata{sfx}.png", dpi=150)
     plt.close(fig)
 
 
 def full(a) -> dict:
     df = curves()
+    interim = a.mode == "interim"
+    sfx = "_interim" if interim else ""
+    if interim:
+        df = df[df.n <= int(config.budgets()["q2_max_n"])]
     res = {"n_rows": int(len(df))}
     # ---- curve table: mean, SD per split x predictor x n, and the across-split summary
     tab = (df.groupby(["split", "predictor", "n"])
@@ -291,13 +300,15 @@ def full(a) -> dict:
                 fit_s=("fit_predict_s", "mean"), fit_s_max=("fit_predict_s", "max"),
                 rss_gb=("peak_rss_fit_gb", "max"))
            .reset_index())
-    tab.to_csv(OUT / "curve_table.csv", index=False)
-    nx = n_x_table(df[df.predictor != "m1_hgb"])
-    nx += n_x_table(df[df.predictor == "m1_hgb"], boot=False)
-    pd.DataFrame(nx).to_csv(OUT / "n80_n90.csv", index=False)
-    sat = sat_fit(df)
+    tab.to_csv(OUT / f"curve_table{sfx}.csv", index=False)
+    nx, sat = [], []
+    if not interim:
+        nx = n_x_table(df[df.predictor != "m1_hgb"])
+        nx += n_x_table(df[df.predictor == "m1_hgb"], boot=False)
+        pd.DataFrame(nx).to_csv(OUT / "n80_n90.csv", index=False)
+        sat = sat_fit(df)
     res.update(n_x=nx, saturating_fit=sat)
-    figures(df)
+    figures(df, sfx)
     L = ["# P1 — dev random curves (R0), DEV DATA ONLY", "",
          "DESIGN v3.1 §7.1/§8. Splits dev1–3 (D_val = inner fold k, candidates = D \\ fold k); evaluation set "
          "E_fixed_dev = D_val × (A \\ D_cand \\ T) minus identity exclusions (no test-gene columns). Pooled AUPRC "
@@ -305,13 +316,18 @@ def full(a) -> dict:
          "(`dev_traj_base_seed`, harness R0 streams), nested prefixes; model seed = trajectory evaluation stream "
          "(at the pool maximum all permutations coincide, so the SD there is model-seed variation only). "
          "Rows: `results/p1/curves.csv`; per-(split, predictor, n) table: `results/p1/curve_table.csv`.", "",
-         "Figures: `fig_q1_dev_curves.png` (AUPRC vs n, mean ± SD band), `fig_q1_dev_strata.png` (strata).", ""]
+         f"Figures: `fig_q1_dev_curves{sfx}.png` (AUPRC vs n, mean ± SD band), `fig_q1_dev_strata{sfx}.png` "
+         "(strata).", ""]
+    if interim:
+        L[0] = "# P1 — INTERIM: dev random curves n ≤ 660 (R0), DEV DATA ONLY"
+        L += ["**Interim (PI decision D6):** n ≥ 820, the pool maximum, m1_hgb at 1310/max and universe subsampling "
+              "are on hold until P2 is done, so n_80/n_90 (which need the pool-max anchor) are not reported here.", ""]
     # key-n table (mean ± SD over permutations; per split and the mean over splits)
     L += ["## AUPRC at key budgets (mean ± SD over permutations; E_fixed_dev)", ""]
     for sp in sorted(df.split.unique()):
         pool_n = len(views.get_split(sp).pool)
         prev = df[df.split == sp].prevalence.iloc[0]
-        ns = [n for n in KEY_N if n < pool_n] + [pool_n]
+        ns = [n for n in KEY_N if n <= int(df.n.max())] if interim else [n for n in KEY_N if n < pool_n] + [pool_n]
         L += [f"**{sp}** (prevalence {prev:.4f}, pool max {pool_n})", "",
               "| predictor | R | " + " | ".join(str(n) for n in ns) + " |", "|---|---|" + "---|" * len(ns)]
         for pred in PRED_ORDER:
@@ -322,19 +338,33 @@ def full(a) -> dict:
                 fmt(t.auprc_mean.get(n), t.auprc_sd.get(n)) if n in t.index else "—" for n in ns) + " |")
         L.append("")
     # mean over splits (pool max column = each split's own max)
+    kn = [n for n in KEY_N if n <= int(df.n.max())]
     L += ["**Mean over splits** (mean of the per-split means; ± SD of the 3 split means; pool max = each split's)",
-          "", "| predictor | " + " | ".join(str(n) for n in KEY_N) + " | max |", "|---|" + "---|" * (len(KEY_N) + 1)]
+          "", "| predictor | " + " | ".join(str(n) for n in kn) + (" |" if interim else " | max |"),
+          "|---|" + "---|" * (len(kn) + (0 if interim else 1))]
     for pred in PRED_ORDER:
         t = tab[tab.predictor == pred]
         if t.split.nunique() < 2:
             continue
         cells = []
-        for n in KEY_N:
+        for n in kn:
             v = t[t.n == n].auprc_mean
             cells.append(fmt(v.mean(), v.std(ddof=1) if len(v) > 1 else None))
-        mx = t.loc[t.groupby("split").n.idxmax()].auprc_mean
-        cells.append(fmt(mx.mean(), mx.std(ddof=1)))
+        if not interim:
+            mx = t.loc[t.groupby("split").n.idxmax()].auprc_mean
+            cells.append(fmt(mx.mean(), mx.std(ddof=1)))
         L.append(f"| {LABEL[pred]} | " + " | ".join(cells) + " |")
+    L.append("")
+    # paired P* vs comparators (same trajectories): relative gain, split-averaged
+    pw = df.pivot_table(index=["split", "perm", "n"], columns="predictor", values="auprc")
+    L += ["**P* vs baselines on the same trajectories** (mean over splits of the per-split mean relative gain; "
+          "range over splits):", "", "| n | P* vs stack_lr | P* vs B1 | P* vs B2_product |", "|---|---|---|---|"]
+    for n in kn:
+        cells = []
+        for b in ("stack_lr", "B1_array_rate", "B2_product"):
+            g = ((pw["stack_lr_wr2"] - pw[b]) / pw[b]).xs(n, level="n").groupby(level="split").mean()
+            cells.append(f"{g.mean():+.1%} [{g.min():+.1%}, {g.max():+.1%}]")
+        L.append(f"| {n} | " + " | ".join(cells) + " |")
     L.append("")
     # strata for P*
     L += ["## Strata (P*, mean over permutations, split-averaged)", "",
@@ -348,7 +378,7 @@ def full(a) -> dict:
                  f"{r.prec_at_r10:.3f} | {r.sl_detected_frac:.3f} |")
     L.append("")
     # n_80 / n_90
-    L += ["## n_80 / n_90 (budget at which the PAVA, log-n interpolated mean random curve reaches 80/90% of its value "
+    L += [] if interim else ["## n_80 / n_90 (budget at which the PAVA, log-n interpolated mean random curve reaches 80/90% of its value "
           "at the dev pool maximum; frozen `eval.n_req`; P*: joint bootstrap 95% CI, B = 2,000)", "",
           "| split | predictor | R | AUPRC at pool max (PAVA) | n_80 [95% CI] | n_90 [95% CI] |", "|---|---|---|---|---|---|"]
     for r in sorted(nx, key=lambda r: (PRED_ORDER.index(r["predictor"]), r["split"])):
@@ -380,10 +410,13 @@ def full(a) -> dict:
                                             th=("n_threads", "max"))
     ns_all = sorted(df.n.unique())
     for n in [n for n in ns_all if n in (10, 30, 100, 160, 330, 660, 980, 1310, 1640, 1970) or n > 2000]:
-        L.append(f"| {n} | " + " | ".join(
+        L.append(f"| {int(n)} | " + " | ".join(
             (f"{rt.loc[(p, n)].s:.1f} s ({rt.loc[(p, n)].rss:.1f} GB, {int(rt.loc[(p, n)].th)} thr)"
              if (p, n) in rt.index else "—") for p in PRED_ORDER) + " |")
     L.append("")
+    L += ["", "Timings are wall-clock under contention (≤ 4 P1 jobs × 2 threads, n ≤ 660; plus other agents' jobs on "
+          "the same 8-core M2; load average 38–120 at times), so they are upper bounds; single-job timings "
+          "(3 threads): docs/recon.md §6 (stack_lr_wr2 12–25 s at n ≤ 650)."]
     tot = df.groupby("predictor").fit_predict_s.sum() / 3600
     L.append("Total fit+predict hours by predictor: " + ", ".join(f"{LABEL[p]} {tot.get(p, 0):.2f} h"
                                                                   for p in PRED_ORDER) + ".")
@@ -392,7 +425,7 @@ def full(a) -> dict:
     up_path = OUT / "upstream_protocol.csv"
     if up_path.exists():
         up = pd.read_csv(up_path)
-        up = up[up.n == 660]
+        up = up[(up.n == 660) & (up.split == "dev1")]      # dev2/dev3 diagnostic rows: upstream_protocol_diag.md
         upreds = [m for m in ("stack_lr_wr2", "stack_lr", "B1_array_rate") if m in set(up.predictor)]
         cols = {"E_fixed_dev.auprc": "E_fixed_dev", "E_upstream_dev.auprc": "all measured D_val cells (upstream)",
                 "E_upstream_dev.auprc_recip_available": "reciprocal available",
@@ -434,6 +467,9 @@ def full(a) -> dict:
                   f"{rat.std(ddof=1):.3f}, E_fixed_dev {ratf.mean():.3f} ± {ratf.std(ddof=1):.3f}; upstream dev "
                   "1.28 (REPORT §4.3)."]
             res["upstream_protocol"]["ratio_pstar_stack_lr"] = [float(rat.mean()), float(rat.std(ddof=1))]
+        L += ["", "Gap diagnosis (`upstream_protocol_diag.md`): our harness reproduces upstream's own dev split 0 "
+              "(P* 0.0774 vs 0.0775); dev1's target rows are the hardest fold (upstream's own predictions on dev1 rows: "
+              "0.0673); dev2/dev3 upstream-protocol P* = 0.0796 / 0.0757 at n = 660."]
         d0 = up[up.predictor == upreds[0]]
         cnt = {k: d0[k].iloc[0] for k in d0.columns if k.startswith("E_upstream_dev.n_cells")}
         L += ["", "Cells (perm 0): " + ", ".join(f"{k.split('n_cells_')[1]} {int(v):,}" for k, v in cnt.items()
@@ -449,15 +485,15 @@ def full(a) -> dict:
         pp = json.loads((OUT / "power_pilot.json").read_text())
         L += ["## Power pilot", "", f"See `power_pilot.md`: g = {pp['g']:.4f}, V_Q(Δ) = {pp['V_Q_Delta']:.3g}, "
               f"σ_r(160) = {pp['sigma_r_160']:.4f} → {pp['verdict']}.", ""]
-    (OUT / "summary.md").write_text("\n".join(L) + "\n")
-    (OUT / "summary.json").write_text(json.dumps(res, indent=1, default=float) + "\n")
+    (OUT / f"summary{sfx}.md").write_text("\n".join(L) + "\n")
+    (OUT / f"summary{sfx}.json").write_text(json.dumps(res, indent=1, default=float) + "\n")
     print("\n".join(L))
     return res
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("mode", choices=["pilot", "full"])
+    ap.add_argument("mode", choices=["pilot", "full", "interim"])
     a = ap.parse_args(argv)
     (pilot if a.mode == "pilot" else full)(a)
     return 0

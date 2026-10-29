@@ -51,8 +51,8 @@ PRED_P1 = RESULTS / "predictions" / "p1"
 PREDICTORS = {"stack_lr_wr2": {}, "stack_lr": {}, "B1_array_rate": {}, "B2_product": {},
               "m1_hgb": {"drop": ["genome"]}}
 PSTAR = "stack_lr_wr2"
-# PI disk policy (2026-10-29, review P0 M2): only P* (stack_lr_wr2) and m1_hgb predictions are saved; others metrics only
-NO_SAVE = ("stack_lr", "B1_array_rate", "B2_product")
+# PI disk policy history: 10:00 only P*/m1_hgb saved (review P0 M2); later 2026-10-29: all predictors saved
+NO_SAVE: tuple = ()          # 2026-10-29 PI: disk no longer constrained -> save all predictors (jobs launched after this)
 
 
 def use_p1_prediction_dir(root: Path | None = None) -> Path:
