@@ -16,7 +16,8 @@
    "--job",
    "p1_dev1_r0_m1_alone"
   ],
-  "n": 2101
+  "n": 2101,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev1_r1_m1_alone",
@@ -35,7 +36,8 @@
    "--job",
    "p1_dev1_r1_m1_alone"
   ],
-  "n": 2101
+  "n": 2101,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev1_r2_m1_alone",
@@ -54,7 +56,8 @@
    "--job",
    "p1_dev1_r2_m1_alone"
   ],
-  "n": 2101
+  "n": 2101,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev1_r3_m1_alone",
@@ -73,7 +76,8 @@
    "--job",
    "p1_dev1_r3_m1_alone"
   ],
-  "n": 2101
+  "n": 2101,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev1_r4_m1_alone",
@@ -92,7 +96,8 @@
    "--job",
    "p1_dev1_r4_m1_alone"
   ],
-  "n": 2101
+  "n": 2101,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev1_r0_alone",
@@ -107,11 +112,12 @@
    "--budgets",
    "1970,2101",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev1_r0_alone"
   ],
-  "n": 2101
+  "n": 2101,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev1_r1_alone",
@@ -126,11 +132,12 @@
    "--budgets",
    "1970,2101",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev1_r1_alone"
   ],
-  "n": 2101
+  "n": 2101,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev1_r2_alone",
@@ -145,11 +152,12 @@
    "--budgets",
    "1970,2101",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev1_r2_alone"
   ],
-  "n": 2101
+  "n": 2101,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev1_r3_alone",
@@ -164,11 +172,12 @@
    "--budgets",
    "1970,2101",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev1_r3_alone"
   ],
-  "n": 2101
+  "n": 2101,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev1_r4_alone",
@@ -183,11 +192,12 @@
    "--budgets",
    "1970,2101",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev1_r4_alone"
   ],
-  "n": 2101
+  "n": 2101,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev1_r5_alone",
@@ -200,13 +210,14 @@
    "--perms",
    "5",
    "--budgets",
-   "1970,2101",
+   "1970",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev1_r5_alone"
   ],
-  "n": 2101
+  "n": 2101,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev1_r6_alone",
@@ -219,13 +230,14 @@
    "--perms",
    "6",
    "--budgets",
-   "1970,2101",
+   "1970",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev1_r6_alone"
   ],
-  "n": 2101
+  "n": 2101,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev1_r7_alone",
@@ -238,13 +250,14 @@
    "--perms",
    "7",
    "--budgets",
-   "1970,2101",
+   "1970",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev1_r7_alone"
   ],
-  "n": 2101
+  "n": 2101,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev1_r8_alone",
@@ -257,13 +270,14 @@
    "--perms",
    "8",
    "--budgets",
-   "1970,2101",
+   "1970",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev1_r8_alone"
   ],
-  "n": 2101
+  "n": 2101,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev1_r9_alone",
@@ -276,13 +290,14 @@
    "--perms",
    "9",
    "--budgets",
-   "1970,2101",
+   "1970",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev1_r9_alone"
   ],
-  "n": 2101
+  "n": 2101,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev2_r0_alone",
@@ -297,11 +312,12 @@
    "--budgets",
    "1970,2100",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev2_r0_alone"
   ],
-  "n": 2100
+  "n": 2100,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev2_r1_alone",
@@ -316,11 +332,12 @@
    "--budgets",
    "1970,2100",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev2_r1_alone"
   ],
-  "n": 2100
+  "n": 2100,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev2_r2_alone",
@@ -335,11 +352,12 @@
    "--budgets",
    "1970,2100",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev2_r2_alone"
   ],
-  "n": 2100
+  "n": 2100,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev2_r3_alone",
@@ -354,11 +372,12 @@
    "--budgets",
    "1970,2100",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev2_r3_alone"
   ],
-  "n": 2100
+  "n": 2100,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev2_r4_alone",
@@ -373,11 +392,12 @@
    "--budgets",
    "1970,2100",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev2_r4_alone"
   ],
-  "n": 2100
+  "n": 2100,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev2_r5_alone",
@@ -390,13 +410,14 @@
    "--perms",
    "5",
    "--budgets",
-   "1970,2100",
+   "1970",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev2_r5_alone"
   ],
-  "n": 2100
+  "n": 2100,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev2_r6_alone",
@@ -409,13 +430,14 @@
    "--perms",
    "6",
    "--budgets",
-   "1970,2100",
+   "1970",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev2_r6_alone"
   ],
-  "n": 2100
+  "n": 2100,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev2_r7_alone",
@@ -428,13 +450,14 @@
    "--perms",
    "7",
    "--budgets",
-   "1970,2100",
+   "1970",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev2_r7_alone"
   ],
-  "n": 2100
+  "n": 2100,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev2_r8_alone",
@@ -447,13 +470,14 @@
    "--perms",
    "8",
    "--budgets",
-   "1970,2100",
+   "1970",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev2_r8_alone"
   ],
-  "n": 2100
+  "n": 2100,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev2_r9_alone",
@@ -466,13 +490,14 @@
    "--perms",
    "9",
    "--budgets",
-   "1970,2100",
+   "1970",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev2_r9_alone"
   ],
-  "n": 2100
+  "n": 2100,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev3_r0_alone",
@@ -487,11 +512,12 @@
    "--budgets",
    "1970,2103",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev3_r0_alone"
   ],
-  "n": 2103
+  "n": 2103,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev3_r1_alone",
@@ -506,11 +532,12 @@
    "--budgets",
    "1970,2103",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev3_r1_alone"
   ],
-  "n": 2103
+  "n": 2103,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev3_r2_alone",
@@ -525,11 +552,12 @@
    "--budgets",
    "1970,2103",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev3_r2_alone"
   ],
-  "n": 2103
+  "n": 2103,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev3_r3_alone",
@@ -544,11 +572,12 @@
    "--budgets",
    "1970,2103",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev3_r3_alone"
   ],
-  "n": 2103
+  "n": 2103,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev3_r4_alone",
@@ -563,11 +592,12 @@
    "--budgets",
    "1970,2103",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev3_r4_alone"
   ],
-  "n": 2103
+  "n": 2103,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev3_r5_alone",
@@ -580,13 +610,14 @@
    "--perms",
    "5",
    "--budgets",
-   "1970,2103",
+   "1970",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev3_r5_alone"
   ],
-  "n": 2103
+  "n": 2103,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev3_r6_alone",
@@ -599,13 +630,14 @@
    "--perms",
    "6",
    "--budgets",
-   "1970,2103",
+   "1970",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev3_r6_alone"
   ],
-  "n": 2103
+  "n": 2103,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev3_r7_alone",
@@ -618,13 +650,14 @@
    "--perms",
    "7",
    "--budgets",
-   "1970,2103",
+   "1970",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev3_r7_alone"
   ],
-  "n": 2103
+  "n": 2103,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev3_r8_alone",
@@ -637,13 +670,14 @@
    "--perms",
    "8",
    "--budgets",
-   "1970,2103",
+   "1970",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev3_r8_alone"
   ],
-  "n": 2103
+  "n": 2103,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  },
  {
   "name": "p1_dev3_r9_alone",
@@ -656,12 +690,13 @@
    "--perms",
    "9",
    "--budgets",
-   "1970,2103",
+   "1970",
    "--predictors",
-   "stack_lr_wr2,stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
+   "stack_lr_wr2_lb,stack_lr,B1_array_rate,B2_product",
    "--job",
    "p1_dev3_r9_alone"
   ],
-  "n": 2103
+  "n": 2103,
+  "note": "PI decision 2026-10-29 (before any result): (a) reference stack_lr_wr2 (pre-P2 P*) dropped at n >= 1970; (b) pool max with R = 5 model seeds (perms 0-4; all permutations screen the same set there)"
  }
 ]

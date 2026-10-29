@@ -25,12 +25,13 @@ from hsl import config, eval as E, harness as H, p1, views
 OUT = p1.P1_DIR
 N_T = 656                                                # |T| (frozen test split)
 KEY_N = (30, 100, 160, 220, 330, 490, 660, 1310)
-PRED_ORDER = ("stack_lr_wr2", "stack_lr", "B1_array_rate", "B2_product", "m1_hgb")
-LABEL = {"stack_lr_wr2": "P* stack_lr_wr2", "stack_lr": "stack_lr", "B1_array_rate": "B1 array rate",
+PS, REF = p1.PSTAR, p1.REF_PSTAR            # frozen P* (config/predictor.yaml) and the pre-P2 P* (reference)
+PRED_ORDER = (PS, REF, "stack_lr", "B1_array_rate", "B2_product", "m1_hgb")
+LABEL = {PS: f"P* {PS}", REF: f"{REF} (pre-P2 P*)", "stack_lr": "stack_lr", "B1_array_rate": "B1 array rate",
          "B2_product": "B2 product", "m1_hgb": "m1_hgb (no genome)"}
-COLORS = {"stack_lr_wr2": "#2a78d6", "stack_lr": "#eb6834", "B1_array_rate": "#1baf7a", "B2_product": "#eda100",
+COLORS = {PS: "#2a78d6", REF: "#6250d6", "stack_lr": "#eb6834", "B1_array_rate": "#1baf7a", "B2_product": "#eda100",
           "m1_hgb": "#e87ba4"}
-MARK = {"stack_lr_wr2": "o", "stack_lr": "s", "B1_array_rate": "^", "B2_product": "v", "m1_hgb": "D"}
+MARK = {PS: "o", REF: "P", "stack_lr": "s", "B1_array_rate": "^", "B2_product": "v", "m1_hgb": "D"}
 
 
 def curves() -> pd.DataFrame:
@@ -67,10 +68,11 @@ def replicate_engine(df: pd.DataFrame, split: str, predictor: str, name: str, gr
 def pilot(a) -> dict:
     df = curves()
     split = "dev1"
-    d = df[(df.split == split) & (df.predictor == p1.PSTAR)]
+    pred = a.predictor
+    d = df[(df.split == split) & (df.predictor == pred)]
     R = len(d.perm.unique())
     t0 = time.perf_counter()
-    eng, perms = replicate_engine(df, split, p1.PSTAR, "p1_power_pilot_dev1")
+    eng, perms = replicate_engine(df, split, pred, "p1_power_pilot_dev1")
     A, est = eng.A["R0"], eng.est["R0"]
     grid = list(eng.grid)
     n_val = len(views.get_split(split).targets)
@@ -91,7 +93,7 @@ def pilot(a) -> dict:
     sig = per_n[160]["sigma_r"]
     tgt = g / 3.5
     room = tgt ** 2 - VQ
-    out = {"split": split, "predictor": p1.PSTAR, "R_pilot": R, "B": int(A.shape[0]), "n_val": n_val, "n_T": N_T,
+    out = {"split": split, "predictor": pred, "R_pilot": R, "B": int(A.shape[0]), "n_val": n_val, "n_T": N_T,
            "bootstrap_seed_name": "p1_power_pilot_dev1", "per_n": per_n,
            "r160": per_n[160]["mean_auprc"], "r210": per_n[210]["mean_auprc"], "g": g,
            "g_paired_se": g_pair["se"], "g_paired_ci95": g_pair["ci95"],
@@ -123,8 +125,9 @@ def pilot(a) -> dict:
         sens[f"R_s_{key}"] = (max(2, math.ceil(1.5 * sig ** 2 / rm)) if rm > 0 and g > 0 else None)
     out["sensitivity_correlated_VQ"] = sens
     out["wall_s"] = time.perf_counter() - t0
-    (OUT / "power_pilot.json").write_text(json.dumps(out, indent=1, default=float) + "\n")
-    lines = ["# P1 power pilot (dev split 1, R0 random, P* = stack_lr_wr2)", "",
+    sfx = "" if pred == PS else f"_ref_{pred}"
+    (OUT / f"power_pilot{sfx}.json").write_text(json.dumps(out, indent=1, default=float) + "\n")
+    lines = [f"# P1 power pilot (dev split 1, R0 random, predictor {LABEL.get(pred, pred)})", "",
              f"R = {R} permutations; B = {out['B']} stratified query-bootstrap replicates (frozen ReplicateEngine, "
              f"seed `bootstrap_seed` child 'p1_power_pilot_dev1'); |D_val| = {n_val}, |T| = {N_T}. DESIGN §7.1.", "",
              "| n | R | mean AUPRC | σ_r(n) | V_Q,single(n) (traj-mean) | SD_Q single traj |", "|---|---|---|---|---|---|"]
@@ -154,7 +157,7 @@ def pilot(a) -> dict:
               "(conservative); g is estimated from 10 nested-prefix trajectories (its CI above) — a smaller true g "
               "raises R steeply (R ∝ σ²/((g/3.5)² − V_Q)). R is re-estimated from P4 dev strategy runs and fixed at "
               "the freeze (may only go up)."]
-    (OUT / "power_pilot.md").write_text("\n".join(lines) + "\n")
+    (OUT / f"power_pilot{sfx}.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
     return out
 
@@ -177,7 +180,7 @@ def n_x_table(df: pd.DataFrame, fracs=(0.8, 0.9), boot=True) -> list[dict]:
             nr = E.n_req(f * fit[-1], grid, curve)
             base[f"n{int(f * 100)}"] = nr.n
             base[f"n{int(f * 100)}_censored"] = nr.censored
-        if boot and pred == p1.PSTAR and len(grid) >= 10:
+        if boot and pred in (PS, REF) and len(grid) >= 10:
             eng, _ = replicate_engine(df, split, pred, f"p1_q1_nx_{split}")
             M = E.joint_resample(eng.A["R0"], np.random.default_rng(p1.boot_seed(f"p1_q1_nx_resample_{split}")))
             for f in fracs:
@@ -196,7 +199,7 @@ def sat_fit(df: pd.DataFrame) -> list[dict]:
     f = lambda n, a, b, c: a - b * n ** (-c)  # noqa: E731
     out = []
     for (split, pred), d in df.groupby(["split", "predictor"]):
-        if pred != p1.PSTAR:
+        if pred not in (PS, REF):
             continue
         pars = []
         for r, dr in d.groupby("perm"):
@@ -267,7 +270,7 @@ def figures(df: pd.DataFrame, sfx: str = ""):
     fig, axes = plt.subplots(1, len(strata), figsize=(3.3 * len(strata), 3.4), sharey=True)
     ls = {"dev1": "-", "dev2": "--", "dev3": ":"}
     for ax, (col, title) in zip(axes, strata):
-        for pred in ("stack_lr_wr2", "stack_lr", "B1_array_rate"):
+        for pred in (PS, REF, "stack_lr", "B1_array_rate"):
             for sp in splits:
                 d = df[(df.split == sp) & (df.predictor == pred)]
                 g = d.groupby("n")[col].mean().sort_index()
@@ -358,11 +361,18 @@ def full(a) -> dict:
     # paired P* vs comparators (same trajectories): relative gain, split-averaged
     pw = df.pivot_table(index=["split", "perm", "n"], columns="predictor", values="auprc")
     L += ["**P* vs baselines on the same trajectories** (mean over splits of the per-split mean relative gain; "
-          "range over splits):", "", "| n | P* vs stack_lr | P* vs B1 | P* vs B2_product |", "|---|---|---|---|"]
+          "range over splits):", "", "| n | P* vs pre-P2 P* | P* vs stack_lr | P* vs B1 | P* vs B2_product |",
+          "|---|---|---|---|---|"]
     for n in kn:
         cells = []
-        for b in ("stack_lr", "B1_array_rate", "B2_product"):
-            g = ((pw["stack_lr_wr2"] - pw[b]) / pw[b]).xs(n, level="n").groupby(level="split").mean()
+        for b in (REF, "stack_lr", "B1_array_rate", "B2_product"):
+            if PS not in pw or b not in pw:
+                cells.append("—")
+                continue
+            g = ((pw[PS] - pw[b]) / pw[b]).xs(n, level="n").dropna().groupby(level="split").mean()
+            if not len(g):
+                cells.append("—")
+                continue
             cells.append(f"{g.mean():+.1%} [{g.min():+.1%}, {g.max():+.1%}]")
         L.append(f"| {n} | " + " | ".join(cells) + " |")
     L.append("")
@@ -370,7 +380,7 @@ def full(a) -> dict:
     L += ["## Strata (P*, mean over permutations, split-averaged)", "",
           "| n | all | E_AO | E_VV | on-array val rows | off-array val rows | lift | macro AUPRC | AUROC | "
           "prec@10% recall | SLs detected (frac of dev rows' SLs) |", "|---|" + "---|" * 10]
-    tp = tab[tab.predictor == p1.PSTAR].groupby("n").mean(numeric_only=True)
+    tp = tab[tab.predictor == PS].groupby("n").mean(numeric_only=True)
     for n in [n for n in KEY_N if n in tp.index]:
         r = tp.loc[n]
         L.append(f"| {n} | {r.auprc_mean:.4f} | {r.auprc_AO:.4f} | {r.auprc_VV:.4f} | {r.auprc_on_rows:.4f} | "
@@ -389,7 +399,7 @@ def full(a) -> dict:
         ci = r.get("auprc_pool_max_ci95")
         L.append(f"| {r['split']} | {LABEL[r['predictor']]} | {r['R']} | {r['auprc_pool_max_fit']:.4f}"
                  + (f" [{ci[0]:.4f}, {ci[1]:.4f}]" if ci else "") + f" | {c('n80')} | {c('n90')} |")
-    ps = [r for r in nx if r["predictor"] == p1.PSTAR]
+    ps = [r for r in nx if r["predictor"] == PS]
     if ps:
         L += ["", f"P* mean over splits: n_80 = {np.mean([r['n80'] for r in ps]):.0f}, n_90 = "
               f"{np.mean([r['n90'] for r in ps]):.0f} (pool ≈ 2,100; as fractions of the pool: "
@@ -426,7 +436,7 @@ def full(a) -> dict:
     if up_path.exists():
         up = pd.read_csv(up_path)
         up = up[(up.n == 660) & (up.split == "dev1")]      # dev2/dev3 diagnostic rows: upstream_protocol_diag.md
-        upreds = [m for m in ("stack_lr_wr2", "stack_lr", "B1_array_rate") if m in set(up.predictor)]
+        upreds = [m for m in (PS, REF, "stack_lr", "B1_array_rate") if m in set(up.predictor)]
         cols = {"E_fixed_dev.auprc": "E_fixed_dev", "E_upstream_dev.auprc": "all measured D_val cells (upstream)",
                 "E_upstream_dev.auprc_recip_available": "reciprocal available",
                 "E_upstream_dev.auprc_x_on_array_no_recip": "on-array, no recip.",
@@ -494,6 +504,7 @@ def full(a) -> dict:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("mode", choices=["pilot", "full", "interim"])
+    ap.add_argument("--predictor", default=PS, help="pilot: predictor (default frozen P*)")
     a = ap.parse_args(argv)
     (pilot if a.mode == "pilot" else full)(a)
     return 0

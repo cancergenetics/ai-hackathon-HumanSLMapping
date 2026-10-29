@@ -124,10 +124,13 @@ def _ols(x, y):
 
 def cmd_analyze(a) -> int:
     rows = p1.read_rows(sorted(PARTS.glob("*.jsonl")))
-    ud = pd.DataFrame(rows).drop_duplicates(["split", "perm", "n"], keep="last")
-    ud.sort_values(["level", "draw", "perm", "n"]).to_csv(OUT / "universe_curves.csv", index=False)
+    ud = pd.DataFrame(rows).drop_duplicates(["split", "perm", "n", "predictor"], keep="last")
+    ud.sort_values(["predictor", "level", "draw", "perm", "n"]).to_csv(OUT / "universe_curves.csv", index=False)
+    m = a.method
+    sfx = "" if m == p1.PSTAR else f"_ref_{m}"
+    ud = ud[ud.predictor == m]
     cur = pd.read_csv(p1.P1_DIR / "curves.csv")
-    cur = cur[cur.predictor == p1.PSTAR]
+    cur = cur[cur.predictor == m]
     recs = []
     for sp, d in cur.groupby("split"):
         pool_n = len(views.get_split(sp).pool)
@@ -145,7 +148,7 @@ def cmd_analyze(a) -> int:
         recs.append({"level": int(lev), "draw": int(dr), "split": d.split.iloc[0], "pool_n": pool_n,
                      "n_val": int(d.n_val.iloc[0]), "E_n_pos": int(d.E_n_pos.iloc[0]), **_nx(d)})
     nx = pd.DataFrame(recs).sort_values(["level", "draw"], ascending=[False, True])
-    nx.to_csv(OUT / "universe_nx.csv", index=False)
+    nx.to_csv(OUT / f"universe_nx{sfx}.csv", index=False)
     out = {"n_draws": int(len(nx)), "levels": sorted(nx.level.unique().tolist())}
     rng = np.random.default_rng(p1.boot_seed("p1_universe_slope"))
     for k in ("n80", "n90"):
@@ -164,9 +167,10 @@ def cmd_analyze(a) -> int:
     # fraction view: n_X / N per level
     out["frac_by_level"] = {int(L): {k: float((d[k] / d.pool_n).mean()) for k in ("n80", "n90")}
                             for L, d in nx.groupby("level")}
-    (OUT / "slope.json").write_text(json.dumps(out, indent=1, default=float) + "\n")
+    out["predictor"] = m
+    (OUT / f"slope{sfx}.json").write_text(json.dumps(out, indent=1, default=float) + "\n")
     L = ["# Universe subsampling — scaling of n_80 / n_90 with the candidate-pool size (DESIGN §7.3, dev only)", "",
-         "P* = stack_lr_wr2, R0 random permutations; level 100% = dev splits 1–3 evaluated on the same pool-fraction "
+         f"Predictor {m}" + (" (frozen P*)" if m == p1.PSTAR else " (pre-P2 P*, reference)") + "; R0 random permutations; level 100% = dev splits 1–3 evaluated on the same pool-fraction "
          "grid (30, 60, …, 1640, max); sub-levels: grid scaled to the sub-pool (`hsl.universe.scaled_grid`). n_X "
          "relative to the curve's own (sub-)pool maximum (frozen PAVA/n_req).", "",
          "| level | draw | N (pool) | |D_val| | E_fixed_dev positives | R | AUPRC at max (PAVA) | n_80 | n_90 | "
@@ -197,7 +201,7 @@ def cmd_analyze(a) -> int:
           "expected to be small).",
           "- Caveat (DESIGN §7.3): subsampling mimics fewer genes per module, not more modules. At 25% E_fixed_dev "
           "has ~420–500 positives (noise check above).", ""]
-    (OUT / "summary.md").write_text("\n".join(L) + "\n")
+    (OUT / f"summary{sfx}.md").write_text("\n".join(L) + "\n")
     print("\n".join(L))
     return 0
 
@@ -216,7 +220,8 @@ def main(argv=None) -> int:
     j.add_argument("--out", required=True)
     j.add_argument("--levels", default="50,25")
     j.add_argument("--perms", default="0-9")
-    sub.add_parser("analyze")
+    an = sub.add_parser("analyze")
+    an.add_argument("--method", default=p1.PSTAR)
     a = ap.parse_args(argv)
     return {"run": cmd_run, "jobs": cmd_jobs, "analyze": cmd_analyze}[a.cmd](a)
 

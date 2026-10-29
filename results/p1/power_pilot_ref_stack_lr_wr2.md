@@ -1,4 +1,4 @@
-# P1 power pilot (dev split 1, R0 random, P* = stack_lr_wr2)
+# P1 power pilot (dev split 1, R0 random, predictor stack_lr_wr2 (pre-P2 P*))
 
 R = 10 permutations; B = 2000 stratified query-bootstrap replicates (frozen ReplicateEngine, seed `bootstrap_seed` child 'p1_power_pilot_dev1'); |D_val| = 526, |T| = 656. DESIGN §7.1.
 
