@@ -14,6 +14,18 @@ arbitrary screened set, runtime vs. number screened, data characterisation), in 
 then DESIGN.md and up to three review rounds.
 
 ## Decision log
+- 2026-10-29 D10 (pre-freeze, before any T contact). Final cost projected at 14.5–28 h wall, over §12's 10 h. §12's
+  'R at the pilot minimum' is undefined here, because the pilot gave no finite R. The closest rule in its spirit:
+  - Random arm at R = 10 for n > 660 and R = 5 at the pool max. R_r = 40 stays at n ≤ 660 (all Q2 contrasts).
+  - Memory-aware concurrency: ≤ 6 jobs, a free-memory gate, and ≤ 2 jobs at n ≥ 1970.
+  - All arms kept.
+  - budgets.yaml m1_hgb Q2 key aligned to DESIGN §4 {160, 490, 660} (stale per r3 review).
+  - The final-build agent's 19 ambiguity resolutions are accepted (commit 579bac5 report): extended freeze list, pool-max
+    R = 5, R0 warm-start continuation, no C-static, reference predictor R = 10, ignored run ledger, n_80 anchored on
+    the isotonic fit, Holm-adjusted c1 in the matches rule, and others.
+  - Seeds final_bootstrap_seed and final_dryrun_{traj_base,bootstrap}_seed appended.
+  - The final starts only after batch6 is committed (a clean tree is required throughout the run) and after the
+    independent review of the pipeline code.
 - 2026-10-29 D9 (pre-freeze, dev only):
   - Proposed finalists H, C, F_r16 (§8 rule), pending independent P4 review.
   - R_s = 20, R_r = 40. Reason: measured dev V_Q(Δ) ≈ 0.9–3e-5 dominates SE², while σ_s²/R_s + σ_r²/R_r < 3% of SE²
@@ -147,7 +159,8 @@ then DESIGN.md and up to three review rounds.
       extreme hubs. Both oracles are relabelled as references, not ceilings.
     - The R deviation is declared in DESIGN.
     - The gain holds with stack_lr_wr2 and with m1_hgb on stored selections.
-  - [~] run_final.py build + dry run on dev (agent running) → freeze (finalists.yaml, frozen.yaml) → Final on T
+  - [x] run_final.py build + dry run on dev (commit 579bac5): 179/179 units; refusals and crash-resume tested; 17 tests.
+  - [~] Independent review of the final pipeline code → cost re-projection → freeze → Final on T
 - [ ] M4 Q1: performance vs. fraction screened (random)
 - [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
 - [ ] M6 Q3: translation to HAP1 (query numbers, choice of query lines, role of prediction)
