@@ -15,6 +15,10 @@ then DESIGN.md and up to three review rounds.
 
 ## Decision log
 - 2026-10-29 D1: Test split drawn preferentially from the upstream lockbox (upstream tuned on non-lockbox rows).
+- 2026-10-29 D6: Scheduling: P2 (critical path to P* freeze) has priority; P1 holds n ≥ 820 and universe jobs until P2
+  finishes. All jobs export BLAS thread caps (load reached 38–120 on 8 cores from oversubscription). The §12 P1 > 6 h
+  trigger (50%-only universe) is deferred, not applied: the overrun came from PI scheduling contention, not P1 cost;
+  the 25% level runs later if compute allows (decided before any universe result).
 - 2026-10-29 D5: H/F degree model: predictions of the off-array (external-only) submodel are quantile-calibrated to the
   on-array model's distribution (default on). Without it H picked 40–73% off-array genes (base 19.5%): off-array
   genes have more SLs in yeast (52 vs 37, a yeast strain-collection artefact), so the submodel split acted as the
