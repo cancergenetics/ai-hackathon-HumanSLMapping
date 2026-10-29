@@ -345,3 +345,12 @@ columns (strata reported); T not blind for upstream predictors (declared); rando
     - A lower R cannot favour strategies over random: it widens CIs and leaves the estimands unchanged.
     - Q2 claims are phrased as bounds (§7.1).
     - Recorded per docs/reviews/p4_review.md §4.
+  - (iii) D10 (before any T contact):
+    - Q1 random arm at R = 10 for n > 660 and R = 5 at the pool max (R_r = 40 at n ≤ 660).
+    - The memory-aware launch gate (≤ 6 jobs, ≤ 2 at n ≥ 1970) replaces 'n ≥ 1970 runs alone'.
+    - The final still projects above §12's 10 h. Its R-at-pilot-minimum action is undefined (no finite pilot R).
+    - The other §12 trims were evaluated and not applied: their own triggers were not met (P1–P3 ≤ 14 h; P4 ≤ 12 h).
+      The overrun is accepted and declared.
+  - (iv) Final per-job integrity: each job checks the lock, the plan hash and the frozen-file hashes rather than a
+    whole-tree-clean HEAD, so that non-frozen notes may be committed during a long run. The clean-tree check at
+    `start` (§10) is unchanged. Per docs/reviews/final_pipeline_review.md F1.
