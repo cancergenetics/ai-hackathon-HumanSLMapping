@@ -1,0 +1,212 @@
+[
+ {
+  "name": "p1_dev1_r0_small",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/20_p1_random_curves.py",
+   "run",
+   "--split",
+   "1",
+   "--perms",
+   "0",
+   "--budgets",
+   "10,30,60,100,120,160,210,220,330,410,490,660",
+   "--predictors",
+   "stack_lr_wr2,stack_lr,B1_array_rate,B2_product",
+   "--job",
+   "p1_dev1_r0_small",
+   "--upstream-at",
+   "660"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p1_dev1_r1_small",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/20_p1_random_curves.py",
+   "run",
+   "--split",
+   "1",
+   "--perms",
+   "1",
+   "--budgets",
+   "10,30,60,100,120,160,210,220,330,410,490,660",
+   "--predictors",
+   "stack_lr_wr2,stack_lr,B1_array_rate,B2_product",
+   "--job",
+   "p1_dev1_r1_small",
+   "--upstream-at",
+   "660"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p1_dev1_r2_small",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/20_p1_random_curves.py",
+   "run",
+   "--split",
+   "1",
+   "--perms",
+   "2",
+   "--budgets",
+   "10,30,60,100,120,160,210,220,330,410,490,660",
+   "--predictors",
+   "stack_lr_wr2,stack_lr,B1_array_rate,B2_product",
+   "--job",
+   "p1_dev1_r2_small",
+   "--upstream-at",
+   "660"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p1_dev1_r3_small",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/20_p1_random_curves.py",
+   "run",
+   "--split",
+   "1",
+   "--perms",
+   "3",
+   "--budgets",
+   "10,30,60,100,120,160,210,220,330,410,490,660",
+   "--predictors",
+   "stack_lr_wr2,stack_lr,B1_array_rate,B2_product",
+   "--job",
+   "p1_dev1_r3_small",
+   "--upstream-at",
+   "660"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p1_dev1_r4_small",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/20_p1_random_curves.py",
+   "run",
+   "--split",
+   "1",
+   "--perms",
+   "4",
+   "--budgets",
+   "10,30,60,100,120,160,210,220,330,410,490,660",
+   "--predictors",
+   "stack_lr_wr2,stack_lr,B1_array_rate,B2_product",
+   "--job",
+   "p1_dev1_r4_small",
+   "--upstream-at",
+   "660"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p1_dev1_r5_small",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/20_p1_random_curves.py",
+   "run",
+   "--split",
+   "1",
+   "--perms",
+   "5",
+   "--budgets",
+   "10,30,60,100,120,160,210,220,330,410,490,660",
+   "--predictors",
+   "stack_lr_wr2,stack_lr,B1_array_rate,B2_product",
+   "--job",
+   "p1_dev1_r5_small",
+   "--upstream-at",
+   "660"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p1_dev1_r6_small",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/20_p1_random_curves.py",
+   "run",
+   "--split",
+   "1",
+   "--perms",
+   "6",
+   "--budgets",
+   "10,30,60,100,120,160,210,220,330,410,490,660",
+   "--predictors",
+   "stack_lr_wr2,stack_lr,B1_array_rate,B2_product",
+   "--job",
+   "p1_dev1_r6_small",
+   "--upstream-at",
+   "660"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p1_dev1_r7_small",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/20_p1_random_curves.py",
+   "run",
+   "--split",
+   "1",
+   "--perms",
+   "7",
+   "--budgets",
+   "10,30,60,100,120,160,210,220,330,410,490,660",
+   "--predictors",
+   "stack_lr_wr2,stack_lr,B1_array_rate,B2_product",
+   "--job",
+   "p1_dev1_r7_small",
+   "--upstream-at",
+   "660"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p1_dev1_r8_small",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/20_p1_random_curves.py",
+   "run",
+   "--split",
+   "1",
+   "--perms",
+   "8",
+   "--budgets",
+   "10,30,60,100,120,160,210,220,330,410,490,660",
+   "--predictors",
+   "stack_lr_wr2,stack_lr,B1_array_rate,B2_product",
+   "--job",
+   "p1_dev1_r8_small",
+   "--upstream-at",
+   "660"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p1_dev1_r9_small",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/20_p1_random_curves.py",
+   "run",
+   "--split",
+   "1",
+   "--perms",
+   "9",
+   "--budgets",
+   "10,30,60,100,120,160,210,220,330,410,490,660",
+   "--predictors",
+   "stack_lr_wr2,stack_lr,B1_array_rate,B2_product",
+   "--job",
+   "p1_dev1_r9_small",
+   "--upstream-at",
+   "660"
+  ],
+  "n": 660
+ }
+]
