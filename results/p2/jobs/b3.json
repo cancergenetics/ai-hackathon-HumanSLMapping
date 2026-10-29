@@ -1,0 +1,762 @@
+[
+ {
+  "name": "p2_b3_dev1_r0",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev1",
+   "--perms",
+   "0",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev1_r0"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev2_r0",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev2",
+   "--perms",
+   "0",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev2_r0"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev3_r0",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev3",
+   "--perms",
+   "0",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev3_r0"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_resplit_r0",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "resplit",
+   "--perms",
+   "0",
+   "--budgets",
+   "30,160,330",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_resplit_r0"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev1_r1",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev1",
+   "--perms",
+   "1",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev1_r1"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev2_r1",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev2",
+   "--perms",
+   "1",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev2_r1"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_resplit_r1",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "resplit",
+   "--perms",
+   "1",
+   "--budgets",
+   "30,160,330",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_resplit_r1"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev1_r2",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev1",
+   "--perms",
+   "2",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev1_r2"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev3_r2",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev3",
+   "--perms",
+   "2",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev3_r2"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_resplit_r2",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "resplit",
+   "--perms",
+   "2",
+   "--budgets",
+   "30,160,330",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_resplit_r2"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev1_r3",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev1",
+   "--perms",
+   "3",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev1_r3"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev2_r3",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev2",
+   "--perms",
+   "3",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev2_r3"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev3_r3",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev3",
+   "--perms",
+   "3",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev3_r3"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_resplit_r3",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "resplit",
+   "--perms",
+   "3",
+   "--budgets",
+   "30,160,330",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_resplit_r3"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev1_r4",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev1",
+   "--perms",
+   "4",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev1_r4"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev2_r4",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev2",
+   "--perms",
+   "4",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev2_r4"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev3_r4",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev3",
+   "--perms",
+   "4",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev3_r4"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_resplit_r4",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "resplit",
+   "--perms",
+   "4",
+   "--budgets",
+   "30,160,330",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_resplit_r4"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev1_r5",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev1",
+   "--perms",
+   "5",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev1_r5"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev2_r5",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev2",
+   "--perms",
+   "5",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev2_r5"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev3_r5",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev3",
+   "--perms",
+   "5",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev3_r5"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_resplit_r5",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "resplit",
+   "--perms",
+   "5",
+   "--budgets",
+   "30,160,330",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_resplit_r5"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev1_r6",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev1",
+   "--perms",
+   "6",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev1_r6"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev2_r6",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev2",
+   "--perms",
+   "6",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev2_r6"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev3_r6",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev3",
+   "--perms",
+   "6",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev3_r6"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_resplit_r6",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "resplit",
+   "--perms",
+   "6",
+   "--budgets",
+   "30,160,330",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_resplit_r6"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev1_r7",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev1",
+   "--perms",
+   "7",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev1_r7"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev2_r7",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev2",
+   "--perms",
+   "7",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev2_r7"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev3_r7",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev3",
+   "--perms",
+   "7",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev3_r7"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_resplit_r7",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "resplit",
+   "--perms",
+   "7",
+   "--budgets",
+   "30,160,330",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_resplit_r7"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev1_r8",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev1",
+   "--perms",
+   "8",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev1_r8"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev2_r8",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev2",
+   "--perms",
+   "8",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev2_r8"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev3_r8",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev3",
+   "--perms",
+   "8",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev3_r8"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_resplit_r8",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "resplit",
+   "--perms",
+   "8",
+   "--budgets",
+   "30,160,330",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_resplit_r8"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev1_r9",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev1",
+   "--perms",
+   "9",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev1_r9"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev2_r9",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev2",
+   "--perms",
+   "9",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev2_r9"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev3_r9",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev3",
+   "--perms",
+   "9",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev3_r9"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_resplit_r9",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "resplit",
+   "--perms",
+   "9",
+   "--budgets",
+   "30,160,330",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_resplit_r9"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev3_r1",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev3",
+   "--perms",
+   "1",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev3_r1"
+  ],
+  "n": 660
+ },
+ {
+  "name": "p2_b3_dev2_r2",
+  "cmd": [
+   ".venv/bin/python",
+   "scripts/30_p2_predictor.py",
+   "run",
+   "--split",
+   "dev2",
+   "--perms",
+   "2",
+   "--budgets",
+   "30,160,330,660",
+   "--configs",
+   "dense,gi30,gi100,gi300,dense_arr,dense_arr_aprior,dense_arr_gi300,dense_arr_aprior_gi300",
+   "--job",
+   "p2_b3_dev2_r2"
+  ],
+  "n": 660
+ }
+]

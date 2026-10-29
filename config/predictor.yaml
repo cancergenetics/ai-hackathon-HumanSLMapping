@@ -1,0 +1,39 @@
+# Frozen primary predictor P* (DESIGN v3.1 §4, §8 predictor-change gate, §9 P2). Frozen 2026-10-29 at the end of P2.
+# Evidence: results/p2/summary.md, results/p2/contrasts.csv, results/p2/verdicts.csv; ledger tag p2_config.
+primary:
+  method: stack_lr_wr2_lb            # registered in src/hsl/predictors/lowbudget.py (= stack_lr_wr2x + params below)
+  params:                            # passed to harness.run_predictor / upstream.run_method on top of the defaults
+    extra: [dense_arr, aprior]
+    gi_n0: 300.0
+  parent: stack_lr_wr2               # upstream params (YEAST_SLs @ 9b5dce9); every other setting inherited unchanged
+  import: hsl.predictors             # must be imported before registry lookup (registers the method)
+  changes:
+    dense_arr: >-
+      Array-side dense degree statistics from the screened rows' epsilon: log shrunk rate of mild negative epsilon
+      (eps < -0.08) and shrunk mean -clip(eps) per array (exact leave-one-query-out for training rows, as upstream's
+      array rate). Much less noisy than the strong-SL label rate when few queries are screened.
+    aprior: >-
+      Empirical-Bayes array-degree prior: per view, a Poisson GLM (L2 alpha 1e-3, fixed a priori) of each array's
+      strong-SL count over the screened rows (exposure = observed cells) on a 6-knot cubic spline of array SMF + the
+      upstream external gene scalars of the array gene; column = log predicted rate.
+    gi_n0: >-
+      n-dependent GI-kernel weight in the multi-kernel fold-in: w_gi = n_view / (n_view + 300) (relatively up-weights
+      the AP-MS/coexpression/ESM kernels and the ridge at small n; ~0.69 at n = 660).
+  rationale: >-
+    P* loses most at low n through degree estimation: an evaluation-only oracle array degree adds +39% AUPRC at
+    n = 30, +15% at 160, +3% at 660 (dev1, 5 perms); an oracle query degree adds more at every n but is not predictable
+    from admissible inputs (query-level columns overfit with n training queries: dense query-side -3% and upstream
+    propensity -6% at n = 30). The three array-side / kernel-weight changes target that loss.
+  gate:                              # paired vs stack_lr_wr2 on the shared R0 trajectories, R = 10 per split
+    mean_rel_gain_30_160_330: 0.0445  # dev splits 1-3 (n = 30: +4.8%, 160: +5.6%, 330: +2.8%)
+    n160_ci_excludes_0: 3/3
+    resplit_rel_gain: 0.0414         # n <= 330, same sign
+    rel_gain_660: 0.0114             # not worse at the upstream tuning budget
+  selection: >-
+    10 configurations evaluated (cap); 4 passed (dense_arr, dense_arr_gi300, dense_arr_aprior,
+    dense_arr_aprior_gi300); frozen = the passing configuration with the largest mean relative gain.
+  runtime_fit_predict_s: {n30: 21, n160: 21, n330: 24, n660: 42}   # 2 threads, M2, loaded machine; parent 21/18/26/43
+  frozen_by: P2
+reference:
+  method: stack_lr_wr2               # previous P*; reported as sensitivity ("unmodified predictor", DESIGN §4)
+  params: {}
