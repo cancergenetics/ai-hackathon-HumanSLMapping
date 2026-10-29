@@ -15,6 +15,11 @@ then DESIGN.md and up to three review rounds.
 
 ## Decision log
 - 2026-10-29 D1: Test split drawn preferentially from the upstream lockbox (upstream tuned on non-lockbox rows).
+- 2026-10-29 D5: H/F degree model: predictions of the off-array (external-only) submodel are quantile-calibrated to the
+  on-array model's distribution (default on). Without it H picked 40–73% off-array genes (base 19.5%): off-array
+  genes have more SLs in yeast (52 vs 37, a yeast strain-collection artefact), so the submodel split acted as the
+  forbidden off-array score term (DESIGN §1).
+- 2026-10-29 Seeds appended by the strategy agent (see config/seeds.yaml tail; dated there).
 - 2026-10-29 D4: Dev k-means clusters (R1, H batch cap) are computed once on all non-test genes incl. D_val. They use
   label-free external features only, so no label leakage; per-split reclustering not worth the complexity.
 - 2026-10-29 D3: Rejected `.claude` permission deny rules proposed by a reviewer (user's settings); guard + check script instead.
@@ -61,7 +66,11 @@ then DESIGN.md and up to three review rounds.
         R_s ≈ 21 suffices. Per DESIGN, V_Q(Δ) is measured directly in P4 and R fixed at freeze.
   - [~] Upstream-protocol sanity: P* all D_val cells @660 = 0.0657 ± 0.0027 (lift 6.0) vs upstream dev 0.0754 (lift
         6.6) → diagnosing (composition vs plumbing). E_fixed_dev @660: P* 0.0544, stack_lr 0.0450, B1 0.0417.
-- [~] Strategy selectors implementation (R1, H, F, C, M, static variants) + toy controls — no dev evaluation before P* freeze
+- [x] Strategy selectors (b71a4df, 767563c): R1, H, H-static, F, F-static, C, M (+ diagnostic C-static), oracles in
+      src/hsl/oracles.py (dev-only, import-guarded). Toy controls pass (planted hub/cluster, null; F r=1 ≡ H order);
+      per-channel poisoning + broken twins pass; selection ≤ 1 s/round (F 0.6–0.9 s). 208 fast tests pass.
+      Kernel approximations in selectors: AP-MS neighbourhood over pool genes, ESM via 16 standardised components,
+      pair-store kernels unavailable to selectors (SelectorView unchanged).
 - [ ] M4 Q1: performance vs. fraction screened (random)
 - [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
 - [ ] M6 Q3: translation to HAP1 (query numbers, choice of query lines, role of prediction)
