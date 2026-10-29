@@ -15,6 +15,7 @@ then DESIGN.md and up to three review rounds.
 
 ## Decision log
 - 2026-10-29 D1: Test split drawn preferentially from the upstream lockbox (upstream tuned on non-lockbox rows).
+- 2026-10-29 D3: Rejected `.claude` permission deny rules proposed by a reviewer (user's settings); guard + check script instead.
 - 2026-10-29 D2: Evaluation unit = directed cell (t,a) with its own label; AB/BA not merged (κ 0.14, merging would
   change the label). Primary set E_fixed is strategy-invariant so hub-selection cannot shrink the evaluation set.
 - 2026-10-29 D0: Do not copy upstream data (11 GB; 38 GB free disk). Read upstream processed data in place; any code
@@ -36,7 +37,12 @@ then DESIGN.md and up to three review rounds.
 - [x] M2 Fixed test split: 656 test / 2,627 dev pool (config/split/), stratified (KS p=0.999), 96.5% from upstream lockbox
 - [~] M3 DESIGN.md + review rounds (≤3)
   - [x] DESIGN v1: primary eval set E_fixed = test rows × arrays never screenable (A \ D), strategy-invariant
-  - [~] Review round 1: external PI, statistics, data/leakage, algorithms/compute, prior work, AI-agent failure modes, HAP1 domain
+  - [x] Review round 1 (7 reviewers) → DESIGN v2: tie-aware AP; dev_bundle w/o T rows; E_fixed_dev w/o T columns;
+        P* = stack_lr_wr2; confirmatory family (strategy@160 > random@490; Δ(160) > 0; Holm); gap closure G;
+        oracle ceilings as go/no-go; R1 Billmann-like + warm start (S0=220); F (Fisher-D) hybrid, U dropped;
+        universe-subsampling decides fraction vs count scaling; genome features dropped (SGA linkage artefact).
+  - [~] Review round 2 (external PI, statistics+algorithms, data+process)
+- [~] P0 infrastructure (eval module, views, SelectorView, harness, launcher, tests) — started in parallel with round 2
 - [ ] M4 Q1: performance vs. fraction screened (random)
 - [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
 - [ ] M6 Q3: translation to HAP1 (query numbers, choice of query lines, role of prediction)
