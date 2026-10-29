@@ -1,0 +1,72 @@
+{
+ "params_override": {
+  "prop_folds": 5
+ },
+ "description": "runtime and peak memory only; no accuracy computed",
+ "draw_seed": 1,
+ "threads": 3,
+ "mem_cap_gb": 6.0,
+ "targets": "config/split/test_queries.txt (656 test queries; names only)",
+ "screened": "first n of default_rng(draw_seed).permutation(sorted dev pool) (nested)",
+ "hardware": {
+  "machine": "arm64",
+  "system": "Darwin 25.6.0",
+  "cpu_count": 8,
+  "python": "3.12.15"
+ },
+ "started": "2026-10-29T08:45:28",
+ "runs": [
+  {
+   "method": "m1_hgb",
+   "n_screened": 10,
+   "status": "ok",
+   "t_load_bundle_s": 0.16139658307656646,
+   "t_view_s": 0.011323124868795276,
+   "n_targets": 656,
+   "n_arrays": 3827,
+   "n_screened_on_array": 8,
+   "n_SL_in_screened_rows": 525,
+   "params_override": {
+    "prop_folds": 5
+   },
+   "t_fit_predict_s": 86.09196000010706,
+   "scores_finite": true,
+   "score_shape": [
+    656,
+    3827
+   ],
+   "n_training_cells": 33939,
+   "t_total_s": 86.28959933295846,
+   "peak_rss_gb": 2.2227325439453125,
+   "watchdog_max_rss_gb": 2.2227325439453125,
+   "wall_s_incl_startup": 87.8162009716034
+  },
+  {
+   "method": "m1_hgb",
+   "n_screened": 30,
+   "status": "ok",
+   "t_load_bundle_s": 0.18455770798027515,
+   "t_view_s": 0.011787167051807046,
+   "n_targets": 656,
+   "n_arrays": 3827,
+   "n_screened_on_array": 26,
+   "n_SL_in_screened_rows": 1524,
+   "params_override": {
+    "prop_folds": 5
+   },
+   "t_fit_predict_s": 84.59813320799731,
+   "scores_finite": true,
+   "score_shape": [
+    656,
+    3827
+   ],
+   "n_training_cells": 102756,
+   "t_total_s": 84.82097208290361,
+   "peak_rss_gb": 2.0296630859375,
+   "watchdog_max_rss_gb": 2.0244903564453125,
+   "wall_s_incl_startup": 86.81189799308777
+  }
+ ],
+ "skipped": [],
+ "finished": "2026-10-29T08:48:23"
+}

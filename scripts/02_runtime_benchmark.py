@@ -75,7 +75,9 @@ def worker(method: str, n: int, out: Path) -> None:
         # training-side facts only (screened rows): needed to understand small-n failures
         rec["n_screened_on_array"] = int((view.train_col >= 0).sum())
         rec["n_SL_in_screened_rows"] = int(np.nansum(view.Y))
-        S, info = U.run_method(view, method, n_threads=THREADS)
+        params = json.loads(os.environ.get("HSL_BENCH_PARAMS", "{}"))
+        rec["params_override"] = params
+        S, info = U.run_method(view, method, n_threads=THREADS, params=params)
         rec["t_fit_predict_s"] = info["fit_predict_s"]
         rec["scores_finite"] = info["finite"]
         rec["score_shape"] = list(S.shape)
@@ -95,11 +97,12 @@ def _rss_gb(pid: int) -> float:
     return int(r) / 2**20 if r else 0.0
 
 
-def run_job(method: str, n: int, mem_cap: float, timeout: float) -> dict:
-    tmp = OUT / "jobs" / f"{method}_n{n}.json"
+def run_job(method: str, n: int, mem_cap: float, timeout: float, params: dict | None = None, tag: str = "") -> dict:
+    tmp = OUT / "jobs" / f"{method}_n{n}{'_' + tag if tag else ''}.json"
     tmp.parent.mkdir(parents=True, exist_ok=True)
     env = dict(os.environ, **{k: str(THREADS) for k in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
-                                                          "VECLIB_MAXIMUM_THREADS", "NUMEXPR_NUM_THREADS")})
+                                                          "VECLIB_MAXIMUM_THREADS", "NUMEXPR_NUM_THREADS")},
+               HSL_BENCH_PARAMS=json.dumps(params or {}))
     t0 = time.time()
     p = subprocess.Popen([sys.executable, __file__, "--worker", method, str(n), str(tmp)], env=env,
                          cwd=paths.PROJECT_ROOT)
@@ -153,6 +156,9 @@ def main(argv=None) -> None:
     ap.add_argument("--sizes", nargs="*", type=int, default=list(SIZES))
     ap.add_argument("--mem-cap-gb", type=float, default=6.0)
     ap.add_argument("--timeout-s", type=float, default=3600)
+    ap.add_argument("--param", action="append", default=[], metavar="KEY=VALUE",
+                    help="method parameter override (YAML value), e.g. prop_folds=5 (recorded per run)")
+    ap.add_argument("--tag", default="", help="output suffix: results/runtime_benchmark/runtime_<tag>.json/.md")
     ap.add_argument("--slow-skip-s", type=float, default=1500,
                     help="skip larger sizes of a method once one size took longer than this (fit+predict)")
     a = ap.parse_args(argv)
@@ -160,7 +166,9 @@ def main(argv=None) -> None:
         worker(a.worker[0], int(a.worker[1]), Path(a.worker[2]))
         return
     OUT.mkdir(parents=True, exist_ok=True)
-    res = {"description": "runtime and peak memory only; no accuracy computed",
+    params = {k: yaml.safe_load(v) for k, v in (x.split("=", 1) for x in a.param)}
+    stem = f"runtime_{a.tag}" if a.tag else "runtime"
+    res = {"params_override": params, "description": "runtime and peak memory only; no accuracy computed",
            "draw_seed": _seed(), "threads": THREADS, "mem_cap_gb": a.mem_cap_gb,
            "targets": "config/split/test_queries.txt (656 test queries; names only)",
            "screened": "first n of default_rng(draw_seed).permutation(sorted dev pool) (nested)",
@@ -173,7 +181,7 @@ def main(argv=None) -> None:
             if stop:
                 res["skipped"].append(f"{m} n={n} ({stop})")
                 continue
-            rec = run_job(m, n, a.mem_cap_gb, a.timeout_s)
+            rec = run_job(m, n, a.mem_cap_gb, a.timeout_s, params, a.tag)
             print(json.dumps({k: rec.get(k) for k in ("method", "n_screened", "status", "t_fit_predict_s",
                                                       "peak_rss_gb", "error")}), flush=True)
             res["runs"].append({k: v for k, v in rec.items() if k != "traceback"} |
@@ -183,8 +191,8 @@ def main(argv=None) -> None:
             elif rec["status"] == "killed":
                 stop = f"previous size {rec['error']}"
             res["finished"] = time.strftime("%Y-%m-%dT%H:%M:%S")
-            (OUT / "runtime.json").write_text(json.dumps(res, indent=1))
-            (OUT / "runtime.md").write_text(render_md(res))
+            (OUT / f"{stem}.json").write_text(json.dumps(res, indent=1))
+            (OUT / f"{stem}.md").write_text(render_md(res))
 
 
 if __name__ == "__main__":

@@ -68,10 +68,12 @@ names (S1 query ∪ array); targets outside it are refused by `predict` (not by 
 nested (`prop_folds = 10` inside each outer fold). Cost ≈ (K+1) feature builds (stack_lr_wr2) and ≈ K×K for m1_hgb.
 
 **Small screened sets (matters for iterative screening from 10 queries).**
-- No explicit minimum n in the methods. `predict.predict` refuses screened rows with zero SLs (not an issue: 10
-  random S1 queries carry ~400 SLs). With n < K = 10 some folds are empty → `without_queries([])` → untested; keep
+- No explicit minimum n in the methods. `predict.predict` refuses screened rows with zero SLs (not an issue: the
+  10-query benchmark draw carries 525 SLs). With n < K = 10 some folds are empty → `without_queries([])` → untested; keep
   n ≥ 10 or pass `n_folds=min(10, n)`.
-- Benchmark (runtime only, §6): **all three methods run and return finite scores at n = 10, 30, 100**.
+- Benchmark (runtime only, §6): stack_lr and stack_lr_wr2 run and return finite scores at n = 10, 30, 100;
+  **m1_hgb fails at n = 10** with defaults (nested `prop_folds = 10` > 9 queries per outer-fold view → empty inner
+  fold → IndexError); `params={"prop_folds": 5}` makes it run. n = 30 runs with defaults.
   NumPy "Degrees of freedom <= 0" warnings at n ≤ 100 (variance over ≤ 1 value in a fold view) are harmless.
 - Degeneracies to expect at small n (from the code; accuracy not measured here): `masked_pearson(min_n=10)` sets
   query-side similarities over < 10 shared screened coordinates to 0, so the query-side kNN features are ~0 when
@@ -116,7 +118,20 @@ nested (`prop_folds = 10` inside each outer fold). Cost ≈ (K+1) feature builds
 ## 6. Runtime (fit+predict only; no accuracy; 656 test-query targets; 3 threads; Apple M2, 8 cores)
 
 See `results/runtime_benchmark/runtime.md` for the full table (filled by `scripts/02_runtime_benchmark.py`).
-RUNTIME_TABLE_PLACEHOLDER
+fit+predict s (peak RSS GB):
+
+| n screened | stack_lr | stack_lr_wr2 | m1_hgb |
+|---|---|---|---|
+| 10 | 1.6 (0.6) | 12.2 (1.2) | **fails** (IndexError); with `prop_folds=5`: 86.1 (2.2) |
+| 30 | 1.6 (0.7) | 14.0 (1.2) | 89.3 (2.1); with `prop_folds=5`: 84.6 (2.0) |
+| 100 | 1.8 (0.8) | 13.1 (1.8) | 117.9 (2.0) |
+| 300 | 2.8 (0.9) | 15.8 (1.8) | 111.9 (2.4) |
+| 650 | 4.6 (1.5) | 25.1 (2.4) | 139.4 (2.9) |
+| 1300 | 8.9 (2.4) | 58.8 (3.5) | 234.4 (4.9) |
+| 2600 | 22.5 (4.1) | **killed** at 6.0 GB after 285 s | **killed** at 6.2 GB after 333 s |
+
+m1_hgb n = 10 fails with the defaults (empty nested propensity fold → IndexError in `genes.similarity`);
+`params={"prop_folds": 5}` fixes it without code changes. n = 2600 exceeds the 6 GB cap for stack_lr_wr2 and m1_hgb.
 
 Scaling is with n_screened × n_arrays (training cells) plus n_targets × n_arrays at predict time; m1_hgb also
 re-builds test features over 10 matched views.
