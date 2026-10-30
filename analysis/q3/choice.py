@@ -343,13 +343,13 @@ def report(source: str, out=None) -> pd.DataFrame:
     out_rows = []
     for (rule, n), g in ev.groupby(["rule", "n"]):
         rec = {"rule": rule, "n": n}
-        for col in ("auprc", "auprc_VV"):
+        for col, rcol in (("auprc", "auprc"), ("auprc_VV", "auprc_OA")):
             per = []
             for sp, gs in g.groupby("split"):
-                rr = rows[(rows.arm == "R0") & (rows.split == sp) & (rows.n == n)][col].mean()
-                hh = rows[(rows.arm == "H") & (rows.split == sp) & (rows.n == n)][col].mean()
-                ff = rows[(rows.arm.isin(C.FINALISTS)) & (rows.split == sp) & (rows.n == n)][col].mean()
-                hs = rows[(rows.arm == "H-static") & (rows.split == sp) & (rows.n == n)][col].mean()
+                rr = rows[(rows.arm == "R0") & (rows.split == sp) & (rows.n == n)][rcol].mean()
+                hh = rows[(rows.arm == "H") & (rows.split == sp) & (rows.n == n)][rcol].mean()
+                ff = rows[(rows.arm.isin(C.FINALISTS)) & (rows.split == sp) & (rows.n == n)][rcol].mean()
+                hs = rows[(rows.arm == "H-static") & (rows.split == sp) & (rows.n == n)][rcol].mean()
                 per.append({"rule": gs[col].mean(), "random": rr, "H": hh, "fin": ff, "Hstatic": hs})
             D = pd.DataFrame(per)
             rec.update({f"{col}_rule": D.rule.mean(), f"{col}_random": D.random.mean(), f"{col}_H": D.H.mean(),
@@ -360,6 +360,9 @@ def report(source: str, out=None) -> pd.DataFrame:
                         f"{col}_recovered_vs_finalists": ((D.rule - D.random) / (D.fin - D.random)).mean(),
                         f"{col}_recovered_H_static_vs_H": ((D.Hstatic - D.random) / (D.H - D.random)).mean()})
         rec["R_seeds"] = int(g.seed.nunique())
+        rec["n_splits"] = int(g.split.nunique())
+        rec["n_fits"] = int(len(g))
+        rec["offarray_share"] = float(g.offarray_share.mean())
         rec["fit_s_mean"] = float(g.fit_s.mean())
         out_rows.append(rec)
     R = pd.DataFrame(out_rows)

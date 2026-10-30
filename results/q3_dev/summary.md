@@ -4,6 +4,16 @@ DESIGN v3.1 §7.2–7.4. Code: `analysis/q3/` (one command per analysis, `--sour
 
 **On the final outputs** (only after `scripts/score_final.py` has finished): (1) `bash analysis/q3/run_all.sh final` (hap1, frontier, choice profile, predcontrib; minutes); (2) `SOURCE=final SPLITS=final TRAJS="0 1" ARMS="R0 H" bash analysis/q3/run_lbo.sh` (LBO-CV refits on the dev bundle, one P* job at a time, ~25 min per trajectory); (3) `bash analysis/q3/run_all.sh final` again, which applies the FROZEN stopping rule (`analysis/q3/stopping_rule.yaml`, never re-tuned) and the CV thresholds. Outputs go to results/q3_final/.
 
+## Key findings
+
+- **Random screening, HAP1 lines** (N_HAP1 8,500, measured b, on-array stratum): n_80 ≈ 2,208 [1,758, 2,871], n_90 ≈ 3,539 [2,976, 4,238] lines (count-scaling bound b = 0: 805 / 1,288).
+- **H** reaches the same AUPRC with 639 (n_80) / 1,233 (n_90) lines in 24 / 45 rounds (saving 71% / 65%).
+- **H__b110** reaches the same AUPRC with 805 (n_80) / 1,339 (n_90) lines in 3 / 5 rounds (saving 64% / 62%).
+- **Billmann's 222 lines** ≈ 81 yeast queries at measured b: random selection gives 46% of the pool-max AUPRC, H 56%.
+- **Static 3-feature rank rule** (low single-mutant fitness, low expression variability, high conservation) recovers 72% of H's AUPRC gain at n = 160 (H-static 46%).
+- **Online estimator**: LBO-CV AUPRC on screened rows has relative bias -17% to +5% under random selection but +38% to +128% under H (SL-rich screened rows).
+- **Stopping**: true knees fall at 0.65–0.92 × the 660 cap; the best online rule has mean |log2 error| 0.25 vs 0.13 for always stopping at n = 490.
+
 ## 1. HAP1 translation (§7.3–7.4)
 
 Yeast P* random n_80 / n_90 by AUPRC stratum (pool maximum = 100%): OA 805 / 1,288; all 810 / 1,279; onrows 817 / 1,279 (candidate pool ≈ 2,101). DESIGN §7.4 uses the on-array stratum (OA = E_VV on dev, E_TT at the final) for the HAP1 translation: OA is the primary below; 'all' (E_fixed, the Q1 endpoint with its frozen joint-bootstrap CI) and on-array rows are sensitivities. OA/onrows CIs carry over the 'all' stratum's relative CI width (approximation). Slope b (universe subsampling, re-bootstrapped): n_80 1.06 [0.85, 1.30], n_90 1.06 [0.89, 1.24].
@@ -195,6 +205,19 @@ Leave-split-out rank rules (fitted on the finalists' pick frequencies in the oth
 
 Rules fitted on all three dev splits (standardised features; the one to carry to HAP1): k=1: smf -0.81; k=2: smf -0.80, expr_sd -0.41; k=3: smf -0.79, expr_sd -0.40, conservation +0.32
 
+**Static rank rule vs the adaptive strategies** (randomised top-20 static picks from the leave-split-out rule, P* refit; recovered = (rule − random)/(strategy − random)):
+
+| rule | n | rule | random | H | H-static | rule gain | H gain | recovered vs H | recovered vs finalists | H-static recovered | splits | fits | off-array share |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| forward_k1 | 160 | 0.050 | 0.043 | 0.058 | 0.049 | 0.159 | 0.327 | 0.434 | 0.471 | 0.460 | 3 | 9 | 0.192 |
+| forward_k1 | 330 | 0.064 | 0.051 | 0.069 | 0.060 | 0.262 | 0.365 | 0.732 | 0.791 | 0.519 | 3 | 9 | 0.194 |
+| forward_k1 | 660 | 0.075 | 0.060 | 0.080 | 0.070 | 0.241 | 0.332 | 0.730 | 0.805 | 0.488 | 2 | 4 | 0.195 |
+| forward_k3 | 160 | 0.054 | 0.043 | 0.058 | 0.049 | 0.246 | 0.327 | 0.725 | 0.779 | 0.460 | 3 | 9 | 0.192 |
+| forward_k3 | 330 | 0.066 | 0.051 | 0.069 | 0.060 | 0.289 | 0.365 | 0.790 | 0.854 | 0.519 | 3 | 9 | 0.192 |
+| forward_k3 | 660 | 0.067 | 0.055 | 0.070 | 0.061 | 0.217 | 0.269 | 0.808 | 0.912 | 0.398 | 1 | 2 | 0.193 |
+
+n = 660 is partial: those fits were stopped by the 3 GB RSS watchdog (P* at n = 660 on the full dev target set peaks at ≈3.0–3.2 GB), so only the splits listed were completed.
+
 ![profile](fig_choice_profile.png)
 
 ## 4. What prediction can contribute (§7.4)
@@ -257,11 +280,36 @@ Thresholds chosen by leave-batch-out CV on screened rows, applied to the targets
 
 | arm | n | set by | level | CV precision | CV recall | target precision | target recall | on-array precision | on-array recall | calls / gene |
 |---|---|---|---|---|---|---|---|---|---|---|
-| R0 | 160 | precision | 0.100 | 0.100 | 0.049 | 0.102 | 0.056 | 0.102 | 0.047 | 7.027 |
-| R0 | 160 | precision | 0.200 | 0.200 | 0.005 | 0.233 | 0.009 | 0.298 | 0.010 | 0.473 |
-| R0 | 160 | recall | 0.050 | 0.097 | 0.050 | 0.101 | 0.058 | 0.101 | 0.050 | 7.422 |
-| R0 | 160 | recall | 0.100 | 0.085 | 0.100 | 0.081 | 0.107 | 0.086 | 0.102 | 17.067 |
-| R0 | 160 | recall | 0.200 | 0.065 | 0.200 | 0.065 | 0.213 | 0.065 | 0.213 | 42.291 |
+| H | 160 | precision | 0.100 | 0.100 | 0.364 | 0.071 | 0.195 | 0.072 | 0.226 | 37.032 |
+| H | 160 | precision | 0.200 | 0.200 | 0.178 | 0.128 | 0.076 | 0.132 | 0.091 | 7.998 |
+| H | 160 | recall | 0.050 | 0.505 | 0.050 | 0.327 | 0.021 | 0.336 | 0.028 | 0.859 |
+| H | 160 | recall | 0.100 | 0.329 | 0.100 | 0.198 | 0.039 | 0.205 | 0.051 | 2.678 |
+| H | 160 | recall | 0.200 | 0.180 | 0.200 | 0.115 | 0.089 | 0.120 | 0.106 | 10.506 |
+| H | 330 | precision | 0.100 | 0.100 | 0.328 | 0.078 | 0.215 | 0.077 | 0.247 | 37.231 |
+| H | 330 | precision | 0.200 | 0.200 | 0.163 | 0.147 | 0.096 | 0.152 | 0.117 | 8.762 |
+| H | 330 | recall | 0.050 | 0.488 | 0.050 | 0.352 | 0.031 | 0.359 | 0.041 | 1.188 |
+| H | 330 | recall | 0.100 | 0.313 | 0.100 | 0.228 | 0.059 | 0.227 | 0.073 | 3.464 |
+| H | 330 | recall | 0.200 | 0.165 | 0.200 | 0.124 | 0.121 | 0.127 | 0.143 | 13.192 |
+| H | 660 | precision | 0.100 | 0.100 | 0.283 | 0.083 | 0.234 | 0.083 | 0.267 | 37.871 |
+| H | 660 | precision | 0.200 | 0.200 | 0.143 | 0.161 | 0.106 | 0.165 | 0.128 | 8.874 |
+| H | 660 | recall | 0.050 | 0.457 | 0.050 | 0.342 | 0.039 | 0.334 | 0.049 | 1.530 |
+| H | 660 | recall | 0.100 | 0.278 | 0.100 | 0.217 | 0.075 | 0.222 | 0.093 | 4.621 |
+| H | 660 | recall | 0.200 | 0.143 | 0.200 | 0.117 | 0.154 | 0.120 | 0.179 | 17.753 |
+| R0 | 160 | precision | 0.100 | 0.100 | 0.033 | 0.123 | 0.036 | 0.121 | 0.036 | 4.748 |
+| R0 | 160 | precision | 0.200 | 0.200 | 0.005 | 0.182 | 0.006 | 0.199 | 0.008 | 0.504 |
+| R0 | 160 | recall | 0.050 | 0.089 | 0.050 | 0.094 | 0.058 | 0.099 | 0.051 | 8.359 |
+| R0 | 160 | recall | 0.100 | 0.076 | 0.100 | 0.080 | 0.112 | 0.084 | 0.107 | 18.910 |
+| R0 | 160 | recall | 0.200 | 0.060 | 0.200 | 0.064 | 0.213 | 0.063 | 0.224 | 44.732 |
+| R0 | 330 | precision | 0.100 | 0.100 | 0.080 | 0.105 | 0.085 | 0.114 | 0.091 | 11.433 |
+| R0 | 330 | precision | 0.200 | 0.200 | 0.018 | 0.198 | 0.020 | 0.249 | 0.025 | 1.187 |
+| R0 | 330 | recall | 0.050 | 0.122 | 0.050 | 0.123 | 0.057 | 0.133 | 0.060 | 6.315 |
+| R0 | 330 | recall | 0.100 | 0.094 | 0.100 | 0.095 | 0.107 | 0.099 | 0.110 | 15.222 |
+| R0 | 330 | recall | 0.200 | 0.070 | 0.200 | 0.073 | 0.203 | 0.073 | 0.219 | 37.701 |
+| R0 | 660 | precision | 0.100 | 0.100 | 0.143 | 0.100 | 0.139 | 0.103 | 0.149 | 19.025 |
+| R0 | 660 | precision | 0.200 | 0.200 | 0.044 | 0.194 | 0.043 | 0.207 | 0.051 | 3.078 |
+| R0 | 660 | recall | 0.050 | 0.185 | 0.050 | 0.175 | 0.050 | 0.188 | 0.058 | 3.843 |
+| R0 | 660 | recall | 0.100 | 0.123 | 0.100 | 0.120 | 0.098 | 0.125 | 0.107 | 10.927 |
+| R0 | 660 | recall | 0.200 | 0.083 | 0.200 | 0.084 | 0.195 | 0.085 | 0.211 | 31.264 |
 
 ![PR](fig_pred_pr.png)
 

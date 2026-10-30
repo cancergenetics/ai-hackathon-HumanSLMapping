@@ -25,7 +25,7 @@ def pstar_spec():
     return pz["method"], dict(pz["params"] or {})
 
 
-def fit_score(b, split: str, screened, model_seed: int, n_threads: int = 2) -> dict:
+def fit_score(b, split: str, screened, model_seed: int, n_threads: int = 2, chunk_targets: int | None = None) -> dict:
     from hsl import eval as E, upstream as U, views
     from analysis.q3 import cache
     sp = views.get_split(split)
@@ -43,7 +43,7 @@ def fit_score(b, split: str, screened, model_seed: int, n_threads: int = 2) -> d
     view = U.construct_view(b, S, sp.targets)
     Sm, _ = U.run_method(view, method, model_seed=int(model_seed), split_seed=0, n_threads=n_threads,
                          n_folds=int(min(int(pr["n_folds"]), max(len(S), 2))),
-                         chunk_targets=int(pr["chunk_targets"]), params=params)
+                         chunk_targets=int(chunk_targets or pr["chunk_targets"]), params=params)
     s = np.asarray(Sm, dtype=np.float32)[es["rows"], es["cols"]]
     y = es["y"]
     out = {"split": split, "n": int(len(S)), "model_seed": int(model_seed), "fit_s": time.perf_counter() - t0,
@@ -53,7 +53,7 @@ def fit_score(b, split: str, screened, model_seed: int, n_threads: int = 2) -> d
     return out, s
 
 
-def check() -> None:
+def check(chunk_targets=None) -> None:
     import pandas as pd
     b = C.dev_bundle()
     sels = C.selections("dev", arms=[C.RANDOM])
@@ -61,7 +61,7 @@ def check() -> None:
     for sp, r, n in (("dev1", 0, 160),):
         sel = sels[(C.RANDOM, sp, r)]
         x = d[(d.predictor == C.PSTAR) & (d.split == sp) & (d.perm == r) & (d.n == n)].iloc[0]
-        out, _ = fit_score(b, sp, sel["selected"][:n], sel["model_seed"])
+        out, _ = fit_score(b, sp, sel["selected"][:n], sel["model_seed"], chunk_targets=chunk_targets)
         print(f"{sp} r{r} n{n}: ours {out['auprc']:.10f} stored {x.auprc:.10f} diff {out['auprc'] - x.auprc:.2e} "
               f"fit {out['fit_s']:.0f} s")
         if abs(out["auprc"] - x.auprc) > 1e-6:
@@ -69,5 +69,5 @@ def check() -> None:
 
 
 if __name__ == "__main__":
-    if sys.argv[1:] == ["check"]:
-        check()
+    if sys.argv[1:2] == ["check"]:
+        check(int(sys.argv[2]) if len(sys.argv) > 2 else None)

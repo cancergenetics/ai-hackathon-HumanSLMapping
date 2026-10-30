@@ -34,6 +34,8 @@ def i0(x):
 
 def table(df: pd.DataFrame, cols, heads=None, fmt=None) -> str:
     heads = heads or cols
+    keep = [k for k, c in enumerate(cols) if c in df.columns]          # tolerate columns a source does not have
+    cols, heads = [cols[k] for k in keep], [heads[k] for k in keep]
     fmt = fmt or {}
     out = ["| " + " | ".join(heads) + " |", "|" + "---|" * len(cols)]
     for _, r in df.iterrows():
@@ -165,9 +167,12 @@ def section_choice(O) -> list[str]:
               "rule, P* refit; recovered = (rule − random)/(strategy − random)):", "",
               table(g, ["rule", "n", "auprc_rule", "auprc_random", "auprc_H", "auprc_H_static", "auprc_rel_gain_rule",
                         "auprc_rel_gain_H", "auprc_recovered_vs_H", "auprc_recovered_vs_finalists",
-                        "auprc_recovered_H_static_vs_H", "R_seeds"],
+                        "auprc_recovered_H_static_vs_H", "n_splits", "n_fits", "offarray_share"],
                     ["rule", "n", "rule", "random", "H", "H-static", "rule gain", "H gain", "recovered vs H",
-                     "recovered vs finalists", "H-static recovered", "seeds"], {"n": i0}), ""]
+                     "recovered vs finalists", "H-static recovered", "splits", "fits", "off-array share"],
+                    {"n": i0, "n_splits": i0, "n_fits": i0}), "",
+              "n = 660 is partial: those fits were stopped by the 3 GB RSS watchdog (P* at n = 660 on the full dev "
+              "target set peaks at ≈3.0–3.2 GB), so only the splits listed were completed.", ""]
     L += ["![profile](fig_choice_profile.png)", ""]
     return L
 
@@ -249,7 +254,7 @@ def section_stop(O) -> list[str]:
                f"n = {R_['n_max_planned']}")
         L += [f"**Frozen rule** (`analysis/q3/stopping_rule.yaml`, frozen {r['frozen_at']}): {R_['family']} family; "
               f"{how}; otherwise stop at 660 (flagged).", ""]
-    if (O / "stop_rule_applied.csv").exists():
+    if (O / "stop_rule_applied.csv").exists() and (O / "stop_rule_applied.csv").stat().st_size > 5:
         a = pd.read_csv(O / "stop_rule_applied.csv")
         L += ["Frozen rule applied:", "", table(a, list(a.columns)), ""]
     L += ["![stopping](fig_stopping.png)", ""]
@@ -311,6 +316,60 @@ NOTES = """## Ambiguities in DESIGN §7.2–7.4 and how they were resolved (none
 """
 
 
+def key_findings(O) -> list[str]:
+    """Headline numbers, read from the output files (no hardcoded values)."""
+    L = ["## Key findings", ""]
+    try:
+        t = pd.read_csv(O / "hap1_translation.csv")
+        x = t[(t.stratum == "OA") & t.N_yeast_label.str.contains("primary") & (t.N_HAP1_label == "mid")]
+        m = x[x.b_label == "measured"].set_index("target")
+        b0 = x[x.b_label == "b=0 (count)"].set_index("target")
+        c = pd.read_csv(O / "hap1_costs.csv")
+        c = c[(c.stratum == "OA") & (c.N_HAP1 == 8500) & (c.b_label == "measured")].set_index(["target", "arm"])
+        L.append(f"- **Random screening, HAP1 lines** (N_HAP1 8,500, measured b, on-array stratum): n_80 ≈ "
+                 f"{i0(m.loc['n80', 'n_HAP1'])} [{i0(m.loc['n80', 'lo'])}, {i0(m.loc['n80', 'hi'])}], n_90 ≈ "
+                 f"{i0(m.loc['n90', 'n_HAP1'])} [{i0(m.loc['n90', 'lo'])}, {i0(m.loc['n90', 'hi'])}] lines "
+                 f"(count-scaling bound b = 0: {i0(b0.loc['n80', 'n_HAP1'])} / {i0(b0.loc['n90', 'n_HAP1'])}).")
+        for arm in ("H", "H__b110"):
+            if ("n80", arm) in c.index:
+                L.append(f"- **{arm}** reaches the same AUPRC with {i0(c.loc[('n80', arm), 'lines'])} (n_80) / "
+                         f"{i0(c.loc[('n90', arm), 'lines'])} (n_90) lines in {i0(c.loc[('n80', arm), 'rounds'])} / "
+                         f"{i0(c.loc[('n90', arm), 'rounds'])} rounds (saving "
+                         f"{100 * c.loc[('n80', arm), 'saving_vs_random']:.0f}% / "
+                         f"{100 * c.loc[('n90', arm), 'saving_vs_random']:.0f}%).")
+        bb = pd.read_csv(O / "hap1_billmann222.csv")
+        bb = bb[(bb.stratum == "OA") & (bb.N_HAP1 == 8500) & (bb.b_label == "measured")].set_index("arm")
+        L.append(f"- **Billmann's 222 lines** ≈ {bb.loc['R0', 'n_yeast_equiv']:.0f} yeast queries at measured b: random "
+                 f"selection gives {100 * bb.loc['R0', 'auprc_frac_of_max']:.0f}% of the pool-max AUPRC, H "
+                 f"{100 * bb.loc['H', 'auprc_frac_of_max']:.0f}%.")
+    except (FileNotFoundError, KeyError, IndexError):
+        pass
+    try:
+        g = pd.read_csv(O / "choice_rule_gain.csv").set_index(["rule", "n"])
+        k = g.loc[("forward_k3", 160)]
+        L.append(f"- **Static 3-feature rank rule** (low single-mutant fitness, low expression variability, high "
+                 f"conservation) recovers {100 * k.auprc_recovered_vs_H:.0f}% of H's AUPRC gain at n = 160 "
+                 f"(H-static {100 * k.auprc_recovered_H_static_vs_H:.0f}%).")
+    except (FileNotFoundError, KeyError):
+        pass
+    try:
+        e = pd.read_csv(O / "stop_estimator.csv")
+        r0 = e[(e.arm == "R0")]
+        h = e[(e.arm == "H")]
+        L.append(f"- **Online estimator**: LBO-CV AUPRC on screened rows has relative bias "
+                 f"{100 * r0.rel_bias.min():+.0f}% to {100 * r0.rel_bias.max():+.0f}% under random selection but "
+                 f"{100 * h.rel_bias.min():+.0f}% to {100 * h.rel_bias.max():+.0f}% under H (SL-rich screened rows).")
+        f_ = pd.read_csv(O / "stop_fixed_n_baseline.csv").sort_values("mae_log2").iloc[0]
+        s_ = json.loads((O / "stop_summary.json").read_text())["best"]
+        kn = pd.read_csv(O / "stop_knees.csv").knee / 660
+        L.append(f"- **Stopping**: true knees fall at {kn.min():.2f}–{kn.max():.2f} × the 660 cap; the best online rule "
+                 f"has mean "
+                 f"|log2 error| {s_['mae_log2']:.2f} vs {f_.mae_log2:.2f} for always stopping at n = {f_.n_fixed:.0f}.")
+    except (FileNotFoundError, KeyError, TypeError):
+        pass
+    return L + [""]
+
+
 def compose(source: str, out=None) -> str:
     O = C.out_dir(source, out)
     head = [f"# Q3 analyses — {source.upper()} {'(DEV DATA ONLY)' if source == 'dev' else ''}", "",
@@ -323,7 +382,7 @@ def compose(source: str, out=None) -> str:
             "the dev bundle, one P* job at a time, ~25 min per trajectory); (3) `bash analysis/q3/run_all.sh final` "
             "again, which applies the FROZEN stopping rule (`analysis/q3/stopping_rule.yaml`, never re-tuned) and the "
             "CV thresholds. Outputs go to results/q3_final/.", ""]
-    body = section_hap1(O) + section_frontier(O) + section_choice(O) + section_pred(O) + section_stop(O)
+    body = key_findings(O) + section_hap1(O) + section_frontier(O) + section_choice(O) + section_pred(O) + section_stop(O)
     txt = "\n".join(head + body) + "\n" + NOTES
     (O / "summary.md").write_text(txt)
     return txt

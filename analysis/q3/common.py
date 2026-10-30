@@ -126,7 +126,8 @@ def _final_rows(source: str) -> pd.DataFrame:
     split = lab.get("split", "final" if source == "final" else "dev1")
     out = pd.DataFrame({"arm": r["cid"], "split": split, "traj": r["traj"], "n": r["n"], "auprc": r["auprc_inline"],
                         "sl_detected": r.get("sl_detected"), "sl_detected_frac": r.get("sl_detected_frac"),
-                        "pred_file": r["pred_file"], "model_seed": r["model_seed"]})
+                        "pred_file": r["pred_file"], "model_seed": r["model_seed"],
+                        "prevalence": r["n_pos"] / r["n_cells"]})
     # strata are not in runs.csv: unit-weight AP on the stratum recomputed from the saved predictions (cached)
     return _final_strata(source, out)
 
