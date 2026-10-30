@@ -237,8 +237,8 @@ def freeze(source: str, out=None, force: bool = False) -> dict:
                       "metric": "pooled tie-grouped AP over all folds (hsl.eval.average_precision)",
                       "predictor": "frozen P* (config/predictor.yaml primary), trajectory model seed"},
         "checkpoints": [30, 60, 100, 160, 220, 330, 490, 660],
-        "statistic": "g_k = (x_k / x_{k-1} - 1) / log2(n_k / n_{k-1}), x = rule.statistic (cv_auprc or cv_lift = "
-                     "cv_auprc / prevalence of the CV cells): relative gain per doubling",
+        "statistic": "x = rule.statistic: cv_auprc (LBO-CV AUPRC) or cv_lift (cv_auprc / prevalence of the CV "
+                     "cells); plateau family uses g_k = (x_k / x_{k-1} - 1) / log2(n_k / n_{k-1})",
         "rule": {"family": str(b["family"]), "statistic": str(b["statistic"]),
                  "param": float(b["delta"]), "m_or_window": int(b["m"]), "n_min": N_MIN, "n_max_planned": 660,
                  "stop_plateau": "first checkpoint n_k >= n_min whose last m values of g are all < param (delta)",
@@ -246,8 +246,10 @@ def freeze(source: str, out=None, force: bool = False) -> dict:
                                     "of x on log n over the last `m_or_window` checkpoints, extrapolated to n_max",
                  "if_never": "stop at the last checkpoint (660), flagged not_triggered"},
         "target_of_tuning": "true knee = smallest n with AUPRC >= 0.95 x AUPRC(660) (PAVA, log-n interpolated)",
-        "selection": {"criterion": "min mean |log2(n_stop / n_knee)| over dev trajectories; ties -> smaller delta",
-                      "grid_delta": list(DELTAS), "grid_m": list(MS),
+        "selection": {"criterion": "min mean |log2(n_stop / n_knee)| over the dev trajectories (R0 and H, "
+                                   "trajectories 0-1, dev1-3); ties -> family, statistic, param, m order",
+                      "grid": {"statistics": list(STATS), "plateau_delta": list(DELTAS), "plateau_m": list(MS),
+                               "projection_tau": list(TAUS), "projection_window": list(WS)},
                       "dev_mae_log2": float(b["mae_log2"]), "dev_bias_log2": float(b["bias_log2"]),
                       "dev_trigger_rate": float(b["trig"]), "n_dev_trajectories": res["n_traj_complete"],
                       "leave_split_out": res["lso"],
@@ -256,6 +258,7 @@ def freeze(source: str, out=None, force: bool = False) -> dict:
                               "comparator, reported alongside (stop_fixed_n_baseline.csv)",
                       "evidence": "results/q3_dev/stop_rule_grid.csv, stop_rule_grid_traj.csv, stop_rule_lso.csv"},
     }
+    rule = json.loads(json.dumps(rule, default=lambda o: o.item() if hasattr(o, "item") else str(o)))
     RULE_FILE.write_text("# Q3 online stopping rule — FROZEN on dev before any final output was seen (DESIGN §7.4).\n"
                          "# Written by `python -m analysis.q3.stopping freeze`; never edited or re-tuned afterwards.\n"
                          + yaml.safe_dump(rule, sort_keys=False))

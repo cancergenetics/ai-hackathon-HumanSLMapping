@@ -1,0 +1,322 @@
+{
+ "dev1": {
+  "forward": [
+   {
+    "k": 1,
+    "features": [
+     "smf"
+    ],
+    "deviance": 13367.053717606977,
+    "coef": {
+     "smf": -0.8331
+    }
+   },
+   {
+    "k": 2,
+    "features": [
+     "smf",
+     "conservation"
+    ],
+    "deviance": 13178.811340768261,
+    "coef": {
+     "smf": -0.8114,
+     "conservation": 0.3503
+    }
+   },
+   {
+    "k": 3,
+    "features": [
+     "smf",
+     "conservation",
+     "expr_sd"
+    ],
+    "deviance": 13009.728474959604,
+    "coef": {
+     "smf": -0.8012,
+     "conservation": 0.3448,
+     "expr_sd": -0.4059
+    }
+   }
+  ],
+  "l1": {
+   "features": [
+    "smf",
+    "abundance",
+    "expr_mean",
+    "expr_sd",
+    "coexp_hub",
+    "apms_degree",
+    "apms_in_network",
+    "conservation",
+    "identity",
+    "paralogs",
+    "paralog_identity",
+    "length",
+    "plddt",
+    "disorder",
+    "domains",
+    "dnds",
+    "lof_freq"
+   ],
+   "coef": {
+    "smf": -0.7522,
+    "abundance": 0.3133,
+    "expr_mean": 0.0054,
+    "expr_sd": -0.3015,
+    "coexp_hub": -0.1749,
+    "apms_degree": 0.2172,
+    "apms_in_network": -0.0557,
+    "conservation": 0.2593,
+    "identity": 0.0694,
+    "paralogs": -0.4789,
+    "paralog_identity": 0.0,
+    "length": 0.1355,
+    "plddt": -0.0637,
+    "disorder": 0.0,
+    "domains": 0.0,
+    "dnds": -0.128,
+    "lof_freq": -0.1439
+   }
+  }
+ },
+ "dev2": {
+  "forward": [
+   {
+    "k": 1,
+    "features": [
+     "smf"
+    ],
+    "deviance": 12975.278555601086,
+    "coef": {
+     "smf": -0.7912
+    }
+   },
+   {
+    "k": 2,
+    "features": [
+     "smf",
+     "expr_sd"
+    ],
+    "deviance": 12774.572888461722,
+    "coef": {
+     "smf": -0.7799,
+     "expr_sd": -0.448
+    }
+   },
+   {
+    "k": 3,
+    "features": [
+     "smf",
+     "expr_sd",
+     "conservation"
+    ],
+    "deviance": 12625.608108715669,
+    "coef": {
+     "smf": -0.7633,
+     "expr_sd": -0.4408,
+     "conservation": 0.3169
+    }
+   }
+  ],
+  "l1": {
+   "features": [
+    "smf",
+    "abundance",
+    "expr_mean",
+    "expr_sd",
+    "coexp_hub",
+    "apms_degree",
+    "apms_in_network",
+    "conservation",
+    "identity",
+    "paralogs",
+    "paralog_identity",
+    "length",
+    "plddt",
+    "disorder",
+    "domains",
+    "dnds",
+    "lof_freq"
+   ],
+   "coef": {
+    "smf": -0.7101,
+    "abundance": 0.1684,
+    "expr_mean": 0.0,
+    "expr_sd": -0.3554,
+    "coexp_hub": -0.1115,
+    "apms_degree": 0.2199,
+    "apms_in_network": 0.0132,
+    "conservation": 0.2607,
+    "identity": 0.0309,
+    "paralogs": -0.3807,
+    "paralog_identity": 0.0143,
+    "length": 0.0968,
+    "plddt": -0.0483,
+    "disorder": 0.0,
+    "domains": 0.0,
+    "dnds": -0.0923,
+    "lof_freq": -0.0844
+   }
+  }
+ },
+ "dev3": {
+  "forward": [
+   {
+    "k": 1,
+    "features": [
+     "smf"
+    ],
+    "deviance": 13526.784004296605,
+    "coef": {
+     "smf": -0.7909
+    }
+   },
+   {
+    "k": 2,
+    "features": [
+     "smf",
+     "conservation"
+    ],
+    "deviance": 13327.912412225236,
+    "coef": {
+     "smf": -0.7766,
+     "conservation": 0.3569
+    }
+   },
+   {
+    "k": 3,
+    "features": [
+     "smf",
+     "conservation",
+     "expr_sd"
+    ],
+    "deviance": 13151.81608796748,
+    "coef": {
+     "smf": -0.763,
+     "conservation": 0.3517,
+     "expr_sd": -0.4065
+    }
+   }
+  ],
+  "l1": {
+   "features": [
+    "smf",
+    "abundance",
+    "expr_mean",
+    "expr_sd",
+    "coexp_hub",
+    "apms_degree",
+    "apms_in_network",
+    "conservation",
+    "identity",
+    "paralogs",
+    "paralog_identity",
+    "length",
+    "plddt",
+    "disorder",
+    "domains",
+    "dnds",
+    "lof_freq"
+   ],
+   "coef": {
+    "smf": -0.7104,
+    "abundance": 0.1996,
+    "expr_mean": 0.0,
+    "expr_sd": -0.3163,
+    "coexp_hub": -0.1544,
+    "apms_degree": 0.2582,
+    "apms_in_network": -0.0216,
+    "conservation": 0.3135,
+    "identity": 0.0625,
+    "paralogs": -0.4899,
+    "paralog_identity": 0.093,
+    "length": 0.168,
+    "plddt": -0.1483,
+    "disorder": -0.0969,
+    "domains": -0.0408,
+    "dnds": -0.0862,
+    "lof_freq": -0.0685
+   }
+  }
+ },
+ "all": {
+  "forward": [
+   {
+    "k": 1,
+    "features": [
+     "smf"
+    ],
+    "deviance": 26400.9381940884,
+    "coef": {
+     "smf": -0.8112
+    }
+   },
+   {
+    "k": 2,
+    "features": [
+     "smf",
+     "expr_sd"
+    ],
+    "deviance": 26041.615370840605,
+    "coef": {
+     "smf": -0.8022,
+     "expr_sd": -0.4144
+    }
+   },
+   {
+    "k": 3,
+    "features": [
+     "smf",
+     "expr_sd",
+     "conservation"
+    ],
+    "deviance": 25725.02726609396,
+    "coef": {
+     "smf": -0.7869,
+     "expr_sd": -0.4049,
+     "conservation": 0.3229
+    }
+   }
+  ],
+  "l1": {
+   "features": [
+    "smf",
+    "abundance",
+    "expr_mean",
+    "expr_sd",
+    "coexp_hub",
+    "apms_degree",
+    "apms_in_network",
+    "conservation",
+    "identity",
+    "paralogs",
+    "paralog_identity",
+    "length",
+    "plddt",
+    "disorder",
+    "domains",
+    "dnds",
+    "lof_freq"
+   ],
+   "coef": {
+    "smf": -0.7313,
+    "abundance": 0.2223,
+    "expr_mean": 0.0,
+    "expr_sd": -0.3014,
+    "coexp_hub": -0.1564,
+    "apms_degree": 0.2768,
+    "apms_in_network": -0.0345,
+    "conservation": 0.2711,
+    "identity": 0.069,
+    "paralogs": -0.6099,
+    "paralog_identity": 0.0,
+    "length": 0.1575,
+    "plddt": -0.1162,
+    "disorder": -0.0849,
+    "domains": -0.0079,
+    "dnds": -0.077,
+    "lof_freq": -0.0779
+   }
+  }
+ }
+}

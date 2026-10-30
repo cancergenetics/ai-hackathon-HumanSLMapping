@@ -1,0 +1,4 @@
+held_out,family,statistic,delta,m,mae_log2,bias_log2,R
+dev1,projection,cv_auprc,0.93,4,0.3714320706364828,-0.10797182030341375,4
+dev2,projection,cv_auprc,0.9,4,0.3842450813831776,-0.28730904715942496,4
+dev3,projection,cv_auprc,0.95,4,0.3730192026140026,0.14175758392064222,4

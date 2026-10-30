@@ -322,7 +322,7 @@ def evaluate(source: str, out=None, budgets=(160, 330, 660), seeds=(0, 1, 2), ru
         coef = res[sp]["forward"][k - 1]["coef"] if k else {a: v for a, v in res[sp]["l1"]["coef"].items() if v}
         for seed in seeds:
             sc = pd.Series(rule_scores(F, P[sp], coef, seed=seed), index=P[sp])
-            sel = static_pick(sc, max(budgets), seed, top_k)
+            sel = static_pick(sc, 660, seed, top_k)        # nested prefixes: same order for every budget
             ms = int(C.rows("dev").query("arm == 'R0' and split == @sp and traj == @seed").model_seed.iloc[0])
             for n in budgets:
                 if (sp, rule, seed, n) in done:
@@ -404,6 +404,9 @@ def main(argv=None):
     ap.add_argument("--source", choices=C.SOURCES, default="dev")
     ap.add_argument("--out", default=None)
     ap.add_argument("--rule", default="forward_k2")
+    ap.add_argument("--budgets", default="160,330,660")
+    ap.add_argument("--seeds", default="0,1,2")
+    ap.add_argument("--rss-cap-gb", type=float, default=3.0)
     a = ap.parse_args(argv)
     C.set_threads(2)
     if a.cmd == "profile":
@@ -413,7 +416,10 @@ def main(argv=None):
         r = rules(a.source, a.out)
         print(json.dumps(r, indent=1, default=str)[:3000])
     elif a.cmd == "evaluate":
-        evaluate(a.source, a.out, rule=a.rule)
+        from analysis.q3.lbo import rss_watchdog
+        rss_watchdog(a.rss_cap_gb - 0.05)
+        evaluate(a.source, a.out, rule=a.rule, budgets=tuple(int(x) for x in a.budgets.split(",")),
+                 seeds=tuple(int(x) for x in a.seeds.split(",")))
     else:
         print(report(a.source, a.out).round(4).to_string())
 

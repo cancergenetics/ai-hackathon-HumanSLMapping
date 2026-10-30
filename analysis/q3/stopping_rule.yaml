@@ -1,0 +1,108 @@
+# Q3 online stopping rule — FROZEN on dev before any final output was seen (DESIGN §7.4).
+# Written by `python -m analysis.q3.stopping freeze`; never edited or re-tuned afterwards.
+status: frozen
+frozen_at: '2026-10-30T05:15:57Z'
+frozen_before_any_final_output: true
+git_head_at_freeze: d5e11a936d3fa5ba341581cd6083966e8fa10ffb
+estimator:
+  name: LBO-CV AUPRC of P* on screened rows
+  module: analysis.q3.lbo
+  batch: 10
+  k_folds: 5
+  fold_rule: 'batch index (i // 10) mod K, K = min(5, #batches)'
+  cells: fold rows x columns not screened, not test genes, not self, measured
+  metric: pooled tie-grouped AP over all folds (hsl.eval.average_precision)
+  predictor: frozen P* (config/predictor.yaml primary), trajectory model seed
+checkpoints:
+- 30
+- 60
+- 100
+- 160
+- 220
+- 330
+- 490
+- 660
+statistic: 'x = rule.statistic: cv_auprc (LBO-CV AUPRC) or cv_lift (cv_auprc / prevalence
+  of the CV cells); plateau family uses g_k = (x_k / x_{k-1} - 1) / log2(n_k / n_{k-1})'
+rule:
+  family: projection
+  statistic: cv_auprc
+  param: 0.97
+  m_or_window: 4
+  n_min: 60
+  n_max_planned: 660
+  stop_plateau: first checkpoint n_k >= n_min whose last m values of g are all < param
+    (delta)
+  stop_projection: first checkpoint n_k >= n_min with x_k >= param (tau) x x_hat(n_max),
+    x_hat = OLS of x on log n over the last `m_or_window` checkpoints, extrapolated
+    to n_max
+  if_never: stop at the last checkpoint (660), flagged not_triggered
+target_of_tuning: true knee = smallest n with AUPRC >= 0.95 x AUPRC(660) (PAVA, log-n
+  interpolated)
+selection:
+  criterion: min mean |log2(n_stop / n_knee)| over the dev trajectories (R0 and H,
+    trajectories 0-1, dev1-3); ties -> family, statistic, param, m order
+  grid:
+    statistics:
+    - cv_auprc
+    - cv_lift
+    plateau_delta:
+    - 0.02
+    - 0.04
+    - 0.06
+    - 0.08
+    - 0.1
+    - 0.12
+    - 0.15
+    - 0.2
+    - 0.25
+    - 0.3
+    plateau_m:
+    - 1
+    - 2
+    projection_tau:
+    - 0.8
+    - 0.85
+    - 0.9
+    - 0.93
+    - 0.95
+    - 0.97
+    projection_window:
+    - 3
+    - 4
+  dev_mae_log2: 0.25282244263173304
+  dev_bias_log2: 0.16549223881926786
+  dev_trigger_rate: 0.5
+  n_dev_trajectories: 12
+  leave_split_out:
+  - held_out: dev1
+    family: projection
+    statistic: cv_auprc
+    delta: 0.93
+    m: 4
+    mae_log2: 0.3714320706364828
+    bias_log2: -0.10797182030341375
+    R: 4
+  - held_out: dev2
+    family: projection
+    statistic: cv_auprc
+    delta: 0.9
+    m: 4
+    mae_log2: 0.3842450813831776
+    bias_log2: -0.28730904715942496
+    R: 4
+  - held_out: dev3
+    family: projection
+    statistic: cv_auprc
+    delta: 0.95
+    m: 4
+    mae_log2: 0.3730192026140026
+    bias_log2: 0.14175758392064222
+    R: 4
+  comparator_best_fixed_n:
+    n_fixed: 490.0
+    mae_log2: 0.12994009842244095
+    bias_log2: -0.0018235884059585171
+  note: the knee is defined relative to AUPRC(660); a fixed budget near 0.75 x 660
+    is a strong comparator, reported alongside (stop_fixed_n_baseline.csv)
+  evidence: results/q3_dev/stop_rule_grid.csv, stop_rule_grid_traj.csv, stop_rule_lso.csv
