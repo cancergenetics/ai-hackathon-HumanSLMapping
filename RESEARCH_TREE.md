@@ -204,6 +204,11 @@ Retrospective (docs/reviews/retro_m_final.md):
     The projection is 10.2–13.6 h at an 18 GB gate.
   - [x] Freeze (9694404)
   - [~] Final on T (one shot): running since 00:22 (projection 10–14 h) → score → independent rescoring
+  - [x] Independent rescorer (analysis/rescore, no hsl import; commit f72da0d), 44 tests:
+    - The dry run matches exactly: 179 unit APs, 378 strata APs and all point contrasts.
+    - CIs and p-values agree within Monte-Carlo error, and all decisions agree.
+    - A negative control with 4 planted errors flagged all 4.
+    - Two DESIGN readings are reported both ways (G-defined interval; n_X anchor).
 - [ ] M4 Q1: performance vs. fraction screened (random)
 - [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
 - [ ] M6 Q3: translation to HAP1 (query numbers, choice of query lines, role of prediction)
