@@ -14,6 +14,14 @@ arbitrary screened set, runtime vs. number screened, data characterisation), in 
 then DESIGN.md and up to three review rounds.
 
 ## Decision log
+- 2026-10-30 D11: FREEZE and FINAL START.
+  - Freeze: finalists.yaml frozen (bc449a7); frozen.yaml written and committed (9694404; 81 files).
+  - First `start` failed in preflight before any lock: hashing the upstream Costanzo raw files tripped the label gate.
+    This path is final-only and untested by the dry run.
+  - `start` was re-run with HSL_FINAL=1, which opens the gate for hashing only; start reads no labels. Preflight passed:
+    81 frozen hashes, 461 upstream checksums, YEAST_SLs clean.
+  - Lock 00:22:47 at HEAD 9694404: 4,019 units, 394 jobs.
+  - Until scoring finishes, no edits to frozen files; only notes (tree, lessons) are committed.
 - 2026-10-29 D10 (pre-freeze, before any T contact). Final cost projected at 14.5–28 h wall, over §12's 10 h. §12's
   'R at the pilot minimum' is undefined here, because the pilot gave no finite R. The closest rule in its spirit:
   - Random arm at R = 10 for n > 660 and R = 5 at the pool max. R_r = 40 stays at n ≤ 660 (all Q2 contrasts).
@@ -165,7 +173,8 @@ then DESIGN.md and up to three review rounds.
   - [x] run_final.py build + dry run on dev (commit 579bac5): 179/179 units; refusals and crash-resume tested; 17 tests.
   - [x] Independent review of the final pipeline: READY WITH FIXES. All fixes applied (43af996, e7d9a69); 321 tests pass.
     The projection is 10.2–13.6 h at an 18 GB gate.
-  - [~] Freeze (frozen.yaml) → Final on T (one shot)
+  - [x] Freeze (9694404)
+  - [~] Final on T (one shot): running since 00:22 (projection 10–14 h) → score → independent rescoring
 - [ ] M4 Q1: performance vs. fraction screened (random)
 - [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
 - [ ] M6 Q3: translation to HAP1 (query numbers, choice of query lines, role of prediction)
