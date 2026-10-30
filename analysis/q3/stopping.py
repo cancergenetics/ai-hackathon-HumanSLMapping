@@ -80,6 +80,36 @@ def plateau_stop(ns, cv, delta, m, n_min=N_MIN) -> tuple[float, bool]:
     return float(ns[-1]), False
 
 
+def projection_stop(ns, x, tau, w=3, n_max=660.0, n_min=N_MIN) -> tuple[float, bool]:
+    """Stop at the first checkpoint n_k >= n_min (k >= w-1) whose value x_k >= tau * x_hat(n_max), x_hat = OLS line of
+    x on log n through the last w checkpoints (incl. k), extrapolated to the planned maximum budget n_max."""
+    ns, x = np.asarray(ns, float), np.asarray(x, float)
+    for k in range(w - 1, len(ns)):
+        if ns[k] < n_min:
+            continue
+        if ns[k] >= n_max:
+            return float(ns[k]), False
+        lx, yy = np.log(ns[k - w + 1:k + 1]), x[k - w + 1:k + 1]
+        sl = np.polyfit(lx, yy, 1)
+        proj = max(np.polyval(sl, np.log(n_max)), x[k])
+        if x[k] >= tau * proj:
+            return float(ns[k]), True
+    return float(ns[-1]), False
+
+
+def stop_n(ns, x, family, param, m, n_min=N_MIN):
+    if family == "plateau":
+        return plateau_stop(ns, x, param, m, n_min)
+    if family == "projection":
+        return projection_stop(ns, x, param, w=m, n_min=n_min)
+    raise KeyError(family)
+
+
+TAUS = (0.80, 0.85, 0.90, 0.93, 0.95, 0.97)
+WS = (3, 4)
+FAMILIES = [("plateau", d, m) for d in DELTAS for m in MS] + [("projection", t, w) for t in TAUS for w in WS]
+
+
 def per_traj(M: pd.DataFrame, frac: float) -> list[dict]:
     out = []
     for (arm, sp, r), g in M.groupby(["arm", "split", "traj"]):
@@ -95,10 +125,10 @@ def per_traj(M: pd.DataFrame, frac: float) -> list[dict]:
 
 def grid_eval(T: list[dict]) -> pd.DataFrame:
     rec = []
-    for st, d, m in [(a, b, c) for a in STATS for b in DELTAS for c in MS]:
+    for st, (fam, d, m) in [(a, f) for a in STATS for f in FAMILIES]:
             for t in T:
-                ns_, trig = plateau_stop(t["ns"], t[st], d, m)
-                rec.append({"statistic": st, "delta": d, "m": m, "arm": t["arm"], "split": t["split"], "traj": t["traj"],
+                ns_, trig = stop_n(t["ns"], t[st], fam, d, m)
+                rec.append({"family": fam, "statistic": st, "delta": d, "m": m, "arm": t["arm"], "split": t["split"], "traj": t["traj"],
                             "n_stop": ns_, "triggered": trig, "knee": t["knee"], "knee_grid": t["knee_grid"],
                             "log2_err": np.log2(ns_ / t["knee"]),
                             "true_at_stop_frac": float(np.interp(np.log(ns_), np.log(t["ns"]), t["true"]) /
@@ -107,10 +137,10 @@ def grid_eval(T: list[dict]) -> pd.DataFrame:
 
 
 def choose(G: pd.DataFrame) -> pd.Series:
-    s = G.assign(abs_err=G.log2_err.abs()).groupby(["statistic", "delta", "m"]).agg(
+    s = G.assign(abs_err=G.log2_err.abs()).groupby(["family", "statistic", "delta", "m"]).agg(
         mae_log2=("abs_err", "mean"), bias_log2=("log2_err", "mean"), trig=("triggered", "mean"),
         stop_frac=("true_at_stop_frac", "mean")).reset_index()
-    s = s.sort_values(["mae_log2", "delta"], ascending=[True, True])
+    s = s.sort_values(["mae_log2", "family", "statistic", "delta", "m"])
     return s.iloc[0], s
 
 
@@ -171,8 +201,9 @@ def evaluate(source: str, out=None) -> dict:
         if (G.split != sp).sum() == 0:
             continue
         b2, _ = choose(G[G.split != sp])
-        h = G[(G.split == sp) & (G.statistic == b2.statistic) & (G.delta == b2.delta) & (G.m == b2.m)]
-        lso.append({"held_out": sp, "statistic": b2.statistic, "delta": b2.delta, "m": b2.m, "mae_log2": h.log2_err.abs().mean(),
+        h = G[(G.split == sp) & (G.family == b2.family) & (G.statistic == b2.statistic) & (G.delta == b2.delta) &
+              (G.m == b2.m)]
+        lso.append({"held_out": sp, "family": b2.family, "statistic": b2.statistic, "delta": b2.delta, "m": b2.m, "mae_log2": h.log2_err.abs().mean(),
                     "bias_log2": h.log2_err.mean(), "R": len(h)})
     pd.DataFrame(lso).to_csv(O / "stop_rule_lso.csv", index=False)
     kn = pd.DataFrame([{k: v for k, v in t.items() if k not in ("ns", "cv", "true", "cv_auprc", "cv_lift")} for t in T])
@@ -208,8 +239,11 @@ def freeze(source: str, out=None, force: bool = False) -> dict:
         "checkpoints": [30, 60, 100, 160, 220, 330, 490, 660],
         "statistic": "g_k = (x_k / x_{k-1} - 1) / log2(n_k / n_{k-1}), x = rule.statistic (cv_auprc or cv_lift = "
                      "cv_auprc / prevalence of the CV cells): relative gain per doubling",
-        "rule": {"statistic": str(b["statistic"]), "delta": float(b["delta"]), "m": int(b["m"]), "n_min": N_MIN,
-                 "stop": "first checkpoint n_k >= n_min whose last m values of g are all < delta",
+        "rule": {"family": str(b["family"]), "statistic": str(b["statistic"]),
+                 "param": float(b["delta"]), "m_or_window": int(b["m"]), "n_min": N_MIN, "n_max_planned": 660,
+                 "stop_plateau": "first checkpoint n_k >= n_min whose last m values of g are all < param (delta)",
+                 "stop_projection": "first checkpoint n_k >= n_min with x_k >= param (tau) x x_hat(n_max), x_hat = OLS "
+                                    "of x on log n over the last `m_or_window` checkpoints, extrapolated to n_max",
                  "if_never": "stop at the last checkpoint (660), flagged not_triggered"},
         "target_of_tuning": "true knee = smallest n with AUPRC >= 0.95 x AUPRC(660) (PAVA, log-n interpolated)",
         "selection": {"criterion": "min mean |log2(n_stop / n_knee)| over dev trajectories; ties -> smaller delta",
@@ -240,8 +274,8 @@ def apply(source: str, out=None) -> pd.DataFrame:
     T = per_traj(M, frac)
     rec = []
     for t in T:
-        ns_, trig = plateau_stop(t["ns"], t[rule["rule"]["statistic"]], rule["rule"]["delta"], rule["rule"]["m"],
-                                 rule["rule"]["n_min"])
+        R_ = rule["rule"]
+        ns_, trig = stop_n(t["ns"], t[R_["statistic"]], R_["family"], R_["param"], R_["m_or_window"], R_["n_min"])
         rec.append({"arm": t["arm"], "split": t["split"], "traj": t["traj"], "n_stop": ns_, "triggered": trig,
                     "knee": t["knee"], "knee_grid": t["knee_grid"], "log2_err": np.log2(ns_ / t["knee"]),
                     "true_at_stop_frac": float(np.interp(np.log(ns_), np.log(t["ns"]), t["true"]) / t["true"][-1])})
@@ -280,14 +314,14 @@ def fig(M, T, best, path, source):
     if best is not None:
         for t in T:
             col, _ = style.get(t["arm"], ("#eb6834", t["arm"]))
-            ns_, _ = plateau_stop(t["ns"], t[best["statistic"]], best["delta"], int(best["m"]))
+            ns_, _ = stop_n(t["ns"], t[best["statistic"]], best["family"], best["delta"], int(best["m"]))
             ax.plot(t["knee"], ns_, "o", color=col, ms=6, alpha=0.85)
         ax.plot([30, 700], [30, 700], color="#c3c2b7", lw=1)
         ax.set_xscale("log")
         ax.set_yscale("log")
         ax.set_xlabel("true knee n (0.95 x AUPRC(660))")
         ax.set_ylabel("stopping n of the plateau rule")
-        ax.set_title(f"plateau rule on {best['statistic']}: δ = {best['delta']}, m = {int(best['m'])} (dev)",
+        ax.set_title(f"{best['family']} rule on {best['statistic']}: param {best['delta']}, m/w {int(best['m'])} (dev)",
                      fontsize=9)
     f.suptitle(f"Online stopping ({source})", fontsize=10)
     f.tight_layout()

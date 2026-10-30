@@ -224,7 +224,9 @@ def section_stop(O) -> list[str]:
     if (O / "stop_rule_grid.csv").exists() and (O / "stop_rule_grid.csv").stat().st_size > 5:
         g = pd.read_csv(O / "stop_rule_grid.csv").head(8)
         L += ["Plateau-rule grid (best first; mean |log2(n_stop / n_knee)|; stop_frac = AUPRC at stop / AUPRC(660)):",
-              "", table(g, ["statistic", "delta", "m", "mae_log2", "bias_log2", "trig", "stop_frac"]), ""]
+              "", table(g, ["family", "statistic", "delta", "m", "mae_log2", "bias_log2", "trig", "stop_frac"],
+                        ["family", "statistic", "δ (plateau) / τ (projection)", "m / window", "mean |log2 err|",
+                         "mean log2 err", "triggered", "AUPRC at stop / AUPRC(660)"]), ""]
     if (O / "stop_fixed_n_baseline.csv").exists() and (O / "stop_fixed_n_baseline.csv").stat().st_size > 5:
         L += ["Comparator without online information: always stop at a fixed n (mean |log2(n / knee)|):", "",
               table(pd.read_csv(O / "stop_fixed_n_baseline.csv"), ["n_fixed", "mae_log2", "bias_log2"],
@@ -239,10 +241,14 @@ def section_stop(O) -> list[str]:
     rf = C.Q3 / "stopping_rule.yaml"
     if rf.exists():
         r = yaml.safe_load(rf.read_text())
-        L += [f"**Frozen rule** (`analysis/q3/stopping_rule.yaml`, frozen {r['frozen_at']}): stop at the first "
-              f"checkpoint n ≥ {r['rule']['n_min']} whose last {r['rule']['m']} relative gain(s) per doubling of "
-              f"{r['rule'].get('statistic', 'cv_auprc')} are "
-              f"< {r['rule']['delta']}; otherwise stop at 660 (flagged).", ""]
+        R_ = r["rule"]
+        how = (f"stop at the first checkpoint n ≥ {R_['n_min']} whose last {R_['m_or_window']} relative gains per "
+               f"doubling of {R_['statistic']} are all < {R_['param']}" if R_["family"] == "plateau" else
+               f"stop at the first checkpoint n ≥ {R_['n_min']} where {R_['statistic']} ≥ {R_['param']} × its "
+               f"log-linear projection (last {R_['m_or_window']} checkpoints) to the planned maximum "
+               f"n = {R_['n_max_planned']}")
+        L += [f"**Frozen rule** (`analysis/q3/stopping_rule.yaml`, frozen {r['frozen_at']}): {R_['family']} family; "
+              f"{how}; otherwise stop at 660 (flagged).", ""]
     if (O / "stop_rule_applied.csv").exists():
         a = pd.read_csv(O / "stop_rule_applied.csv")
         L += ["Frozen rule applied:", "", table(a, list(a.columns)), ""]
@@ -293,9 +299,13 @@ NOTES = """## Ambiguities in DESIGN §7.2–7.4 and how they were resolved (none
     test genes, not self, measured. Batches = consecutive blocks of 10 in selection order; fold = batch mod 5
     (interleaved). Dev columns include D_val genes (unscreened arrays a lab would see); the final has no D_val.
 12. **True knee and the stopping-rule family.** True knee on the trajectory's PAVA curve over the Q2 checkpoints,
-    log-n interpolated (grid knee also given). The plateau family (relative CV gain per doubling < δ for m consecutive
-    checkpoints, n ≥ 60, else stop at 660 and flag) is not specified by DESIGN; (δ, m) is chosen on the same dev
-    trajectories (in-sample), with a leave-split-out check.
+    log-n interpolated (grid knee also given). DESIGN names a 'plateau rule' but no family. Two families were scored
+    on dev: plateau (relative gain per doubling < δ for m consecutive checkpoints) and projection (current value ≥ τ ×
+    log-linear projection to the planned maximum budget 660, i.e. 'within 1 − τ of where we would end'; this matches
+    the knee definition, which is itself relative to AUPRC(660)). Each family uses either raw CV AUPRC or CV lift.
+    Lift is included because adaptive arms screen less SL-rich rows as n grows, so their raw CV AUPRC falls while the
+    held-out AUPRC rises. All rules stop at n ≥ 60, else at 660 (flagged). The choice is made on the same dev
+    trajectories (in-sample), with a leave-split-out check and a no-information comparator (always stop at a fixed n).
 13. **LBO scope.** For cost, LBO runs for R0 and H, trajectories 0–1, dev1–3 only (12 trajectories, one P* job at a
     time); the CV-threshold analysis covers those trajectories only.
 """

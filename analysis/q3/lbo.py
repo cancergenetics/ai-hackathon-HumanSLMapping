@@ -16,6 +16,7 @@ One fit at a time, BLAS threads 2. Rows appended to <out>/lbo/lbo_rows.jsonl; ce
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import os
 import resource
@@ -76,12 +77,16 @@ def lbo_at(b, selected, n: int, model_seed: int, batch: int = 10, k_folds: int =
         else:
             Smat = np.asarray(fit_fn(train, test, nf))
         dt = time.perf_counter() - t0
+        if fit_fn is None:
+            del view
         tg, r, c, y = cv_cells(b, test, S, excluded_cols)
         ys.append(y)
         ss.append(np.asarray(Smat, dtype=np.float32)[r, c])
         rows_g.append(tg[r])
         cols.append(c)
         fold_id.append(np.full(len(y), f, dtype=np.int16))
+        del Smat
+        gc.collect()
         fits.append({"fold": int(f), "n_train": int(len(train)), "n_test": int(len(test)), "fit_s": dt,
                      "n_cells": int(len(y)), "n_pos": int(y.sum())})
     y = np.concatenate(ys)
@@ -103,7 +108,28 @@ def _maxrss_gb() -> float:
     return r / 2**30 if sys.platform == "darwin" else r / 2**20
 
 
+def rss_watchdog(cap_gb: float, poll_s: float = 0.5) -> None:
+    """Kill this process (exit 3) if its current RSS exceeds cap_gb (PI limit: peak RSS <= 3 GB)."""
+    import subprocess
+    import threading
+
+    def loop():
+        pid = str(os.getpid())
+        while True:
+            try:
+                kb = int(subprocess.run(["ps", "-o", "rss=", "-p", pid], capture_output=True, text=True).stdout)
+                if kb / 2**20 > cap_gb:
+                    sys.stderr.write(f"RSS watchdog: {kb / 2**20:.2f} GB > {cap_gb} GB, exiting\n")
+                    os._exit(3)
+            except ValueError:
+                pass
+            time.sleep(poll_s)
+
+    threading.Thread(target=loop, daemon=True).start()
+
+
 def run(args) -> None:
+    rss_watchdog(float(args.rss_cap_gb) - 0.05)
     import yaml
     sys.path[:0] = [str(C.ROOT / "src"), str(C.ROOT / "third_party")]
     import hsl  # noqa: F401

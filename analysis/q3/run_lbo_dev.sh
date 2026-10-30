@@ -8,7 +8,9 @@ CPS=${CPS:-30,60,100,160,220,330,490,660}
 for r in 0 1; do
   for s in dev1 dev2 dev3; do
     for arm in R0 H; do
-      .venv/bin/python -m analysis.q3.lbo run --source dev --arm $arm --split $s --traj $r --checkpoints $CPS
+      for c in ${CPS//,/ }; do  # one process per checkpoint: peak RSS stays < 3 GB (memory grows across fits)
+        .venv/bin/python -m analysis.q3.lbo run --source dev --arm $arm --split $s --traj $r --checkpoints $c
+      done
     done
   done
 done

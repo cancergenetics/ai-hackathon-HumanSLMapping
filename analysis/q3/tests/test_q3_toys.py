@@ -188,3 +188,15 @@ def test_forward_select_finds_planted_feature():
     y = rng.binomial(9, p) / 9
     path = choice.forward_select(Z, y, np.full(n, 9.0), k_max=2)
     assert path[0]["features"] == ["b"] and path[0]["coef"]["b"] == pytest.approx(1.5, abs=0.15)
+
+
+def test_projection_rule():
+    ns = np.array([30, 60, 100, 160, 220, 330, 490, 660])
+    x = 0.01 * np.log(ns)                    # unbounded log-linear growth: x(660) = 0.0649
+    n, trig = stopping.projection_stop(ns, x, 0.93, w=3, n_max=660)
+    # stop when log(n) >= 0.93 log(660) -> n >= 660^0.93 = 418 -> first checkpoint 490
+    assert trig and n == 490
+    flat = np.r_[0.01, 0.02, 0.03, np.full(5, 0.031)]
+    n, trig = stopping.projection_stop(ns, flat, 0.95, w=3)
+    assert trig and n == 220
+    assert stopping.stop_n(ns, x, "plateau", 0.5, 1)[0] == 60

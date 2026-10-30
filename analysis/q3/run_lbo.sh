@@ -9,6 +9,8 @@ export OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 VECLIB_MAXIMUM_THREADS=2 MKL_NUM
 SOURCE=${SOURCE:-dev}; SPLITS=${SPLITS:-"dev1 dev2 dev3"}; TRAJS=${TRAJS:-"0 1"}; ARMS=${ARMS:-"R0 H"}
 CPS=${CPS:-30,60,100,160,220,330,490,660}
 for r in $TRAJS; do for s in $SPLITS; do for arm in $ARMS; do
-  .venv/bin/python -m analysis.q3.lbo run --source $SOURCE --arm $arm --split $s --traj $r --checkpoints $CPS ${OUT:+--out $OUT}
+  for c in ${CPS//,/ }; do  # one process per checkpoint (peak RSS < 3 GB)
+    .venv/bin/python -m analysis.q3.lbo run --source $SOURCE --arm $arm --split $s --traj $r --checkpoints $c ${OUT:+--out $OUT}
+  done
 done; done; done
 echo "LBO queue done ($SOURCE)"
