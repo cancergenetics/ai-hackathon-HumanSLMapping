@@ -34,6 +34,9 @@ from analysis.q3 import common as C
 RULE_FILE = C.Q3 / "stopping_rule.yaml"
 DELTAS = (0.02, 0.04, 0.06, 0.08, 0.10, 0.12, 0.15, 0.20, 0.25, 0.30)
 MS = (1, 2)
+# statistic the plateau rule watches: raw LBO-CV AUPRC, or LBO-CV lift (AUPRC / CV-cell prevalence; removes the drift
+# in screened-row SL density that adaptive selection causes — screened rows get less SL-rich as n grows)
+STATS = ("cv_auprc", "cv_lift")
 N_MIN = 60
 
 
@@ -46,8 +49,13 @@ def load_lbo(O) -> pd.DataFrame:
 def merged(source: str, O) -> pd.DataFrame:
     lbo = load_lbo(O)
     rows = C.rows(source)
-    m = lbo.merge(rows[["arm", "split", "traj", "n", "auprc"]], on=["arm", "split", "traj", "n"], how="left")
-    return m.rename(columns={"auprc": "true_auprc"})
+    keep = ["arm", "split", "traj", "n", "auprc"] + (["prevalence"] if "prevalence" in rows.columns else [])
+    m = lbo.merge(rows[keep].rename(columns={"prevalence": "true_prevalence"}), on=["arm", "split", "traj", "n"],
+                  how="left")
+    m = m.rename(columns={"auprc": "true_auprc"})
+    if "true_prevalence" in m.columns:
+        m["true_lift"] = m.true_auprc / m.true_prevalence
+    return m
 
 
 def knee(ns, true, frac):
@@ -80,17 +88,17 @@ def per_traj(M: pd.DataFrame, frac: float) -> list[dict]:
             continue
         kn, kg = knee(g.n, g.true_auprc, frac)
         out.append({"arm": arm, "split": sp, "traj": r, "ns": g.n.to_numpy(), "cv": g.cv_auprc.to_numpy(),
+                    "cv_auprc": g.cv_auprc.to_numpy(), "cv_lift": g.cv_lift.to_numpy(),
                     "true": g.true_auprc.to_numpy(), "knee": kn, "knee_grid": kg})
     return out
 
 
 def grid_eval(T: list[dict]) -> pd.DataFrame:
     rec = []
-    for d in DELTAS:
-        for m in MS:
+    for st, d, m in [(a, b, c) for a in STATS for b in DELTAS for c in MS]:
             for t in T:
-                ns_, trig = plateau_stop(t["ns"], t["cv"], d, m)
-                rec.append({"delta": d, "m": m, "arm": t["arm"], "split": t["split"], "traj": t["traj"],
+                ns_, trig = plateau_stop(t["ns"], t[st], d, m)
+                rec.append({"statistic": st, "delta": d, "m": m, "arm": t["arm"], "split": t["split"], "traj": t["traj"],
                             "n_stop": ns_, "triggered": trig, "knee": t["knee"], "knee_grid": t["knee_grid"],
                             "log2_err": np.log2(ns_ / t["knee"]),
                             "true_at_stop_frac": float(np.interp(np.log(ns_), np.log(t["ns"]), t["true"]) /
@@ -99,7 +107,7 @@ def grid_eval(T: list[dict]) -> pd.DataFrame:
 
 
 def choose(G: pd.DataFrame) -> pd.Series:
-    s = G.assign(abs_err=G.log2_err.abs()).groupby(["delta", "m"]).agg(
+    s = G.assign(abs_err=G.log2_err.abs()).groupby(["statistic", "delta", "m"]).agg(
         mae_log2=("abs_err", "mean"), bias_log2=("log2_err", "mean"), trig=("triggered", "mean"),
         stop_frac=("true_at_stop_frac", "mean")).reset_index()
     s = s.sort_values(["mae_log2", "delta"], ascending=[True, True])
@@ -112,6 +120,8 @@ def evaluate(source: str, out=None) -> dict:
     frac = float(C.protocol()["stats"]["knee_frac"])
     M = merged(source, O)
     M["err"] = M.cv_auprc - M.true_auprc
+    if "true_lift" in M.columns:
+        M["lift_rel_err"] = M.cv_lift / M.true_lift - 1
     M["rel_err"] = M.err / M.true_auprc
     M["cv_c"] = M.cv_auprc - M.groupby(["split", "n"]).cv_auprc.transform("mean")
     M["true_c"] = M.true_auprc - M.groupby(["split", "n"]).true_auprc.transform("mean")
@@ -120,15 +130,20 @@ def evaluate(source: str, out=None) -> dict:
         rec = {"n": n, "R": len(g), "cv_mean": g.cv_auprc.mean(), "true_mean": g.true_auprc.mean(),
                "bias": g.err.mean(), "mae": g.err.abs().mean(), "rel_bias": g.rel_err.mean(),
                "rel_mae": g.rel_err.abs().mean(), "cv_prevalence": g.prevalence.mean(),
-               "fit_s_mean": g.fit_s_total.mean()}
+               "fit_s_mean": g.fit_s_total.mean(), "lift_rel_bias": g.get("lift_rel_err", pd.Series(np.nan)).mean(),
+               "lift_rel_mae": g.get("lift_rel_err", pd.Series(np.nan)).abs().mean()}
         if len(g) >= 4:
-            rec.update({"pearson": g.cv_auprc.corr(g.true_auprc), "spearman": g.cv_auprc.corr(g.true_auprc, "spearman"),
+            rec.update({"pearson_lift": g.cv_lift.corr(g.true_lift) if "true_lift" in g else np.nan,
+                        "pearson": g.cv_auprc.corr(g.true_auprc), "spearman": g.cv_auprc.corr(g.true_auprc, "spearman"),
                         "pearson_split_centred": g.cv_c.corr(g.true_c)})
         est.append(rec)
     for (arm, n), g in M.groupby(["arm", "n"]):
         est.append({"arm": arm, "n": n, "R": len(g), "cv_mean": g.cv_auprc.mean(), "true_mean": g.true_auprc.mean(),
                     "bias": g.err.mean(), "mae": g.err.abs().mean(), "rel_bias": g.rel_err.mean(),
                     "rel_mae": g.rel_err.abs().mean(), "cv_prevalence": g.prevalence.mean(),
+                    "lift_rel_bias": g.get("lift_rel_err", pd.Series(np.nan)).mean(),
+                    "lift_rel_mae": g.get("lift_rel_err", pd.Series(np.nan)).abs().mean(),
+                    "pearson_lift": g.cv_lift.corr(g.true_lift) if len(g) >= 4 and "true_lift" in g else np.nan,
                     "pearson": g.cv_auprc.corr(g.true_auprc) if len(g) >= 4 else np.nan,
                     "spearman": g.cv_auprc.corr(g.true_auprc, "spearman") if len(g) >= 4 else np.nan,
                     "pearson_split_centred": g.cv_c.corr(g.true_c) if len(g) >= 4 else np.nan})
@@ -141,17 +156,29 @@ def evaluate(source: str, out=None) -> dict:
     G.to_csv(O / "stop_rule_grid_traj.csv", index=False)
     best, S = choose(G) if len(G) else (None, pd.DataFrame())
     S.to_csv(O / "stop_rule_grid.csv", index=False)
+    # comparator: a FIXED stopping budget (no online information), each checkpoint
+    fx = []
+    for t in T:
+        for n0 in t["ns"]:
+            fx.append({"n_fixed": n0, "abs_log2_err": abs(np.log2(n0 / t["knee"])), "log2_err": np.log2(n0 / t["knee"])})
+    FX = pd.DataFrame(fx)
+    if len(FX):
+        FX = FX.groupby("n_fixed").agg(mae_log2=("abs_log2_err", "mean"), bias_log2=("log2_err", "mean")).reset_index()
+    FX.to_csv(O / "stop_fixed_n_baseline.csv", index=False)
     # leave-split-out check of the selection
     lso = []
     for sp in sorted(G.split.unique()) if len(G) else []:
+        if (G.split != sp).sum() == 0:
+            continue
         b2, _ = choose(G[G.split != sp])
-        h = G[(G.split == sp) & (G.delta == b2.delta) & (G.m == b2.m)]
-        lso.append({"held_out": sp, "delta": b2.delta, "m": b2.m, "mae_log2": h.log2_err.abs().mean(),
+        h = G[(G.split == sp) & (G.statistic == b2.statistic) & (G.delta == b2.delta) & (G.m == b2.m)]
+        lso.append({"held_out": sp, "statistic": b2.statistic, "delta": b2.delta, "m": b2.m, "mae_log2": h.log2_err.abs().mean(),
                     "bias_log2": h.log2_err.mean(), "R": len(h)})
     pd.DataFrame(lso).to_csv(O / "stop_rule_lso.csv", index=False)
-    kn = pd.DataFrame([{k: v for k, v in t.items() if k not in ("ns", "cv", "true")} for t in T])
+    kn = pd.DataFrame([{k: v for k, v in t.items() if k not in ("ns", "cv", "true", "cv_auprc", "cv_lift")} for t in T])
     kn.to_csv(O / "stop_knees.csv", index=False)
     res = {"source": source, "n_traj_complete": len(T), "best": None if best is None else best.to_dict(),
+           "best_fixed_n": None if not len(FX) else FX.sort_values("mae_log2").iloc[0].to_dict(),
            "lso": lso, "runtime_s": time.perf_counter() - t0}
     C.write_json(O / "stop_summary.json", res)
     if len(T):
@@ -179,8 +206,9 @@ def freeze(source: str, out=None, force: bool = False) -> dict:
                       "metric": "pooled tie-grouped AP over all folds (hsl.eval.average_precision)",
                       "predictor": "frozen P* (config/predictor.yaml primary), trajectory model seed"},
         "checkpoints": [30, 60, 100, 160, 220, 330, 490, 660],
-        "statistic": "g_k = (cv_k / cv_{k-1} - 1) / log2(n_k / n_{k-1})  (relative CV gain per doubling)",
-        "rule": {"delta": float(b["delta"]), "m": int(b["m"]), "n_min": N_MIN,
+        "statistic": "g_k = (x_k / x_{k-1} - 1) / log2(n_k / n_{k-1}), x = rule.statistic (cv_auprc or cv_lift = "
+                     "cv_auprc / prevalence of the CV cells): relative gain per doubling",
+        "rule": {"statistic": str(b["statistic"]), "delta": float(b["delta"]), "m": int(b["m"]), "n_min": N_MIN,
                  "stop": "first checkpoint n_k >= n_min whose last m values of g are all < delta",
                  "if_never": "stop at the last checkpoint (660), flagged not_triggered"},
         "target_of_tuning": "true knee = smallest n with AUPRC >= 0.95 x AUPRC(660) (PAVA, log-n interpolated)",
@@ -189,6 +217,9 @@ def freeze(source: str, out=None, force: bool = False) -> dict:
                       "dev_mae_log2": float(b["mae_log2"]), "dev_bias_log2": float(b["bias_log2"]),
                       "dev_trigger_rate": float(b["trig"]), "n_dev_trajectories": res["n_traj_complete"],
                       "leave_split_out": res["lso"],
+                      "comparator_best_fixed_n": res["best_fixed_n"],
+                      "note": "the knee is defined relative to AUPRC(660); a fixed budget near 0.75 x 660 is a strong "
+                              "comparator, reported alongside (stop_fixed_n_baseline.csv)",
                       "evidence": "results/q3_dev/stop_rule_grid.csv, stop_rule_grid_traj.csv, stop_rule_lso.csv"},
     }
     RULE_FILE.write_text("# Q3 online stopping rule — FROZEN on dev before any final output was seen (DESIGN §7.4).\n"
@@ -209,7 +240,8 @@ def apply(source: str, out=None) -> pd.DataFrame:
     T = per_traj(M, frac)
     rec = []
     for t in T:
-        ns_, trig = plateau_stop(t["ns"], t["cv"], rule["rule"]["delta"], rule["rule"]["m"], rule["rule"]["n_min"])
+        ns_, trig = plateau_stop(t["ns"], t[rule["rule"]["statistic"]], rule["rule"]["delta"], rule["rule"]["m"],
+                                 rule["rule"]["n_min"])
         rec.append({"arm": t["arm"], "split": t["split"], "traj": t["traj"], "n_stop": ns_, "triggered": trig,
                     "knee": t["knee"], "knee_grid": t["knee_grid"], "log2_err": np.log2(ns_ / t["knee"]),
                     "true_at_stop_frac": float(np.interp(np.log(ns_), np.log(t["ns"]), t["true"]) / t["true"][-1])})
@@ -248,14 +280,15 @@ def fig(M, T, best, path, source):
     if best is not None:
         for t in T:
             col, _ = style.get(t["arm"], ("#eb6834", t["arm"]))
-            ns_, _ = plateau_stop(t["ns"], t["cv"], best["delta"], int(best["m"]))
+            ns_, _ = plateau_stop(t["ns"], t[best["statistic"]], best["delta"], int(best["m"]))
             ax.plot(t["knee"], ns_, "o", color=col, ms=6, alpha=0.85)
         ax.plot([30, 700], [30, 700], color="#c3c2b7", lw=1)
         ax.set_xscale("log")
         ax.set_yscale("log")
         ax.set_xlabel("true knee n (0.95 x AUPRC(660))")
         ax.set_ylabel("stopping n of the plateau rule")
-        ax.set_title(f"plateau rule δ = {best['delta']}, m = {int(best['m'])} (dev)", fontsize=9)
+        ax.set_title(f"plateau rule on {best['statistic']}: δ = {best['delta']}, m = {int(best['m'])} (dev)",
+                     fontsize=9)
     f.suptitle(f"Online stopping ({source})", fontsize=10)
     f.tight_layout()
     f.savefig(path, dpi=150, facecolor="#fcfcfb")

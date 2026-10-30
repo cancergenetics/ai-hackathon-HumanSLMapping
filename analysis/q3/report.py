@@ -216,13 +216,19 @@ def section_stop(O) -> list[str]:
     e = pd.read_csv(O / "stop_estimator.csv")
     L += ["LBO-CV AUPRC on screened rows vs the trajectory's held-out AUPRC (E_fixed), per n:", "",
           table(e[e.arm == "all"], ["n", "R", "cv_mean", "true_mean", "bias", "mae", "rel_bias", "rel_mae", "pearson",
-                                    "spearman", "pearson_split_centred", "fit_s_mean"], fmt={"n": i0, "R": i0}), "",
-          table(e[e.arm != "all"], ["arm", "n", "R", "cv_mean", "true_mean", "rel_bias", "rel_mae", "pearson"],
+                                    "spearman", "pearson_split_centred", "lift_rel_bias", "pearson_lift", "fit_s_mean"],
+                fmt={"n": i0, "R": i0}), "",
+          table(e[e.arm != "all"], ["arm", "n", "R", "cv_mean", "true_mean", "rel_bias", "rel_mae", "pearson",
+                                    "lift_rel_bias", "lift_rel_mae", "pearson_lift"],
                 fmt={"n": i0, "R": i0}), ""]
     if (O / "stop_rule_grid.csv").exists() and (O / "stop_rule_grid.csv").stat().st_size > 5:
         g = pd.read_csv(O / "stop_rule_grid.csv").head(8)
-        L += ["Plateau-rule grid (best first; mean |log2(n_stop / n_knee)|):", "",
-              table(g, ["delta", "m", "mae_log2", "bias_log2", "trig", "stop_frac"]), ""]
+        L += ["Plateau-rule grid (best first; mean |log2(n_stop / n_knee)|; stop_frac = AUPRC at stop / AUPRC(660)):",
+              "", table(g, ["statistic", "delta", "m", "mae_log2", "bias_log2", "trig", "stop_frac"]), ""]
+    if (O / "stop_fixed_n_baseline.csv").exists() and (O / "stop_fixed_n_baseline.csv").stat().st_size > 5:
+        L += ["Comparator without online information: always stop at a fixed n (mean |log2(n / knee)|):", "",
+              table(pd.read_csv(O / "stop_fixed_n_baseline.csv"), ["n_fixed", "mae_log2", "bias_log2"],
+                    fmt={"n_fixed": i0}), ""]
     if (O / "stop_knees.csv").exists() and (O / "stop_knees.csv").stat().st_size > 5:
         kn = pd.read_csv(O / "stop_knees.csv")
         L += ["True knees per trajectory (0.95 × AUPRC(660)):", "", table(kn, list(kn.columns)), ""]
@@ -234,13 +240,65 @@ def section_stop(O) -> list[str]:
     if rf.exists():
         r = yaml.safe_load(rf.read_text())
         L += [f"**Frozen rule** (`analysis/q3/stopping_rule.yaml`, frozen {r['frozen_at']}): stop at the first "
-              f"checkpoint n ≥ {r['rule']['n_min']} whose last {r['rule']['m']} relative CV gain(s) per doubling are "
+              f"checkpoint n ≥ {r['rule']['n_min']} whose last {r['rule']['m']} relative gain(s) per doubling of "
+              f"{r['rule'].get('statistic', 'cv_auprc')} are "
               f"< {r['rule']['delta']}; otherwise stop at 660 (flagged).", ""]
     if (O / "stop_rule_applied.csv").exists():
         a = pd.read_csv(O / "stop_rule_applied.csv")
         L += ["Frozen rule applied:", "", table(a, list(a.columns)), ""]
     L += ["![stopping](fig_stopping.png)", ""]
     return L
+
+
+NOTES = """## Ambiguities in DESIGN §7.2–7.4 and how they were resolved (none silently)
+
+1. **HAP1 constants are not in protocol.yaml.** DESIGN §5 and the brief place them there; the frozen file has no HAP1
+   block. They are in `analysis/q3/hap1_constants.yaml` with their LITERATURE.md sources (N_HAP1 7,500 / 8,500 / 9,500;
+   replicate factor 298/222 = 1.342; Billmann precision 0.61 / recall 0.37). Q3 seeds live there too
+   (`config/seeds.yaml` is frozen).
+2. **Which AUPRC stratum drives the translation.** §7.4 names the on-array stratum as the HAP1 estimate; §7.3/Q1 use
+   E_fixed. Primary = on-array target columns (OA: E_VV on dev, E_TT at the final); E_fixed ('all') and on-array
+   target rows ('onrows') are sensitivities.
+3. **N_yeast vs the curve's anchor.** n_80 is anchored on the AUPRC at the candidate-pool maximum (dev ≈ 2,100;
+   final 2,627), while §7.4 fixes N_yeast = 3,283. 3,283 is primary; 4,458 (Q ∪ A, DESIGN sensitivity) and
+   N_yeast = pool size (added sensitivity) are reported. With b ≈ 1 the pool-size version is ~1.6× larger: this is
+   the largest single lever on the HAP1 number.
+4. **Bootstrap of n_yeast.** Only the 95% CIs of the frozen joint bootstrap are stored, not its replicates: n_yeast
+   replicates are lognormal matched to each CI (per split, averaged over splits on dev). b replicates re-run P1's
+   within-level draw bootstrap exactly (point b reproduces slope.json to 1e-9). OA/onrows strata carry over the
+   'all' stratum's relative CI width (approximation).
+5. **'Use the strategy's n_req'.** The strategy's cost for target X is the budget n_s at which its own mean (PAVA)
+   curve reaches the random target AUPRC, so n_req(n_s) = n_X. Reached before the first checkpoint → first
+   checkpoint reported as an upper bound ('left'); not reached by 660 → censored ('right').
+6. **Sequential rounds.** Random = 1 round (all lines in parallel). Adaptive = n_s / batch rounds; batch 10 / 50 /
+   110 yeast queries = batch × (N_HAP1/N_yeast)^b HAP1 lines per round. The 110 arm (≤ 6 rounds to 660, §6.3) is
+   read from its own stored curve (checkpoints 160 / 330 / 660).
+7. **Pair-level discovery.** An unordered pair is SL if any measured direction among pool rows is a strong SL;
+   'detected' = called in a screened row; 'touched' = involves a screened gene. T genes are dropped on both sides
+   (final mode needs no T label). Stored P1/P4 cell counts include T columns, so recomputed cell counts are 0–25%
+   lower (tested).
+8. **'Genes picked early'.** First 160 picks of each stored trajectory vs that trajectory's candidate pool;
+   standardised mean difference, CI by resampling trajectories within split. SMF exists only for on-array genes.
+9. **Rank rule.** Target = the finalists' (H, C, F_r16) pick frequency in their first 160 (not the true degree, which
+   needs labels); fitted leave-split-out with the evaluation split's D_val genes removed from the rule's training rows.
+   Genes without SMF (off-array, a yeast artefact) are scored route-stratified as in the strategies' D5 calibration
+   (ranked by the rule minus its SMF term, mapped onto the on-array score quantiles); otherwise a static SMF rule never
+   picks them. Static selection = randomised top-20 picks (protocol top-k), seeds 0–2; P* refit outside the harness
+   (no ledger writes), bit-identical to the stored AUPRC on dev1 r0 n = 160.
+10. **Replicate reference.** The reciprocal label (BA) is a binary predictor of AB on on-array target cells where both
+    directions are evaluation cells; by symmetry its precision equals its recall. P* is compared at matched recall
+    and matched precision on the same cells. Billmann's 0.61 / 0.37 is a same-direction replicate screen (stricter
+    reference) and is context only.
+11. **LBO-CV cells.** Held-out batch rows × columns not screened in S_n (no reciprocal feature, as in E_fixed), not
+    test genes, not self, measured. Batches = consecutive blocks of 10 in selection order; fold = batch mod 5
+    (interleaved). Dev columns include D_val genes (unscreened arrays a lab would see); the final has no D_val.
+12. **True knee and the stopping-rule family.** True knee on the trajectory's PAVA curve over the Q2 checkpoints,
+    log-n interpolated (grid knee also given). The plateau family (relative CV gain per doubling < δ for m consecutive
+    checkpoints, n ≥ 60, else stop at 660 and flag) is not specified by DESIGN; (δ, m) is chosen on the same dev
+    trajectories (in-sample), with a leave-split-out check.
+13. **LBO scope.** For cost, LBO runs for R0 and H, trajectories 0–1, dev1–3 only (12 trajectories, one P* job at a
+    time); the CV-threshold analysis covers those trajectories only.
+"""
 
 
 def compose(source: str, out=None) -> str:
@@ -250,10 +308,7 @@ def compose(source: str, out=None) -> str:
             "rerun everything with `bash analysis/q3/run_all.sh <source>`. Predictor: frozen P* "
             "(stack_lr_wr2_lb). All numbers below are generated from the CSV/JSON files in this directory.", ""]
     body = section_hap1(O) + section_frontier(O) + section_choice(O) + section_pred(O) + section_stop(O)
-    txt = "\n".join(head + body)
-    notes = O / "summary_notes.md"
-    if notes.exists():
-        txt = txt + "\n" + notes.read_text()
+    txt = "\n".join(head + body) + "\n" + NOTES
     (O / "summary.md").write_text(txt)
     return txt
 
