@@ -10,7 +10,7 @@ SOURCE=${SOURCE:-dev}; SPLITS=${SPLITS:-"dev1 dev2 dev3"}; TRAJS=${TRAJS:-"0 1"}
 CPS=${CPS:-30,60,100,160,220,330,490,660}
 for r in $TRAJS; do for s in $SPLITS; do for arm in $ARMS; do
   for c in ${CPS//,/ }; do  # one process per checkpoint (peak RSS < 3 GB)
-    .venv/bin/python -m analysis.q3.lbo run --source $SOURCE --arm $arm --split $s --traj $r --checkpoints $c ${OUT:+--out $OUT}
+    .venv/bin/python -m analysis.q3.lbo run --source $SOURCE --arm $arm --split $s --traj $r --checkpoints $c ${OUT:+--out $OUT} ${RSS:+--rss-cap-gb $RSS}
   done
 done; done; done
 echo "LBO queue done ($SOURCE)"

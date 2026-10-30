@@ -108,6 +108,43 @@ def nx_from_rows(rows: pd.DataFrame, col: str, nx_all: pd.DataFrame) -> pd.DataF
     return pd.DataFrame(out)
 
 
+def nreq_table(source, O, rows, bb, K) -> pd.DataFrame:
+    """Random-equivalent budgets of the finalists at their checkpoints, in yeast queries and HAP1 lines (E_fixed).
+    final/dryrun: the scorer's n_req.csv (frozen joint bootstrap CI); dev: n_req of the split-mean strategy curve on the
+    split's random mean curve (frozen n_req), averaged over dev1-3 (no CI)."""
+    from hsl import eval as E
+    if source == "dev":
+        recs = []
+        rc = mean_curves(rows, C.RANDOM)
+        for a in C.FINALISTS:
+            for sp, cur in mean_curves(rows, a).items():
+                r = rc[sp]
+                for n, v in zip(cur.n, cur.auprc):
+                    q = E.n_req(float(v), r.n.to_numpy(float), r.auprc.to_numpy(float))
+                    recs.append({"arm": a, "n": int(n), "n_req": q.n, "censored": q.censored, "split": sp})
+        d = pd.DataFrame(recs)
+        d = d.groupby(["arm", "n"]).agg(n_req=("n_req", "mean"),
+                                        censored=("censored", lambda x: ";".join(sorted(set(x) - {""})))).reset_index()
+        d["lo"], d["hi"] = np.nan, np.nan
+    else:
+        d = pd.read_csv(C.final_dir(source) / "n_req.csv")
+        d = d[d.arm.isin(C.FINALISTS)].copy()
+    NY = float(K["N_yeast"]["primary"])
+    b0, br = bb["n80"]
+    out = []
+    for nhl in ("low", "mid", "high"):
+        Nh = float(K["N_HAP1"][nhl])
+        sc = (Nh / NY) ** b0
+        for _, x in d.iterrows():
+            reps = x.n_req * (Nh / NY) ** br if np.isfinite(x.n_req) else np.full(len(br), np.inf)
+            out.append({"arm": x.arm, "n_yeast": int(x.n), "n_req_yeast": x.n_req, "n_req_lo": x.lo,
+                        "n_req_hi": x.hi, "censored": x.get("censored", ""), "ratio": x.n_req / x.n,
+                        "N_HAP1": Nh, "lines_strategy": x.n * sc, "lines_random_equiv": x.n_req * sc,
+                        "lines_random_equiv_b_lo": pct(reps)[0], "lines_random_equiv_b_hi": pct(reps)[1],
+                        "lines_random_equiv_nreq_lo": x.lo * sc, "lines_random_equiv_nreq_hi": x.hi * sc})
+    return pd.DataFrame(out)
+
+
 def arm_budget_for_target(curve: pd.DataFrame, target: float) -> tuple[float, str]:
     """Strategy budget reaching `target` (frozen n_req on the arm's own PAVA curve). ('', 'left', 'right')."""
     from hsl import eval as E
@@ -270,6 +307,7 @@ def analyse(source: str, out=None) -> dict:
     pd.concat(CO).to_csv(O / "hap1_costs.csv", index=False)
     pd.concat(BL).to_csv(O / "hap1_billmann222.csv", index=False)
     pd.concat(MG).to_csv(O / "hap1_marginal.csv", index=False)
+    nreq_table(source, O, rows, bb, K).to_csv(O / "hap1_nreq.csv", index=False)
     summ = {"source": source, "b": {k: {"b": v[0], "ci95": pct(v[1])} for k, v in bb.items()},
             "n_yeast": {st: {k: float(v[2][k].mean()) for k in FRACS} for st, v in FIGS.items()},
             "nx_by_split": {st: v[2].to_dict("records") for st, v in FIGS.items()},

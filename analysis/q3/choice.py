@@ -336,10 +336,60 @@ def evaluate(source: str, out=None, budgets=(160, 330, 660), seeds=(0, 1, 2), ru
     del rand
 
 
+def evaluate_final(out=None, budgets=(160, 330, 660), seeds=(0, 1, 2), rule="forward_k3") -> None:
+    """Apply the rule fitted on ALL dev splits (results/q3_dev/choice_rules.json, never refitted on final data) to the
+    final candidate pool; static randomised top-k picks; P* refit on the dev bundle (screened = pool genes; T enters
+    by name only, no T row is loaded) and scored on the scorer's T labels (results/final/run/labels.npz)."""
+    from hsl import eval as E, upstream as U, views
+    from analysis.q3 import fit
+    O = C.out_dir("final", out)
+    part = O / "choice_eval_rows.jsonl"
+    done = set()
+    if part.exists():
+        done = {(x["rule"], x["seed"], x["n"]) for x in map(json.loads, part.read_text().splitlines()) if x.strip()}
+    res = json.loads((C.ROOT / "results" / "q3_dev" / "choice_rules.json").read_text())
+    k = int(rule.split("_k")[1])
+    coef = res["all"]["forward"][k - 1]["coef"]
+    pool = np.asarray(views.final_split().pool, dtype=str)
+    F = feature_table(pool, smf_map())
+    L = C.eval_labels("final", "final")
+    T = np.sort(views.test_queries())
+    if not np.array_equal(np.asarray(L["targets"], dtype=str), T):
+        raise AssertionError("label targets are not the sorted test genes")
+    method, params = fit.pstar_spec()
+    pr = C.protocol()["predictor"]
+    top_k = int(C.protocol()["selector"]["randomised_greedy_top_k"])
+    rows = C.rows("final")
+    b = C.dev_bundle()
+    for seed in seeds:
+        sc = pd.Series(rule_scores(F, pool, coef, seed=seed), index=pool)
+        sel = static_pick(sc, 660, seed, top_k)
+        ms = int(rows.query("arm == 'R0' and traj == @seed").model_seed.iloc[0])
+        for n in budgets:
+            if (rule, seed, n) in done:
+                continue
+            t0 = time.perf_counter()
+            S = np.sort(np.asarray(sel[:n], dtype=str))
+            view = U.construct_view(b, S, T)
+            Sm, _ = U.run_method(view, method, model_seed=ms, split_seed=0, n_threads=2,
+                                 n_folds=int(min(int(pr["n_folds"]), max(len(S), 2))),
+                                 chunk_targets=int(pr["chunk_targets"]), params=params)
+            s = np.asarray(Sm, dtype=np.float32)[L["rows"], L["cols"]]
+            y = L["y"]
+            r = {"split": "final", "rule": rule, "seed": seed, "n": n, "model_seed": ms, "coef": coef,
+                 "fit_s": time.perf_counter() - t0, "auprc": E.average_precision(y, s),
+                 "auprc_VV": E.average_precision(y[L["OA"]], s[L["OA"]]),
+                 "offarray_share": float(np.mean([g not in smf_map_cached() for g in sel[:n]]))}
+            with open(part, "a") as fh:
+                fh.write(json.dumps(r, default=float) + "\n")
+            print(f"final {rule} seed{seed} n{n}: AUPRC {r['auprc']:.4f} ({r['fit_s']:.0f} s)", flush=True)
+            del view, Sm
+
+
 def report(source: str, out=None) -> pd.DataFrame:
     O = C.out_dir(source, out)
     ev = pd.DataFrame([json.loads(x) for x in (O / "choice_eval_rows.jsonl").read_text().splitlines() if x.strip()])
-    rows = C.rows("dev")
+    rows = C.rows(source)
     out_rows = []
     for (rule, n), g in ev.groupby(["rule", "n"]):
         rec = {"rule": rule, "n": n}
@@ -418,6 +468,11 @@ def main(argv=None):
     elif a.cmd == "rules":
         r = rules(a.source, a.out)
         print(json.dumps(r, indent=1, default=str)[:3000])
+    elif a.cmd == "evaluate" and a.source == "final":
+        from analysis.q3.lbo import rss_watchdog
+        rss_watchdog(a.rss_cap_gb - 0.05)
+        evaluate_final(a.out, rule=a.rule, budgets=tuple(int(x) for x in a.budgets.split(",")),
+                       seeds=tuple(int(x) for x in a.seeds.split(",")))
     elif a.cmd == "evaluate":
         from analysis.q3.lbo import rss_watchdog
         rss_watchdog(a.rss_cap_gb - 0.05)
