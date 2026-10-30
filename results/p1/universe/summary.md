@@ -4,6 +4,9 @@ Predictor stack_lr_wr2_lb (frozen P*); R0 random permutations; level 100% = dev 
 
 | level | draw | N (pool) | |D_val| | E_fixed_dev positives | R | AUPRC at max (PAVA) | n_80 | n_90 | n_80/N | n_90/N |
 |---|---|---|---|---|---|---|---|---|---|---|
+| 100% | 1 | 2101 | 526 | 6755 | 10 | 0.0725 | 791 | 1277 | 0.377 | 0.608 |
+| 100% | 2 | 2100 | 527 | 7323 | 10 | 0.0913 | 945 | 1374 | 0.450 | 0.654 |
+| 100% | 3 | 2103 | 524 | 7106 | 10 | 0.0763 | 651 | 1185 | 0.310 | 0.563 |
 | 50% | 0 | 1043 | 261 | 1646 | 10 | 0.0575 | 378 | 635 | 0.363 | 0.609 |
 | 50% | 1 | 1045 | 260 | 1809 | 10 | 0.0588 | 334 | 582 | 0.320 | 0.557 |
 | 50% | 2 | 1035 | 259 | 1942 | 10 | 0.0779 | 429 | 698 | 0.415 | 0.674 |
@@ -11,12 +14,10 @@ Predictor stack_lr_wr2_lb (frozen P*); R0 random permutations; level 100% = dev 
 | 25% | 1 | 520 | 131 | 462 | 10 | 0.0662 | 203 | 367 | 0.390 | 0.706 |
 | 25% | 2 | 528 | 132 | 504 | 10 | 0.0683 | 221 | 299 | 0.419 | 0.566 |
 
-**Provisional:** level 100% (dev splits 1–3) needs the dev-pool-maximum runs (batch6, held), so the slope below uses the 50% and 25% levels only (6 draws).
-
 Slope of log n_X on log N (OLS over draws; 95% CI = draw bootstrap stratified by level, B = 2,000):
 
-- **n80: b = 1.08** [0.72, 1.58] (6 draws). b ≈ 0 → count scaling, b ≈ 1 → fraction scaling.
-- **n90: b = 1.13** [0.79, 1.54] (6 draws). b ≈ 0 → count scaling, b ≈ 1 → fraction scaling.
+- **n80: b = 1.06** [0.85, 1.28] (9 draws). b ≈ 0 → count scaling, b ≈ 1 → fraction scaling.
+- **n90: b = 1.06** [0.89, 1.24] (9 draws). b ≈ 0 → count scaling, b ≈ 1 → fraction scaling.
 
 ## What was and was not restricted to the sub-universe
 

@@ -361,8 +361,10 @@ def full(a) -> dict:
             v = t[t.n == n].auprc_mean
             cells.append(fmt(v.mean(), v.std(ddof=1) if len(v) > 1 else None))
         if not interim:
-            mx = t.loc[t.groupby("split").n.idxmax()].auprc_mean
-            cells.append(fmt(mx.mean(), mx.std(ddof=1)))
+            rows_mx = t.loc[t.groupby("split").n.idxmax()]
+            mx = rows_mx.auprc_mean
+            short = int(rows_mx.n.max()) < 2000
+            cells.append(fmt(mx.mean(), mx.std(ddof=1)) + (f" (n = {int(rows_mx.n.max())}; no pool-max run)" if short else ""))
         L.append(f"| {LABEL[pred]} | " + " | ".join(cells) + " |")
     L.append("")
     # paired P* vs comparators (same trajectories): relative gain, split-averaged
