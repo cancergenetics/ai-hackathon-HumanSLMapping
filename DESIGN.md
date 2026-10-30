@@ -354,3 +354,12 @@ columns (strata reported); T not blind for upstream predictors (declared); rando
   - (iv) Final per-job integrity: each job checks the lock, the plan hash and the frozen-file hashes rather than a
     whole-tree-clean HEAD, so that non-frozen notes may be committed during a long run. The clean-tree check at
     `start` (§10) is unchanged. Per docs/reviews/final_pipeline_review.md F1.
+  - (v) D11: final `start` was run with HSL_FINAL=1, because its deep preflight hashes upstream raw files through the
+    label gate. `start` reads no labels.
+  - (vi) Recorded earlier only in the tree:
+    - D4: the H/F cluster cap uses clusters that include D_val on dev; R1 uses visible clusters.
+    - Identity exclusions per the P0 build.
+    - The headline sign rule requires a *positive* shared sign.
+    - Notes (tree, lessons, DESIGN) are committed after the lock. Per-job integrity is by frozen hashes (iv),
+      not by HEAD.
+  - (vii) Null-result readings for the final are pre-stated in RESEARCH_TREE.md (status summary), before scoring.

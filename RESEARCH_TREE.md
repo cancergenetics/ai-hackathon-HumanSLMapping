@@ -2,16 +2,45 @@
 
 Legend: [ ] planned · [~] in progress · [x] done · [-] abandoned/negative · [!] key finding
 
-## Status summary (2026-10-29, M0 setup)
+## Status summary (2026-10-30 00:45, milestone M-final: frozen, final on T running)
 
-Project started. PROMPT.md saved verbatim. Upstream method (YEAST_SLs, commit 9b5dce9, read-only) is a kernel-ridge
-fold-in + stacked combiner that predicts stringent negative GIs (ε < −0.12, P < 0.05) for unscreened yeast queries
-from the Costanzo 2016 NxN matrix (lockbox AUPRC 0.083 at 20% screened, prevalence 0.011; 10/20/30% → 0.061/0.083/0.102).
-It already reads Costanzo S1/CellMap bundles and tier-1 external features (coexpression, AP-MS, ESM-2, paralogs, etc.).
+Development is complete on dev splits only; T has never been used for any decision.
+- **Predictor.** P2 froze P* = stack_lr_wr2_lb: +4.0–4.5% over upstream stack_lr_wr2 at n ≤ 330, as the best of 10
+  adaptive dev configs.
+- **Q1, random screening (dev).** AUPRC rises from 0.031 (n = 30) to 0.060 (660) to 0.080 (pool max ≈ 2,100) with no
+  plateau. n_80 / n_90 ≈ 810 / 1,279 (0.39 / 0.61 of the pool). Simple baselines saturate early (B1 n_80 ≈ 110).
+  Universe subsampling gives b ≈ 1.06 [0.85, 1.28], i.e. fraction scaling; this is a bound.
+- **Q2, strategies (dev).** Adaptive batch-of-10 selection beats random at n = 160 by +28–33% (H, C, F_r16, M; per
+  split +15 to +52%), G ≈ 0.72–0.84. s160 ≈ r490, so "5% matches 20%" is not met on dev. Static variants recover
+  little, and a Billmann-like R1 panel ≈ random.
+- **Q2 mechanism (P4 review).** Adaptive arms screen moderately SL-rich genes whose rows reveal target-side columns.
+  There is no leakage: poison replays are bit-identical.
+- **Finalists.** H, C and F_r16 are frozen (R_s 20, R_r 40; declared deviations D9/D10). The one-shot final started at
+  00:22: 4,019 units, projected 10–14 h.
 
-Next: literature review (LITERATURE.md) and technical reconnaissance of the upstream code (how to call it with an
-arbitrary screened set, runtime vs. number screened, data characterisation), in parallel; then the fixed test split,
-then DESIGN.md and up to three review rounds.
+**In parallel:**
+- Q3 analyses are being built on dev, and the stopping rule will be frozen before the final finishes.
+- An independent rescorer (no hsl import) is to be built and tested on the dry run.
+- A null-result reading is pre-stated below.
+
+**Next:**
+- Score the final; then independent rescoring and review.
+- Q3 on the final outputs; then REPORT.md with figures and claims, and its review.
+
+Retrospective (docs/reviews/retro_m_final.md):
+- Stop freezing rules that were never evaluated on pilot output.
+- Stop quoting oracle and best-of-k numbers as headlines.
+- Enforce compute budgets in code.
+- Keep this summary current.
+
+**Pre-stated readings for the final** (written before scoring, 2026-10-30 00:45):
+- (1) If (a) Δ(160) > 0 is not rejected for any finalist after Holm, the conclusion is "no confirmed advantage of
+  adaptive selection on T at this power". Dev point estimates are reported as dev-only; we do not reinterpret.
+- (2) If (a) is rejected but c1 (s160 > r490) is not, the claim is limited to "beats random at matched budget",
+  with G and n_req as estimates.
+- (3) "Matches 20%" is stated only under its three-condition rule. Otherwise we report G with its CI and say it is
+  not met. We do not write "approaches".
+- (4) E_unobs and E_TT are reported prominently, next to E_fixed, whatever their sign.
 
 ## Decision log
 - 2026-10-30 D11: FREEZE and FINAL START.
