@@ -749,6 +749,9 @@ def cost_projection() -> int:
         for x in F.read_parts(Pd):
             meas.append({"pred": x["pred"], "n": x["n"], "t": x["unit_wall_s"], "rss": x["peak_rss_fit_gb"],
                          "src": "dryrun"})
+    for x in p1.read_rows([ROOT / "results" / "final_dryrun" / "rss_calibration.jsonl"]):
+        if x["split"] != "resplit":                            # same-day dev1 calibration runs (526 targets)
+            meas.append({"pred": x["pred"], "n": x["n"], "t": x["total_s"], "rss": x["peak_rss_gb"], "src": "dryrun"})
     p1rows = p1.read_rows(sorted((p1.P1_DIR / "parts").glob("*.jsonl")))
     pm = {v[0]: k for k, v in P["preds"].items()}
     for x in p1rows:
@@ -871,8 +874,8 @@ def cost_projection() -> int:
 
     def summarise(label, jobs):
         return {"scenario": label, "jobs": len(jobs), "job_hours": sum(x["t"] for x in jobs) / 3600,
-                "wall_h_gate": simulate(jobs, "gate"), "wall_h_gate16": simulate(jobs, "gate", 16.0),
-                "wall_h_gate20": simulate(jobs, "gate", 20.0), "wall_h_old4": simulate(jobs, "old4"),
+                "wall_h_gate": simulate(jobs, "gate"), "wall_h_gate_lo": simulate(jobs, "gate", 12.0),
+                "wall_h_gate_hi": simulate(jobs, "gate", 22.0), "wall_h_old4": simulate(jobs, "old4"),
                 "mean_conc_gate": sum(x["t"] for x in jobs) / 3600 / max(simulate(jobs, "gate"), 1e-9)}
 
     variants = [
@@ -909,7 +912,7 @@ def cost_projection() -> int:
              + f"; predictors without a pair use P*'s ratio) for the larger prediction grid. Selection per trajectory = dry-run "
              f"median by arm role (full trajectories to 660): " + ", ".join(f"{k} {v:.0f} s" for k, v in sel_t.items())
              + f". Per-job overhead {over:.0f} s. Job memory = the launch.py `rss_gb` hint (finalists.yaml compute: "
-               "fitted on measured peak RSS, scaled for |T|), the same number the gate uses.", "",
+               "fitted on measured peak RSS + calibrated per-target term + 0.5 GB), the same number the gate uses.", "",
              f"Plan: {plan['n_units']} units in {len(plan['jobs'])} jobs (+ labels job).", "",
              "Dry-run / P1 speed ratios per predictor: " + ", ".join(f"{k} {v:.2f}" for k, v in factors.items()) + ".", "",
              "## Units and job-hours by arm role × predictor (lower / upper bound)", "",
@@ -923,16 +926,24 @@ def cost_projection() -> int:
               f"{sum(sel_t.get(roles[j['cid']], 0) for j in plan['jobs']) / 3600:.1f} h.", "",
               "## Wall-clock (event simulation of the launch.py queue in plan order)", "",
               f"`gate` = D10 memory gate: ≤ {g['max_jobs']} jobs, ≤ {g['max_big']} jobs at n ≥ {alone_n}, start only if "
-              f"{g['budget_gb']:.0f} GB (memory available to us; other processes hold ~12 GB) minus the running jobs' "
+              f"{g['budget_gb']:.0f} GB (memory available to us: PI check 2026-10-29, free + inactive ≈ 15 of 24 GB, "
+              "other non-project use ~0.7 GB; 12 / 22 GB shown as sensitivities) minus the running jobs' "
               f"hints ≥ hint + {g['headroom_gb']:.0f} GB. `old` = previous policy for comparison (4 jobs, n ≥ "
               f"{alone_n} alone, 20 GB). CPU contention at 6 jobs is not modelled beyond the loaded-speed bound "
               "(P1 rows ran up to 4 jobs on a shared machine).", "",
-              "| scenario | jobs | job-h | wall h, gate 12 GB (mean jobs running) | gate 16 GB | gate 20 GB | old, 4 jobs | "
-              "> 10 h at 12 GB? |", "|---|---|---|---|---|---|---|---|"]
+              f"| scenario | jobs | job-h | wall h, gate {g['budget_gb']:.0f} GB (mean jobs running) | gate 12 GB | gate 22 GB | "
+              f"old, 4 jobs | > 10 h at {g['budget_gb']:.0f} GB? |", "|---|---|---|---|---|---|---|---|"]
     for _, r in sc.iterrows():
         lines.append(f"| {r.scenario} | {r.jobs} | {r.job_hours:.1f} | {r.wall_h_gate:.1f} ({r.mean_conc_gate:.1f}) | "
-                     f"{r.wall_h_gate16:.1f} | {r.wall_h_gate20:.1f} | {r.wall_h_old4:.1f} | "
+                     f"{r.wall_h_gate_lo:.1f} | {r.wall_h_gate_hi:.1f} | {r.wall_h_old4:.1f} | "
                      f"{'YES' if r.wall_h_gate > 10 else 'no'} |")
+    if cal:
+        lines += ["", "## Calibration runs (run_final.py calibrate; DEV ONLY; one job at a time, 2 threads)", "",
+                  "| predictor | split | targets | n | peak RSS GB | fit+predict s | hint for T at this n |",
+                  "|---|---|---|---|---|---|---|"]
+        for x in cal:
+            lines.append(f"| {x['pred']} | {x['split']} | {x['n_targets']} | {x['n']} | {x['peak_rss_gb']:.2f} | "
+                         f"{x['fit_predict_s']:.0f} | {F.rss_hint_gb(P, x['pred'], x['n']):.2f} |")
     lines += ["", "## Measured per-unit times used (s, before × T scaling) and peak RSS (GB)", "",
               "| source | predictor | n | median s | × T | max RSS | k |", "|---|---|---|---|---|---|---|"]
     for _, r in tb[tb.pred.isin(["pstar", "ref", "m1_hgb", "stack_lr"])].iterrows():

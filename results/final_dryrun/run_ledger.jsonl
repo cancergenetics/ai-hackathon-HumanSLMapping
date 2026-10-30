@@ -1,0 +1,108 @@
+{"event": "start", "git_head": "c0f791a4f7b3bc0cce55cb785b64cf12d7e2541c", "host": "Colms-MacBook-Air.local", "mode": "dryrun", "n_jobs": 49, "n_units": 179, "pid": 23327, "plan_sha256": "adc1b9b838f851ced94b6d4c19c3ace273daed2919fc8978576bba66eb877f3b", "t": "2026-10-29T21:34:22"}
+{"eset": "E_fixed_dev", "eset_digest": "92bc95cb9b0acdfe", "event": "labels", "host": "Colms-MacBook-Air.local", "mode": "dryrun", "pid": 23340, "t": "2026-10-29T21:34:23"}
+{"eset": "E_fixed_dev", "eset_digest": "92bc95cb9b0acdfe", "event": "labels", "host": "Colms-MacBook-Air.local", "mode": "dryrun", "pid": 23402, "t": "2026-10-29T21:34:32"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "C_r0_main_small", "mode": "dryrun", "n_todo": 4, "n_units": 4, "pid": 23409, "t": "2026-10-29T21:34:34"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "C_r0_main_small", "mode": "dryrun", "pid": 23409, "ran": 4, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T21:36:39"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "C_r1_main_small", "mode": "dryrun", "n_todo": 4, "n_units": 4, "pid": 24135, "t": "2026-10-29T21:36:41"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "C_r1_main_small", "mode": "dryrun", "pid": 24135, "ran": 4, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T21:38:43"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "F_r16_r0_main_small", "mode": "dryrun", "n_todo": 4, "n_units": 4, "pid": 24891, "t": "2026-10-29T21:38:45"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "F_r16_r0_main_small", "mode": "dryrun", "pid": 24891, "ran": 4, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T21:41:17"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "F_r16_r1_main_small", "mode": "dryrun", "n_todo": 4, "n_units": 4, "pid": 26076, "t": "2026-10-29T21:41:20"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "F_r16_r1_main_small", "mode": "dryrun", "pid": 26076, "ran": 4, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T21:44:38"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "H_r0_main_small", "mode": "dryrun", "n_todo": 4, "n_units": 4, "pid": 27299, "t": "2026-10-29T21:44:42"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "H_r0_main_small", "mode": "dryrun", "pid": 27299, "ran": 4, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T21:47:09"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "H_r1_main_small", "mode": "dryrun", "n_todo": 4, "n_units": 4, "pid": 28334, "t": "2026-10-29T21:47:10"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "H_r1_main_small", "mode": "dryrun", "pid": 28334, "ran": 4, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T21:49:34"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "R0_r0_main_small", "mode": "dryrun", "n_todo": 16, "n_units": 16, "pid": 29297, "t": "2026-10-29T21:49:35"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "R0_r0_main_small", "mode": "dryrun", "pid": 29297, "ran": 16, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T21:52:11"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "R0_r1_main_small", "mode": "dryrun", "n_todo": 16, "n_units": 16, "pid": 30398, "t": "2026-10-29T21:52:14"}
+{"event": "score", "host": "Colms-MacBook-Air.local", "mode": "dryrun", "pid": 30470, "t": "2026-10-29T21:53:16", "units_done": 42, "units_total": 179, "wall_s": 52.93964600563049}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "R0_r1_main_small", "mode": "dryrun", "pid": 30398, "ran": 16, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T21:55:06"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "R0_r2_main_small", "mode": "dryrun", "n_todo": 16, "n_units": 16, "pid": 31581, "t": "2026-10-29T21:55:08"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "R0_r2_main_small", "mode": "dryrun", "pid": 31581, "ran": 16, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T21:57:49"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "R1_r0_main_small", "mode": "dryrun", "n_todo": 5, "n_units": 5, "pid": 32679, "t": "2026-10-29T21:57:51"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "R1_r0_main_small", "mode": "dryrun", "pid": 32679, "ran": 5, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:00:44"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "R1_r1_main_small", "mode": "dryrun", "n_todo": 5, "n_units": 5, "pid": 33772, "t": "2026-10-29T22:00:46"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "R1_r1_main_small", "mode": "dryrun", "pid": 33772, "ran": 5, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:03:30"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "F-static_r16_r0_main_small", "mode": "dryrun", "n_todo": 4, "n_units": 4, "pid": 34761, "t": "2026-10-29T22:03:34"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "F-static_r16_r0_main_small", "mode": "dryrun", "pid": 34761, "ran": 4, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:05:55"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "F-static_r16_r1_main_small", "mode": "dryrun", "n_todo": 4, "n_units": 4, "pid": 35666, "t": "2026-10-29T22:05:58"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "F-static_r16_r1_main_small", "mode": "dryrun", "pid": 35666, "ran": 4, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:08:10"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "H-static_r0_main_small", "mode": "dryrun", "n_todo": 4, "n_units": 4, "pid": 36588, "t": "2026-10-29T22:08:13"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "H-static_r1_main_small", "mode": "dryrun", "n_todo": 4, "n_units": 4, "pid": 36961, "t": "2026-10-29T22:08:59"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "H-static_r1_main_small", "mode": "dryrun", "pid": 36961, "ran": 4, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:11:05"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "C__det_r0_main_small", "mode": "dryrun", "n_todo": 4, "n_units": 4, "pid": 37959, "t": "2026-10-29T22:11:08"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "C__det_r0_main_small", "mode": "dryrun", "pid": 37959, "ran": 4, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:13:31"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "F_r16__det_r0_main_small", "mode": "dryrun", "n_todo": 4, "n_units": 4, "pid": 38770, "t": "2026-10-29T22:13:32"}
+{"event": "score", "host": "Colms-MacBook-Air.local", "mode": "dryrun", "pid": 39036, "t": "2026-10-29T22:14:43", "units_done": 100, "units_total": 179, "wall_s": 36.869170904159546}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "F_r16__det_r0_main_small", "mode": "dryrun", "pid": 38770, "ran": 4, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:15:59"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "H__det_r0_main_small", "mode": "dryrun", "n_todo": 4, "n_units": 4, "pid": 39706, "t": "2026-10-29T22:16:01"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "H__det_r0_main_small", "mode": "dryrun", "pid": 39706, "ran": 4, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:17:50"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "C__ws220_r0_main_small", "mode": "dryrun", "n_todo": 3, "n_units": 3, "pid": 40334, "t": "2026-10-29T22:17:53"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "C__ws220_r0_main_small", "mode": "dryrun", "pid": 40334, "ran": 3, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:19:25"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "C__ws220_r1_main_small", "mode": "dryrun", "n_todo": 3, "n_units": 3, "pid": 40812, "t": "2026-10-29T22:19:27"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "C__ws220_r1_main_small", "mode": "dryrun", "pid": 40812, "ran": 3, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:21:06"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "H__ws220_r0_main_small", "mode": "dryrun", "n_todo": 3, "n_units": 3, "pid": 41395, "t": "2026-10-29T22:21:08"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "H__ws220_r0_main_small", "mode": "dryrun", "pid": 41395, "ran": 3, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:22:39"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "H__ws220_r1_main_small", "mode": "dryrun", "n_todo": 3, "n_units": 3, "pid": 41923, "t": "2026-10-29T22:22:42"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "H__ws220_r1_main_small", "mode": "dryrun", "pid": 41923, "ran": 3, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:24:14"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "R0__ws220_r0_main_small", "mode": "dryrun", "n_todo": 3, "n_units": 3, "pid": 42457, "t": "2026-10-29T22:24:16"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "R0__ws220_r0_main_small", "mode": "dryrun", "pid": 42457, "ran": 3, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:25:48"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "R0__ws220_r1_main_small", "mode": "dryrun", "n_todo": 3, "n_units": 3, "pid": 43042, "t": "2026-10-29T22:25:51"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "R0__ws220_r1_main_small", "mode": "dryrun", "pid": 43042, "ran": 3, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:27:14"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "C__b110_r0_main_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 43527, "t": "2026-10-29T22:27:17"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "C__b110_r0_main_small", "mode": "dryrun", "pid": 43527, "ran": 2, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:28:23"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "C__b110_r1_main_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 43902, "t": "2026-10-29T22:28:26"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "C__b110_r1_main_small", "mode": "dryrun", "pid": 43902, "ran": 2, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:29:34"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "C__b50_r0_main_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 44290, "t": "2026-10-29T22:29:37"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "C__b50_r0_main_small", "mode": "dryrun", "pid": 44290, "ran": 2, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:30:41"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "C__b50_r1_main_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 44636, "t": "2026-10-29T22:30:42"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "C__b50_r1_main_small", "mode": "dryrun", "pid": 44636, "ran": 2, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:31:45"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "H__b110_r0_main_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 44984, "t": "2026-10-29T22:31:48"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "H__b110_r0_main_small", "mode": "dryrun", "pid": 44984, "ran": 2, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:32:47"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "H__b110_r1_main_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 45331, "t": "2026-10-29T22:32:49"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "H__b110_r1_main_small", "mode": "dryrun", "pid": 45331, "ran": 2, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:33:48"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "H__b50_r0_main_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 45679, "t": "2026-10-29T22:33:50"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "H__b50_r0_main_small", "mode": "dryrun", "pid": 45679, "ran": 2, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:34:41"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "H__b50_r1_main_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 45951, "t": "2026-10-29T22:34:43"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "H__b50_r1_main_small", "mode": "dryrun", "pid": 45951, "ran": 2, "selection_loaded": false, "skipped": 0, "t": "2026-10-29T22:35:41"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "C_r0_ref_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 46292, "t": "2026-10-29T22:35:44"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "C_r0_ref_small", "mode": "dryrun", "pid": 46292, "ran": 2, "selection_loaded": true, "skipped": 0, "t": "2026-10-29T22:36:38"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "C_r1_ref_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 46640, "t": "2026-10-29T22:36:41"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "C_r1_ref_small", "mode": "dryrun", "pid": 46640, "ran": 2, "selection_loaded": true, "skipped": 0, "t": "2026-10-29T22:37:35"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "F_r16_r0_ref_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 46979, "t": "2026-10-29T22:37:38"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "F_r16_r0_ref_small", "mode": "dryrun", "pid": 46979, "ran": 2, "selection_loaded": true, "skipped": 0, "t": "2026-10-29T22:38:23"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "F_r16_r1_ref_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 47231, "t": "2026-10-29T22:38:25"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "F_r16_r1_ref_small", "mode": "dryrun", "pid": 47231, "ran": 2, "selection_loaded": true, "skipped": 0, "t": "2026-10-29T22:39:18"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "H_r0_ref_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 47553, "t": "2026-10-29T22:39:19"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "H_r0_ref_small", "mode": "dryrun", "pid": 47553, "ran": 2, "selection_loaded": true, "skipped": 0, "t": "2026-10-29T22:40:15"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "H_r1_ref_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 47893, "t": "2026-10-29T22:40:16"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "H_r1_ref_small", "mode": "dryrun", "pid": 47893, "ran": 2, "selection_loaded": true, "skipped": 0, "t": "2026-10-29T22:41:10"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "R0_r0_ref_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 48214, "t": "2026-10-29T22:41:11"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "R0_r0_ref_small", "mode": "dryrun", "pid": 48214, "ran": 2, "selection_loaded": true, "skipped": 0, "t": "2026-10-29T22:41:58"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "R0_r1_ref_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 48476, "t": "2026-10-29T22:42:00"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "R0_r1_ref_small", "mode": "dryrun", "pid": 48476, "ran": 2, "selection_loaded": true, "skipped": 0, "t": "2026-10-29T22:43:03"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "C_r0_m1_small", "mode": "dryrun", "n_todo": 1, "n_units": 1, "pid": 48969, "t": "2026-10-29T22:43:06"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "C_r0_m1_small", "mode": "dryrun", "pid": 48969, "ran": 1, "selection_loaded": true, "skipped": 0, "t": "2026-10-29T22:46:06"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "F_r16_r0_m1_small", "mode": "dryrun", "n_todo": 1, "n_units": 1, "pid": 50494, "t": "2026-10-29T22:46:09"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "F_r16_r0_m1_small", "mode": "dryrun", "pid": 50494, "ran": 1, "selection_loaded": true, "skipped": 0, "t": "2026-10-29T22:48:56"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "H_r0_m1_small", "mode": "dryrun", "n_todo": 1, "n_units": 1, "pid": 51603, "t": "2026-10-29T22:48:58"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "H_r0_m1_small", "mode": "dryrun", "pid": 51603, "ran": 1, "selection_loaded": true, "skipped": 0, "t": "2026-10-29T22:51:28"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "R0_r0_m1_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 52575, "t": "2026-10-29T22:51:31"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "R0_r0_m1_small", "mode": "dryrun", "pid": 52575, "ran": 2, "selection_loaded": true, "skipped": 0, "t": "2026-10-29T22:59:39"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "R0_r1_m1_small", "mode": "dryrun", "n_todo": 2, "n_units": 2, "pid": 56687, "t": "2026-10-29T22:59:43"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "R0_r1_m1_small", "mode": "dryrun", "pid": 56687, "ran": 2, "selection_loaded": true, "skipped": 0, "t": "2026-10-29T23:07:11"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "R0_r0_main_large", "mode": "dryrun", "n_todo": 4, "n_units": 4, "pid": 60405, "t": "2026-10-29T23:07:13"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "R0_r0_main_large", "mode": "dryrun", "pid": 60405, "ran": 4, "selection_loaded": true, "skipped": 0, "t": "2026-10-29T23:08:51"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "R0_r1_main_large", "mode": "dryrun", "n_todo": 4, "n_units": 4, "pid": 61268, "t": "2026-10-29T23:08:53"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "R0_r1_main_large", "mode": "dryrun", "pid": 61268, "ran": 4, "selection_loaded": true, "skipped": 0, "t": "2026-10-29T23:10:31"}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "R0_r2_main_large", "mode": "dryrun", "n_todo": 4, "n_units": 4, "pid": 62125, "t": "2026-10-29T23:10:33"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "R0_r2_main_large", "mode": "dryrun", "pid": 62125, "ran": 4, "selection_loaded": true, "skipped": 0, "t": "2026-10-29T23:12:11"}
+{"event": "resume", "host": "Colms-MacBook-Air.local", "jobs_file": "results/final_dryrun/run/jobs_resume_20261029_231601.json", "labels_missing": false, "mode": "dryrun", "n_jobs_incomplete": 1, "pid": 64390, "t": "2026-10-29T23:16:01", "units_done": 177, "units_total": 179}
+{"event": "job_start", "host": "Colms-MacBook-Air.local", "job": "H-static_r0_main_small", "mode": "dryrun", "n_todo": 2, "n_units": 4, "pid": 64456, "t": "2026-10-29T23:16:09"}
+{"event": "job_end", "host": "Colms-MacBook-Air.local", "job": "H-static_r0_main_small", "mode": "dryrun", "pid": 64456, "ran": 2, "selection_loaded": true, "skipped": 2, "t": "2026-10-29T23:17:39"}
+{"event": "score", "host": "Colms-MacBook-Air.local", "mode": "dryrun", "pid": 65655, "t": "2026-10-29T23:19:05", "units_done": 179, "units_total": 179, "wall_s": 35.40232610702515}
+{"event": "score", "host": "Colms-MacBook-Air.local", "mode": "dryrun", "pid": 66110, "t": "2026-10-29T23:19:44", "units_done": 179, "units_total": 179, "wall_s": 10.803449153900146}
+{"event": "score", "host": "Colms-MacBook-Air.local", "mode": "dryrun", "pid": 66929, "t": "2026-10-29T23:21:40", "units_done": 179, "units_total": 179, "wall_s": 8.342196941375732}
+{"eset": "E_fixed_dev", "eset_digest": "92bc95cb9b0acdfe", "event": "labels", "host": "Colms-MacBook-Air.local", "mode": "dryrun", "pid": 78078, "t": "2026-10-29T23:51:08"}
+{"event": "score", "host": "Colms-MacBook-Air.local", "mode": "dryrun", "pid": 78097, "t": "2026-10-29T23:52:48", "units_done": 179, "units_total": 179, "wall_s": 99.05754089355469}

@@ -97,14 +97,19 @@ sensitivities:
   contrast_budgets: [160, 660]                   # strata/sensitivity Δ(n); c1 always included
 
 # ---------------------------------------------------------------------------------------------------- compute (D10)
-# Per-job memory hint for the launch.py memory gate: peak RSS (GB) of one unit ~ scale * (a + b * n/1000) + margin,
-# (a, b) = least-squares fit of measured peak RSS (P1 random-curve rows incl. n = 1970-2103, and the final dry run;
-# dev targets ~526) per predictor; scale covers the larger target grid of T (656). A job's hint is the max over its
+# Per-job memory hint for the launch.py memory gate: peak RSS (GB) of one unit ~ a + b * n/1000
+# + k * (|targets| - rss_ref_targets)/100 + margin. (a, b) = least-squares fit of measured peak RSS (P1 random-curve rows
+# incl. n = 1970-2103, and the final dry run; dev targets ~526) per predictor. k from the same-day calibration
+# (results/final_dryrun/rss_calibration.jsonl; run_final.py calibrate): P* re-split (1,050 targets) minus dev1 (526)
+# at n = 660 / 1577 = +0.02 / +0.21 GB -> 0.04 GB per 100 targets (|T| = 656 adds ~0.05 GB); m1_hgb +0 at n = 660;
+# ref / stack_lr re-split runs fall below the dev fit (k = P*'s, conservative). A job's hint is the max over its
 # units; its RSS kill cap is max(protocol class cap, cap_factor * hint).
 compute:
   rss_fit_gb: {pstar: [1.67, 1.98], ref: [1.50, 1.61], m1_hgb: [1.80, 1.88], stack_lr: [1.25, 1.11],
                B1_array_rate: [1.22, 0.88], B2_product: [1.22, 0.88]}
-  rss_scale: 1.15
+  rss_ref_targets: 526
+  rss_target_gb_per_100: {pstar: 0.04, ref: 0.04, m1_hgb: 0.0, stack_lr: 0.04, B1_array_rate: 0.04, B2_product: 0.04}
+  rss_scale: 1.0
   rss_margin_gb: 0.5
   rss_cap_factor: 1.5
   labels_job_rss_gb: 4.0

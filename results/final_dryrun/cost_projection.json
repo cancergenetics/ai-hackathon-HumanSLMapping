@@ -3,82 +3,82 @@
   {
    "scenario": "1-job speed (lower bound): D10 plan as configured",
    "jobs": 393,
-   "job_hours": 46.249730884655065,
-   "wall_h_gate": 25.331821515163142,
-   "wall_h_gate16": 16.92579680896624,
-   "wall_h_gate20": 12.45917525497296,
-   "wall_h_old4": 13.498199107112242,
-   "mean_conc_gate": 1.8257562274773989
+   "job_hours": 38.284113801373934,
+   "wall_h_gate": 10.249485878172525,
+   "wall_h_gate_lo": 20.183876303451232,
+   "wall_h_gate_hi": 8.305136790921114,
+   "wall_h_old4": 10.968725003951082,
+   "mean_conc_gate": 3.7352228449725873
   },
   {
    "scenario": "1-job speed (lower bound): without the reference predictor",
    "jobs": 353,
-   "job_hours": 43.45859349927074,
-   "wall_h_gate": 23.936252822470966,
-   "wall_h_gate16": 16.22377548919952,
-   "wall_h_gate20": 11.898010390710482,
-   "wall_h_old4": 12.802470266906212,
-   "mean_conc_gate": 1.8155971956676744
+   "job_hours": 35.98783633555547,
+   "wall_h_gate": 9.790230385008833,
+   "wall_h_gate_lo": 19.4365583739902,
+   "wall_h_gate_hi": 7.931070686119675,
+   "wall_h_old4": 10.392600131356412,
+   "mean_conc_gate": 3.675892693052596
   },
   {
    "scenario": "1-job speed (lower bound): \u00a712 trims: m1_hgb Q1 {30, 1310} and batch 50 dropped",
    "jobs": 348,
-   "job_hours": 43.07727037871412,
-   "wall_h_gate": 23.39375533106758,
-   "wall_h_gate16": 15.819787568066896,
-   "wall_h_gate20": 11.637482257162775,
-   "wall_h_old4": 12.6629075935905,
-   "mean_conc_gate": 1.8414003980586333
+   "job_hours": 35.5433173462726,
+   "wall_h_gate": 9.536308037106513,
+   "wall_h_gate_lo": 18.77613490060111,
+   "wall_h_gate_hi": 7.7569774999008505,
+   "wall_h_old4": 10.310766409126007,
+   "mean_conc_gate": 3.7271570096069464
   },
   {
    "scenario": "1-job speed (lower bound): both of the above",
    "jobs": 308,
-   "job_hours": 40.286132993329794,
-   "wall_h_gate": 21.998186638375405,
-   "wall_h_gate16": 15.101943237021954,
-   "wall_h_gate20": 11.05407835916003,
-   "wall_h_old4": 11.963067741104364,
-   "mean_conc_gate": 1.8313388124024472
+   "job_hours": 33.24703988045414,
+   "wall_h_gate": 9.055864733847432,
+   "wall_h_gate_lo": 18.028816971140092,
+   "wall_h_gate_hi": 7.382911395099412,
+   "wall_h_old4": 9.734641536531328,
+   "mean_conc_gate": 3.6713269088692493
   },
   {
    "scenario": "P1 loaded speed (upper bound): D10 plan as configured",
    "jobs": 393,
-   "job_hours": 63.01036567276569,
-   "wall_h_gate": 34.604687624146784,
-   "wall_h_gate16": 23.038998888672594,
-   "wall_h_gate20": 16.93199705001057,
-   "wall_h_old4": 18.508505027759416,
-   "mean_conc_gate": 1.8208621432200913
+   "job_hours": 51.204905509698904,
+   "wall_h_gate": 13.644379489648001,
+   "wall_h_gate_lo": 26.749432407654794,
+   "wall_h_gate_hi": 11.039814365519208,
+   "wall_h_old4": 14.674470544072252,
+   "mean_conc_gate": 3.7528203864857392
   },
   {
    "scenario": "P1 loaded speed (upper bound): without the reference predictor",
    "jobs": 353,
-   "job_hours": 57.63005860952171,
-   "wall_h_gate": 31.914534092524782,
-   "wall_h_gate16": 21.68436903453084,
-   "wall_h_gate20": 15.855935637361782,
-   "wall_h_old4": 17.16548376808849,
-   "mean_conc_gate": 1.805762178524805
+   "job_hours": 46.83255601559664,
+   "wall_h_gate": 12.769909590827547,
+   "wall_h_gate_lo": 25.32739106900153,
+   "wall_h_gate_hi": 10.346578757595193,
+   "wall_h_old4": 13.57932766440663,
+   "mean_conc_gate": 3.6674148460092333
   },
   {
    "scenario": "P1 loaded speed (upper bound): \u00a712 trims: m1_hgb Q1 {30, 1310} and batch 50 dropped",
    "jobs": 348,
-   "job_hours": 58.707618046839734,
-   "wall_h_gate": 31.900654107964268,
-   "wall_h_gate16": 21.520852254673752,
-   "wall_h_gate20": 15.81226841675638,
-   "wall_h_old4": 17.339281559720494,
-   "mean_conc_gate": 1.8403264662896952
+   "job_hours": 47.61541159070351,
+   "wall_h_gate": 12.702964243846951,
+   "wall_h_gate_lo": 24.90248613655157,
+   "wall_h_gate_hi": 10.32191558172013,
+   "wall_h_old4": 13.804621225458273,
+   "mean_conc_gate": 3.748370118712049
   },
   {
    "scenario": "P1 loaded speed (upper bound): both of the above",
    "jobs": 308,
-   "job_hours": 53.327310983595765,
-   "wall_h_gate": 29.210500576342262,
-   "wall_h_gate16": 20.1497120003022,
-   "wall_h_gate20": 14.705027079319995,
-   "wall_h_old4": 15.992149287769456,
-   "mean_conc_gate": 1.8256212639774423
+   "job_hours": 43.243062096601236,
+   "wall_h_gate": 11.802492749822473,
+   "wall_h_gate_lo": 23.480444797898304,
+   "wall_h_gate_hi": 9.628679973796114,
+   "wall_h_old4": 12.709478345792652,
+   "mean_conc_gate": 3.6638922821834967
   }
  ],
  "by_arm": [
@@ -87,210 +87,210 @@
    "role": "R1",
    "pred": "pstar",
    "units": 180,
-   "job_h": 2.885939189111522
+   "job_h": 2.3140305083424706
   },
   {
    "est": "calibrated",
    "role": "batch",
    "pred": "pstar",
    "units": 240,
-   "job_h": 4.049325049438342
+   "job_h": 3.246867341470378
   },
   {
    "est": "calibrated",
    "role": "det",
    "pred": "pstar",
    "units": 24,
-   "job_h": 0.373338501485758
+   "job_h": 0.299353737471812
   },
   {
    "est": "calibrated",
    "role": "finalist",
    "pred": "m1_hgb",
    "units": 45,
-   "job_h": 3.182238473145166
+   "job_h": 3.073930442932964
   },
   {
    "est": "calibrated",
    "role": "finalist",
    "pred": "pstar",
    "units": 480,
-   "job_h": 7.4667700297151605
+   "job_h": 5.987074749436239
   },
   {
    "est": "calibrated",
    "role": "finalist",
    "pred": "ref",
    "units": 240,
-   "job_h": 1.8728544648184717
+   "job_h": 1.5017095251440793
   },
   {
    "est": "calibrated",
    "role": "random",
    "pred": "B1_array_rate",
    "units": 535,
-   "job_h": 0.10301587311060059
+   "job_h": 0.08260114215880474
   },
   {
    "est": "calibrated",
    "role": "random",
    "pred": "B2_product",
    "units": 535,
-   "job_h": 0.11224053231209465
+   "job_h": 0.08999774389658806
   },
   {
    "est": "calibrated",
    "role": "random",
    "pred": "m1_hgb",
    "units": 30,
-   "job_h": 2.9192631014893973
+   "job_h": 2.522795055317165
   },
   {
    "est": "calibrated",
    "role": "random",
    "pred": "pstar",
    "units": 535,
-   "job_h": 9.760234078498865
+   "job_h": 7.826041349528053
   },
   {
    "est": "calibrated",
    "role": "random",
    "pred": "ref",
    "units": 80,
-   "job_h": 0.6242848216061572
+   "job_h": 0.500569841714693
   },
   {
    "est": "calibrated",
    "role": "random",
    "pred": "stack_lr",
    "units": 535,
-   "job_h": 0.7746347240161261
+   "job_h": 0.6211247939519546
   },
   {
    "est": "calibrated",
    "role": "static",
    "pred": "pstar",
    "units": 320,
-   "job_h": 4.977846686476773
+   "job_h": 3.9913831662908272
   },
   {
    "est": "calibrated",
    "role": "ws",
    "pred": "pstar",
    "units": 160,
-   "job_h": 3.098711727936134
+   "job_h": 2.484637757460985
   },
   {
    "est": "calibrated",
    "role": "ws_random",
    "pred": "pstar",
    "units": 80,
-   "job_h": 1.549355863968067
+   "job_h": 1.2423188787304924
   },
   {
    "est": "loaded",
    "role": "R1",
    "pred": "pstar",
    "units": 180,
-   "job_h": 3.7467541744443555
+   "job_h": 3.0042571581672735
   },
   {
    "est": "loaded",
    "role": "batch",
    "pred": "pstar",
    "units": 240,
-   "job_h": 5.257153577562414
+   "job_h": 4.21533960639913
   },
   {
    "est": "loaded",
    "role": "det",
    "pred": "pstar",
    "units": 24,
-   "job_h": 0.4846975273076378
+   "job_h": 0.38864466366435596
   },
   {
    "est": "loaded",
    "role": "finalist",
    "pred": "m1_hgb",
    "units": 45,
-   "job_h": 5.05541207056318
+   "job_h": 4.370918567666016
   },
   {
    "est": "loaded",
    "role": "finalist",
    "pred": "pstar",
    "units": 480,
-   "job_h": 9.693950546152758
+   "job_h": 7.772893273287118
   },
   {
    "est": "loaded",
    "role": "finalist",
    "pred": "ref",
    "units": 240,
-   "job_h": 3.814731723213207
+   "job_h": 3.058763546356931
   },
   {
    "est": "loaded",
    "role": "random",
    "pred": "B1_array_rate",
    "units": 535,
-   "job_h": 0.14281745588925895
+   "job_h": 0.11451521615510703
   },
   {
    "est": "loaded",
    "role": "random",
    "pred": "B2_product",
    "units": 535,
-   "job_h": 0.15132733853583474
+   "job_h": 0.12133868913086751
   },
   {
    "est": "loaded",
    "role": "random",
    "pred": "m1_hgb",
    "units": 30,
-   "job_h": 4.63764046753952
+   "job_h": 3.5872417917109933
   },
   {
    "est": "loaded",
    "role": "random",
    "pred": "pstar",
    "units": 535,
-   "job_h": 12.671506702269786
+   "job_h": 10.160384947246811
   },
   {
    "est": "loaded",
    "role": "random",
    "pred": "ref",
    "units": 80,
-   "job_h": 1.271577241071069
+   "job_h": 1.0195878487856438
   },
   {
    "est": "loaded",
    "role": "random",
    "pred": "stack_lr",
    "units": 535,
-   "job_h": 1.0859969509370946
+   "job_h": 0.8707841405379751
   },
   {
    "est": "loaded",
    "role": "static",
    "pred": "pstar",
    "units": 320,
-   "job_h": 6.462633697435171
+   "job_h": 5.181928848858079
   },
   {
    "est": "loaded",
    "role": "ws",
    "pred": "pstar",
    "units": 160,
-   "job_h": 4.022992288211982
+   "job_h": 3.225752962804119
   },
   {
    "est": "loaded",
    "role": "ws_random",
    "pred": "pstar",
    "units": 80,
-   "job_h": 2.011496144105991
+   "job_h": 1.6128764814020595
   }
  ],
  "selection_s": {
@@ -303,11 +303,18 @@
   "random": 0.36009575007483363,
   "R1": 12.565510187996551
  },
- "scale_T": 1.247148288973384,
+ "scale_T": {
+  "pstar": 1.0,
+  "ref": 1.0,
+  "m1_hgb": 1.0782867028086593,
+  "stack_lr": 1.0,
+  "B1_array_rate": 1.0,
+  "B2_product": 1.0
+ },
  "speed_factors": {
   "B1_array_rate": 0.7213114984381137,
   "B2_product": 0.7417069076749521,
-  "m1_hgb": 0.6294716293603067,
+  "m1_hgb": 0.7032687512580179,
   "pstar": 0.7702504767448499,
   "ref": 0.49095312611942665,
   "stack_lr": 0.7132936453897983
