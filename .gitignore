@@ -1,5 +1,5 @@
 /data/
-logs/*.log
+/logs/
 .venv/
 __pycache__/
 *.pyc

@@ -132,7 +132,10 @@ then DESIGN.md and up to three review rounds.
       Frozen P* vs pre-P2 P*: +4.9% @30, +5.7% @160, +1.1% @660, +0.5% @1310 (AUPRC 0.0722 at 1310).
       Provisional slope (50/25% only): b(n_80) = 1.08 [0.72, 1.58], b(n_90) = 1.13 [0.79, 1.54]. n_80/N ≈ 0.35–0.37,
       so fraction scaling; reported as a bound because external stores are not restricted to the sub-universe.
-    - [~] n ≥ 1970 + pool max (batch6), run alongside P4 under a memory guard instead of alone (jobs are ~1 core each).
+    - [x] n ≥ 1970 + pool max (batch6), commit 1431962. P* at the pool max = 0.0800 (stack_lr 0.0559, B1 0.0432).
+      - [!] n_80 / n_90 (dev, P*): 810 / 1279 (0.39 / 0.61 of the pool). The baselines saturate early (stack_lr n_80 ≈ 384–506, B1 ≈ 110).
+      - [!] Universe slope over 9 draws: b(n_80) = 1.06 [0.85, 1.28], b(n_90) = 1.06 [0.89, 1.24]. That is fraction
+        scaling (n_80/N ≈ 0.35–0.38), reported as a bound.
 - [x] P3 oracle ceilings → GO (C, M kept). Commit fb18bb0, results/p3/summary.md.
   - [!] Greedy oracle (dev1, in-sample): s160 0.0698 vs r160 0.0416, G = 2.05 [1.55, 2.75]. Upper bound only, because it
     selects on the scored cells; a held-out-half version is queued.
@@ -160,7 +163,9 @@ then DESIGN.md and up to three review rounds.
     - The R deviation is declared in DESIGN.
     - The gain holds with stack_lr_wr2 and with m1_hgb on stored selections.
   - [x] run_final.py build + dry run on dev (commit 579bac5): 179/179 units; refusals and crash-resume tested; 17 tests.
-  - [~] Independent review of the final pipeline code → cost re-projection → freeze → Final on T
+  - [x] Independent review of the final pipeline: READY WITH FIXES. All fixes applied (43af996, e7d9a69); 321 tests pass.
+    The projection is 10.2–13.6 h at an 18 GB gate.
+  - [~] Freeze (frozen.yaml) → Final on T (one shot)
 - [ ] M4 Q1: performance vs. fraction screened (random)
 - [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
 - [ ] M6 Q3: translation to HAP1 (query numbers, choice of query lines, role of prediction)
