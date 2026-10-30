@@ -1,0 +1,126 @@
+# FROZEN at the freeze (DESIGN §8). Generated; never hand-edited. Checked by scripts/run_final.py.
+generated: 2026-10-30T00:21:39+0000
+generator: scripts/make_frozen.py
+git_head_at_generation: bc449a7a6b12d268349bf07df31872ec813e253f
+design: "v3.1 \xA78"
+spec:
+  design_s8:
+  - src/hsl/eval.py
+  - src/hsl/views.py
+  - src/hsl/guard.py
+  - src/hsl/harness.py
+  - config/protocol.yaml
+  - config/split/*
+  - config/seeds.yaml
+  - config/budgets.yaml
+  - config/predictor.yaml
+  - src/hsl/predictors/*.py
+  - third_party/ysl/PROVENANCE.md
+  - config/feature_provenance.yaml
+  - DATA.md
+  - config/yeast_sls_commit.txt
+  - results/data_checksums/checksums.json
+  final_plan:
+  - config/finalists.yaml
+  extended:
+  - config/strategies.yaml
+  - config/paths.yaml
+  - src/hsl/**/*.py
+  - scripts/run_final.py
+  - scripts/score_final.py
+  - scripts/launch.py
+  - scripts/make_frozen.py
+  - third_party/ysl/**/*.py
+  untracked_cache:
+  - data/cache/clusters_*.npz
+files:
+  design_s8:
+    DATA.md: 731897f9686ca70248c6b67fa6d7ecf666501fc87211f62435a85ae9f2e8b296
+    config/budgets.yaml: ab43736ab1b45a3dafdfc2837fc4c5c44682eeb6482faa0c64ce8106df8b3bf5
+    config/feature_provenance.yaml: ccb144e611d621e6172b6946f45164f2b5f63814963631cb9d59231e2168746e
+    config/predictor.yaml: d169ee4a35e3fbb774b32f084995963424fedc6e4c4b36bb2a7d59e540211f4e
+    config/protocol.yaml: 299a41a49f451fbad80bbc34a8d58db3f4d3af94303c79cf1a74c4fe5f6f4c89
+    config/seeds.yaml: 91a243a65cf941879400e80ec93986669abed9aaac5a95a690d516d6f4bcf730
+    config/split/dev_pool.txt: 514c7626f12a89ee70866fcf21a1be616281354507572db274451c2159a6d0ae
+    config/split/split_manifest.json: 32708c45037347f0f6094be592f8b56e8aef8ee536845c0498edbbbbafd6792f
+    config/split/test_queries.txt: 0f0ca772db9dc43ba96a73aff64ddf1bf7820a8ab0d5067975ad95e8d226b134
+    config/yeast_sls_commit.txt: 5eac6a58f61355df6d4ed0f0cf4001fbc9b9d1034506db47ef6ca638e2b0fc2b
+    results/data_checksums/checksums.json: c9c98f9cbba3d51a9a222d6497c3c53f980c649de176ed9ae7d7fc811dc7d420
+    src/hsl/eval.py: 702899ca22e3a91d145b84d4647fd4f421ccedea31f674612d1f2cfbc79b4ecb
+    src/hsl/guard.py: 6ff733aa0c28984f964d63c3a8c656510636c4706f93b30816ab0c9ad1cbf6a6
+    src/hsl/harness.py: 04ef99832e135ed89292d0f18a898b7cd6461a8f9f74306a866d1c14c59e5bc3
+    src/hsl/predictors/__init__.py: 3a1e0b261e6273bd2810a6c7621f3a7d9d43063a7ab97f08cc0c49dcba399d99
+    src/hsl/predictors/lowbudget.py: ceba4909ef3b04694087c4bd79815eef613221220e12206782d9960ac6f4d652
+    src/hsl/views.py: 9daebb4c00af910a213be9cfd5258e430f69721002b4bb6d409022e7548d1d67
+    third_party/ysl/PROVENANCE.md: 703708e6b320b716fc71da0cd3a60c024a1b4d697833c78d4b423e4c5e74da45
+  final_plan:
+    config/finalists.yaml: 6a9344eae2eaefb73012205dc27f9155543f6fbd2daf8f9b8036a3b082c7cf48
+  extended:
+    config/paths.yaml: 3a3c104a611f23d7e9f941915bff6b98b67883386993d1d82b3029871ca3fb96
+    config/strategies.yaml: 8b1bc597c8ebe3e47ee035ed88b6c2691627cd85dda384f532450e17b8bc56cf
+    scripts/launch.py: 6aa5fb176b8b557665fffa692e4f719c112640749c49f461b6dbeca3918ac58c
+    scripts/make_frozen.py: b0752b004ce54ea0e6cf21afdc9edcc951e7e706fb56d0f991bff98e35e8ae13
+    scripts/run_final.py: 276de43c812698c2a9bcd1c3196af3fb9a4e92491184c006875adf8c9cb5c0ad
+    scripts/score_final.py: 5da0098685ad624cff124cdb8c1c0c693fac418cd728eebc93089ed2a069fff0
+    src/hsl/__init__.py: 34320676364e6e02c09965e1cee35c066c01e77d40006639fd94fff34d9e5da7
+    src/hsl/config.py: 8da877c2fc71aa3b705972a10faeec45a83828d6dadda1e21588e6d7cc87f16e
+    src/hsl/eval.py: 702899ca22e3a91d145b84d4647fd4f421ccedea31f674612d1f2cfbc79b4ecb
+    src/hsl/features.py: 9735052ccfd3cbd90334c4eb3681dae934bbcb63a39bd59b0b373ceede3fcdd7
+    src/hsl/final.py: e4610da7d94b3d7290c147b4a6b95afacc2a4bc69b90ac5f5796c3225b4dc1a5
+    src/hsl/guard.py: 6ff733aa0c28984f964d63c3a8c656510636c4706f93b30816ab0c9ad1cbf6a6
+    src/hsl/harness.py: 04ef99832e135ed89292d0f18a898b7cd6461a8f9f74306a866d1c14c59e5bc3
+    src/hsl/oracles.py: 59ed7619971d47ec57a44627b79c0e09f5c14b10a7c1e0cedbd5a1b92cea77a3
+    src/hsl/p1.py: b8943cb1f5f13d6dd9d0cfd135e1dd268bde6195f2574b991c914d771cefc1b4
+    src/hsl/paths.py: df62b4c397118e714d424e871027514613a1a2b0782424054f7e2cf5271e8c25
+    src/hsl/predictors/__init__.py: 3a1e0b261e6273bd2810a6c7621f3a7d9d43063a7ab97f08cc0c49dcba399d99
+    src/hsl/predictors/lowbudget.py: ceba4909ef3b04694087c4bd79815eef613221220e12206782d9960ac6f4d652
+    src/hsl/q2dev.py: c042ba750279641243ecaffb7a40fdd5e5fc3b7dd14914d2830e38e40984f558
+    src/hsl/strategies/__init__.py: 2693d2807318e5f6fa9148d076e71078689eae2c27e669096a2452fb7659d8fc
+    src/hsl/strategies/base.py: fa3fb68f906224fde8145accfed143ee86f783f9cc040bc5f41f32cc69998792
+    src/hsl/strategies/coverage.py: a23fa9c67f7b4e3e4bbb862d4673bf0f7a794cf38fb80c8e792a384f2bae983a
+    src/hsl/strategies/degree.py: 924a8d991990459f68131a3666aade467708a82862f32eee2a95b1561970306f
+    src/hsl/strategies/fisher.py: 30648b687020d3d0a8607d7ec998c25e14da0a65abd5b4eb3c6d8badf819e368
+    src/hsl/strategies/hub.py: 294b32144eb6614eff2a66c3ce2f5d547e7510b5037f40a6c15d940e26f86ffe
+    src/hsl/strategies/kernels.py: 466be7025a6c739c853c29109ebcfa21f12729b5dd3a53b6f3ffb74fa21966ac
+    src/hsl/strategies/maxvar.py: 3489932af13fa00e62663809d0f33ce16d1cf1f345cbc506523863adcd6553b9
+    src/hsl/strategies/r1.py: fd919bae230e20a23a8139804c4f325c6a6c8697067573a59e51ae4cf831f16c
+    src/hsl/universe.py: 80a0ba75c4627053956c827b08ef65fe29c6c4f35a00f9d6cdac8be92b40ad19
+    src/hsl/upstream.py: 731cd77102612e43100652369f6271036b9c9a1e2c0c5347816bd178988842e0
+    src/hsl/views.py: 9daebb4c00af910a213be9cfd5258e430f69721002b4bb6d409022e7548d1d67
+    third_party/ysl/__init__.py: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    third_party/ysl/_paths.py: 1ebf24a818e5279ca89f523b410b1150fd11423f041abfd35c6e966144115734
+    third_party/ysl/data/__init__.py: 8ae03e258ddc933f275fed159a0cca996dfcbeedc27c5e47d88cf56427c92589
+    third_party/ysl/data/costanzo.py: b497f25c90376a3ea1c3b7ef9dff476122f3ab0573ab5a8dd9e882abf14c3dd4
+    third_party/ysl/data/dense.py: 9dc58d90094f2cf3ce4cf932c92ddc45bfe77650a7b759fced10c10a8050ae0a
+    third_party/ysl/data/expression_meta.py: a60e0c799c60b84a2fc1edf19d94ca1cc115beae336450a7553cfb2f7b866dcd
+    third_party/ysl/data/features.py: f392f3b33b992f42e9bfbdef6a8261e2bde8c6053f88b5871afcf37730b98bc9
+    third_party/ysl/data/sgd.py: 8229827142bca9eac999f4546d7d1cdc554a0717b81d96d7e900b33634b8c2e7
+    third_party/ysl/eval/__init__.py: 03c7f2b8ac1f5abf2c3e6331caa7a2b0fe0ca71129990fbd9eaef01c1dc32f85
+    third_party/ysl/eval/evaluator.py: 2d61915bb13194be46d1f33559d82c90d437070a825e4a1af81a6b71a8e9b273
+    third_party/ysl/eval/labels.py: b4ca5e5a86630c860b4e770b8a5402c67294b811e32678dcafb5f6583f842eab
+    third_party/ysl/eval/metrics.py: 0fee3c310009136c54b1b8752ee996c6cc7861390bd0515e9f29d989148a31aa
+    third_party/ysl/eval/splits.py: 3aea6ce53622177219df77b52aa43c6b69ec6013bc7b801b32a39bdee3997209
+    third_party/ysl/features/__init__.py: a81ff8bf5f32c06f3e07d2326f20ada87596734faeffc95f8f8490e780e8e95e
+    third_party/ysl/features/cofit.py: 4654d73c36af3c166b059e32042a9fee2be0f434c721545b0b8b068afd8483fa
+    third_party/ysl/features/genes.py: f374ed01f25b5ae4d7cd213cf5940007aba4163e548977af15fc7e88c44ccd96
+    third_party/ysl/features/pairs.py: 6538ffc24458af97b342c13079fab92cd31c7a4f8c10423a28e3ea86331121d1
+    third_party/ysl/models/__init__.py: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    third_party/ysl/models/baselines.py: ee06051c96c5c7d6a328ed6227b87c350ad9982b69cf7011b7c62fe77c4b5b3d
+    third_party/ysl/models/combiner.py: 33dbd8927d513520ae9d71ad11a22fa57d809a16b2d82b1fbc6f133daae0efd6
+    third_party/ysl/models/completion.py: 61fce29235df19de9f6d88c72f2473647d2dd4dc12bfed32405cacd2aeff253f
+    third_party/ysl/models/external.py: 342ee266bdccd0c296653fcb4d7a39048125ae56e2fe3ffb473b4a5d8ccd3fd6
+    third_party/ysl/models/foldin2.py: f4fd0f160ff03e65e27563698d2b31fa39dcef3d4938eb2876301a2422f80a43
+    third_party/ysl/models/m4d.py: ea0ca6c22e6c56595222fe55cc7187bc23ea5c5ea580c50432713badf2c09197
+    third_party/ysl/models/propensity.py: bb70b2db3966fbc2df712a5b007a8e266baf665d0ece645d82d4f6256603f3ae
+    third_party/ysl/models/registry.py: 32c2fc95b1c431fc3b84f9b0dda08f2c2cb7ca9f3e4838543477a497f1ab0f56
+    third_party/ysl/models/tier2.py: 4c52a5018212145a9e168006fb8f9112d44523cf1f0d482834f7772876a8c20a
+    third_party/ysl/models/view.py: bc670c91e299faa65061241fa1d5e36e58dfe4136a5b2aa4ef789db278d5fae1
+    third_party/ysl/predict.py: 6dd97159a1f728884f2abd001dc2c3ea1d172ae63934a7d4c23151c93d9efe9e
+    third_party/ysl/runner.py: 589cc465dc425c9e066824065b5eeb8b44da441578b0c4f650510bce2e3d31bd
+  untracked_cache:
+    data/cache/clusters_467eb351cbaa64fc.npz: c912cf43f786752b6e5ec371da1d5931242a8922f6ea37add05d29c804acee11
+n_files:
+  design_s8: 18
+  final_plan: 1
+  extended: 61
+  untracked_cache: 1
