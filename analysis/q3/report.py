@@ -316,7 +316,13 @@ def compose(source: str, out=None) -> str:
     head = [f"# Q3 analyses — {source.upper()} {'(DEV DATA ONLY)' if source == 'dev' else ''}", "",
             "DESIGN v3.1 §7.2–7.4. Code: `analysis/q3/` (one command per analysis, `--source dev|final|dryrun`); "
             "rerun everything with `bash analysis/q3/run_all.sh <source>`. Predictor: frozen P* "
-            "(stack_lr_wr2_lb). All numbers below are generated from the CSV/JSON files in this directory.", ""]
+            "(stack_lr_wr2_lb). All numbers below are generated from the CSV/JSON files in this directory.", "",
+            "**On the final outputs** (only after `scripts/score_final.py` has finished): "
+            "(1) `bash analysis/q3/run_all.sh final` (hap1, frontier, choice profile, predcontrib; minutes); "
+            "(2) `SOURCE=final SPLITS=final TRAJS=\"0 1\" ARMS=\"R0 H\" bash analysis/q3/run_lbo.sh` (LBO-CV refits on "
+            "the dev bundle, one P* job at a time, ~25 min per trajectory); (3) `bash analysis/q3/run_all.sh final` "
+            "again, which applies the FROZEN stopping rule (`analysis/q3/stopping_rule.yaml`, never re-tuned) and the "
+            "CV thresholds. Outputs go to results/q3_final/.", ""]
     body = section_hap1(O) + section_frontier(O) + section_choice(O) + section_pred(O) + section_stop(O)
     txt = "\n".join(head + body) + "\n" + NOTES
     (O / "summary.md").write_text(txt)
