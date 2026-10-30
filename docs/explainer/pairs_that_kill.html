@@ -1,0 +1,327 @@
+<title>Pairs That Kill</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single reading column on an agar-pale ground; the colony-plate dot field is the one bold moment, charts sit full-column. */
+:root {
+  --bg: #f4f7f5;
+  --surface: #ffffff;
+  --ink: #11201c;
+  --muted: #4d5c58;
+  --line: #d3ddd9;
+  --smart: #2a78d6;       /* smart (adaptive) choice: categorical slot 1 */
+  --lethal: #eb6834;      /* lethal pair / tested pair highlight: slot 2 */
+  --random: #7f8c88;      /* random choice: recessive neutral */
+  --dot: #c9d4d0;
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1513; --surface: #151d1b; --ink: #e7eeeb; --muted: #a7b4b0; --line: #2b3734;
+    --smart: #3987e5; --lethal: #d95926; --random: #7a8783; --dot: #2c3835; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1513; --surface: #151d1b; --ink: #e7eeeb; --muted: #a7b4b0; --line: #2b3734;
+  --smart: #3987e5; --lethal: #d95926; --random: #7a8783; --dot: #2c3835; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.6; }
+.wrap { max-width: 760px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 72px; display: flex; flex-direction: column; gap: 56px; }
+section { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2.3rem, 6vw, 3.6rem); line-height: 1.05; }
+h2 { font-size: clamp(1.6rem, 4vw, 2.1rem); line-height: 1.15; }
+h3 { font-size: 1.2rem; }
+p { margin: 0; max-width: 65ch; }
+.eyebrow { font-family: var(--font-data); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 1.2rem; color: var(--ink); }
+.muted { color: var(--muted); }
+em.k { font-style: normal; color: var(--lethal); font-weight: 600; }
+strong { font-weight: 600; }
+.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.big { font-family: var(--font-display); font-size: clamp(2.6rem, 9vw, 4.4rem); line-height: 1; font-weight: 600; }
+/* colony plate */
+.plate { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.plate canvas { width: 100%; height: auto; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 0.88rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.sw { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+/* cells diagram */
+.cells { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .cells { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.cell { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; font-size: 0.9rem; }
+.cell svg { width: 64px; height: 64px; }
+.cell .tag { font-family: var(--font-data); font-size: 0.75rem; letter-spacing: 0.04em; }
+.cell.dead { border-color: var(--lethal); }
+.cell.dead .tag { color: var(--lethal); }
+/* stats row */
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 620px) { .stats { grid-template-columns: 1fr; } }
+.stat { display: flex; flex-direction: column; gap: 4px; border-top: 2px solid var(--ink); padding-top: 10px; min-width: 0; }
+.stat .v { font-family: var(--font-display); font-size: 2rem; font-weight: 600; line-height: 1.1; }
+.stat .l { font-size: 0.9rem; color: var(--muted); }
+/* charts */
+.chart { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; position: relative; }
+.chart .title { font-weight: 600; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart svg text { fill: var(--muted); font-family: var(--font-body); font-size: 12px; }
+.chart .note { font-size: 0.85rem; color: var(--muted); }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 0.82rem; padding: 6px 9px; border-radius: 6px; line-height: 1.35; white-space: nowrap; transform: translate(-50%, -110%); }
+.tip[hidden] { display: none !important; }
+/* steps */
+ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: s; display: flex; flex-direction: column; gap: 14px; }
+ol.steps li { counter-increment: s; display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; align-items: start; }
+ol.steps li::before { content: counter(s); font-family: var(--font-data); font-size: 0.9rem; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--smart); color: var(--smart); display: grid; place-items: center; margin-top: 1px; }
+ul.plain { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; max-width: 65ch; }
+.callout { border-left: 3px solid var(--lethal); padding: 4px 0 4px 16px; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
+footer { font-size: 0.85rem; color: var(--muted); display: flex; flex-direction: column; gap: 8px; }
+a { color: var(--smart); }
+@media (prefers-reduced-motion: no-preference) { .plate canvas { transition: opacity .4s; } }
+</style>
+
+<div class="wrap">
+
+<header style="display:flex;flex-direction:column;gap:18px">
+  <div class="eyebrow">A plain-language summary · yeast → human</div>
+  <h1>Pairs that kill: choosing which human genes to test first</h1>
+  <p class="lede">Some genes are harmless to lose one at a time but deadly to lose together. Finding those pairs could point to new cancer treatments, but there are far too many pairs to test them all. We used a complete map from yeast to work out how human experiments should choose where to look.</p>
+</header>
+
+<section>
+  <h2>Two knockouts, one dead cell</h2>
+  <p>A cell can usually survive losing a single gene, because another gene covers for it. <strong>Synthetic lethality</strong> is when two genes back each other up: knock out either one and the cell lives, knock out both and it dies.</p>
+  <div class="cells" role="img" aria-label="Four cells: normal cell lives; without gene A lives; without gene B lives; without both A and B dies.">
+    <div class="cell"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--ink)" stroke-width="2"/><circle cx="24" cy="30" r="5" fill="var(--smart)"/><circle cx="40" cy="34" r="5" fill="var(--smart)"/></svg><div>Gene A and gene B working</div><div class="tag">LIVES</div></div>
+    <div class="cell"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--ink)" stroke-width="2"/><circle cx="24" cy="30" r="5" fill="none" stroke="var(--muted)" stroke-dasharray="2 2"/><circle cx="40" cy="34" r="5" fill="var(--smart)"/></svg><div>Gene A knocked out</div><div class="tag">LIVES</div></div>
+    <div class="cell"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--ink)" stroke-width="2"/><circle cx="24" cy="30" r="5" fill="var(--smart)"/><circle cx="40" cy="34" r="5" fill="none" stroke="var(--muted)" stroke-dasharray="2 2"/></svg><div>Gene B knocked out</div><div class="tag">LIVES</div></div>
+    <div class="cell dead"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--lethal)" stroke-width="2" stroke-dasharray="5 4"/><path d="M22 22 L42 42 M42 22 L22 42" stroke="var(--lethal)" stroke-width="3" stroke-linecap="round"/></svg><div>Both knocked out</div><div class="tag">DIES</div></div>
+  </div>
+  <p>This matters for medicine. Many tumours have already lost one gene through mutation. A drug that blocks its partner would kill the tumour cells and largely spare healthy cells, which still have both genes. PARP inhibitors for BRCA-mutant breast and ovarian cancers work this way.</p>
+</section>
+
+<section>
+  <h2>The problem is scale</h2>
+  <div class="stats">
+    <div class="stat"><span class="v num">~18,000</span><span class="l">human protein-coding genes in a standard genome-wide knockout library</span></div>
+    <div class="stat"><span class="v num">~160 million</span><span class="l">possible pairs of those genes (18,000 × 18,000 ÷ 2)</span></div>
+    <div class="stat"><span class="v num">~1 in 100</span><span class="l">tested pairs that show a strong harmful interaction, in both yeast and human cells</span></div>
+  </div>
+  <p>Testing pairs one at a time is impossible at this scale. Instead, labs use a <strong>screen</strong>. They build one cell line that lacks a chosen "query" gene, then use CRISPR to knock out every other gene in it, all at once in a pool. One screen tests one query gene against all ~18,000 others. Each query line has to be engineered and grown in large numbers, so a lab can afford hundreds of screens, not thousands.</p>
+  <div class="plate">
+    <div class="title" style="font-weight:600">All possible human gene pairs, one dot per 25,000 pairs</div>
+    <canvas id="plate" width="1400" height="560" role="img" aria-label="A field of 6,480 dots representing about 162 million human gene pairs. About 157 dots are highlighted, representing the roughly 3.9 million pairs tested by the largest human study so far."></canvas>
+    <div class="legend"><span><i class="sw" style="background:var(--dot)"></i>not yet tested</span><span><i class="sw" style="background:var(--lethal)"></i>tested by the largest human map so far (222 screens, ~3.9 million pairs)</span></div>
+  </div>
+  <p>The biggest human map to date (Billmann, Costanzo and colleagues, <em>Cell</em> 2026) screened 222 query genes in a human cell line called HAP1. It tested about 3.9 million pairs and found about 47,000 harmful interactions. The authors estimate this covers <strong>under 5% of all possible pairs</strong>. So <em class="k">which query genes should be screened next?</em></p>
+</section>
+
+<section>
+  <h2>Learning from yeast, where the whole map exists</h2>
+  <p>We can't test strategies in human cells without the answers. Baker's yeast is different. Its map is essentially complete for genes that are not essential: <span class="num">3,283</span> query genes were each screened against <span class="num">3,827</span> others, about <span class="num">12.6 million</span> measured combinations, of which about <span class="num">129,000</span> are strongly harmful (Costanzo and colleagues, <em>Science</em> 2016).</p>
+  <p>That lets us rehearse the human problem with the answer key in hand:</p>
+  <ul class="plain">
+    <li>We locked away 656 yeast genes (20%) as an exam that no method was allowed to see or screen.</li>
+    <li>We then "screened" other genes, in a simulation, either chosen at random or chosen smartly in rounds of 10.</li>
+    <li>After each round, a computer model used the screened results, plus gene information that also exists for humans (activity levels, protein partners, evolutionary conservation), to predict the harmful partners of the locked-away genes.</li>
+    <li>We scored how well those predictions ranked the true partners.</li>
+  </ul>
+  <p>The locked-away genes were scored exactly once, at the very end, after every choice had been frozen. An independent re-check of all the numbers found no discrepancies.</p>
+</section>
+
+<section>
+  <h2>1. More screens keep helping, with no plateau</h2>
+  <p>With randomly chosen query genes, predictions get steadily better as more genes are screened. They never level off. Screening 20% of genes at random gives predictions about <span class="num">6.7×</span> better than guessing. Screening everything we could gives about <span class="num">9.8×</span>.</p>
+  <div class="chart" id="c1">
+    <div class="title">How much better than guessing, as more genes are screened</div>
+    <svg id="svg1" viewBox="0 0 700 360" role="img" aria-label="Line chart. Prediction quality, as times better than guessing, versus percent of yeast genes screened. Random choice rises from 2.6 at 0.3% to 6.7 at 20% and 9.8 at 80%. Smart choice rises faster: 5.9 at 4.9% and 9.5 at 20%."></svg>
+    <div class="legend"><span><i class="sw" style="background:var(--random)"></i>genes chosen at random</span><span><i class="sw" style="background:var(--smart)"></i>genes chosen smartly, in rounds of 10 (measured up to 20%)</span></div>
+    <div class="note">"Better than guessing" is the precision-recall score divided by the rate a random guess would achieve (about 1 in 100). Scored on the 656 locked-away genes. Hover or tap the points for values.</div>
+    <div class="tip" id="tip1" hidden></div>
+  </div>
+</section>
+
+<section>
+  <h2>2. Choosing smartly gets you more from the same budget</h2>
+  <p>With <strong>160 screens (5% of genes)</strong>, the smart strategies made predictions about <strong>26–31% better</strong> than random screening. This was the main pre-registered test, and it passed for all three smart strategies. To match them, random screening needed about <span class="num">430</span> genes, roughly 2.5 times as many.</p>
+  <p class="callout">To be clear about the limits: 160 smart screens did <strong>not</strong> match 660 random screens (20%). They closed about 55–65% of that gap. They also did not clearly beat 490 random screens.</p>
+  <p>The smart strategies work by spending early screens on genes that turn out to have many partners. Their results reveal a lot about the rest of the map. The gain is largest for genes with many harmful partners. For genes with few, it is small.</p>
+</section>
+
+<section>
+  <h2>3. What makes a good gene to screen</h2>
+  <p>The genes the smart strategies picked had a clear profile. Each feature can be measured for human genes too:</p>
+  <ul class="plain">
+    <li><strong>Losing the gene alone already makes the cell grow poorly.</strong> This was the strongest signal.</li>
+    <li><strong>It is conserved</strong> across species.</li>
+    <li><strong>It is steadily and highly active</strong>, with many protein partners.</li>
+  </ul>
+  <p>A simple fixed rule using just three features (poor growth when the gene is lost, conservation, and steady activity) recovered most of the smart strategies' advantage in a follow-up check. That check is promising but small (3 runs), so it needs confirming. By contrast, a panel chosen for <em>diversity</em>, spread across growth rates and activity levels in the way the human study chose its genes, did no better than random.</p>
+</section>
+
+<section>
+  <h2>4. What this means for human screens</h2>
+  <p>The number of screens you need grows with the number of genes, so human cells need more than yeast. We estimate the number of human query lines needed for predictions to reach <strong>80% of the quality you would get by screening every possible query gene</strong>:</p>
+  <div class="chart" id="c2">
+    <div class="title">Human query lines needed to reach 80% of whole-genome prediction quality</div>
+    <svg id="svg2" viewBox="0 0 700 230" role="img" aria-label="Bar chart. Random choice needs about 3,300 lines (range 2,600 to 4,400). Smart choice needs about 1,000 lines (range 850 to 1,300) in 4 rounds of about 300. The largest study so far screened 222 lines."></svg>
+    <div class="note">Bars show central estimates; whiskers show 95% uncertainty ranges from the yeast-to-human scaling. Assumes about 8,500 human genes that can be knocked out as queries. Under the most optimistic scaling assumption, random choice would need about 1,200 lines. Hover or tap the bars for values.</div>
+    <div class="tip" id="tip2" hidden></div>
+  </div>
+  <div class="stats">
+    <div class="stat"><span class="v num">~70%</span><span class="l">fewer query lines with smart choice, for the same prediction quality</span></div>
+    <div class="stat"><span class="v num">4–5</span><span class="l">rounds of ~300 lines are enough. Choosing in big batches loses little.</span></div>
+    <div class="stat"><span class="v num">36–43%</span><span class="l">of whole-genome prediction quality that the 222 lines screened so far are estimated to provide</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>What computer predictions can and cannot do</h2>
+  <p>Predictions do not replace experiments, but they narrow the search. After screening about 20% of genes smartly, each unscreened gene's <strong>top 10 predicted partners contain about one true harmful partner</strong>. That is 10–14 times better than picking 10 at random. At that point the predictions are about as reliable as re-measuring the same pair in reverse. They remain far less reliable than an actual screen.</p>
+  <p>One warning for labs. When genes are chosen smartly, the usual way to check a model, by testing it on the genes already screened, badly overstates how good it is (by up to 2.4 times). That makes it unreliable for deciding when to stop. It is better to fix the number of rounds in advance.</p>
+</section>
+
+<section>
+  <h2>Our recommendation for human screens</h2>
+  <ol class="steps">
+    <li><div><strong>Start with the right kind of gene.</strong> For the first round, pick query genes whose loss alone slows growth, that are conserved, and that are steadily active. Not a deliberately diverse panel.</div></li>
+    <li><div><strong>Screen in a few large rounds and re-choose between them.</strong> After each round of about 300 lines, use the results to rank the next candidates.</div></li>
+    <li><div><strong>Plan for about 1,000–1,500 query lines</strong> to reach 80–90% of whole-genome prediction quality. Random choice would need about 3,300–4,900. Every extra 100 lines keeps adding value.</div></li>
+    <li><div><strong>If a diverse panel already exists, switch strategy now.</strong> In our tests, switching after an existing 220-gene panel gave 27–40% better predictions than continuing it.</div></li>
+    <li><div><strong>Fix the number of rounds in advance.</strong> Don't stop based on how well the model predicts the genes already screened.</div></li>
+  </ol>
+  <p class="muted">One practical caution: the best candidates are often the hardest cell lines to make, because losing the gene already makes cells sick. Leaving out the sickest 10% cost a little (6–9% of the benefit) in our tests.</p>
+</section>
+
+<section>
+  <h2>Caveats</h2>
+  <ul class="plain">
+    <li><strong>This is a rehearsal in yeast.</strong> Individual harmful pairs rarely carry over from yeast to human. Network-level patterns do carry over better, such as some genes having many partners, so the advice is about how many genes to screen and what kind, not which specific genes.</li>
+    <li><strong>The human numbers rest on a scaling estimate</strong> and on an assumed number of human query genes. Different reasonable assumptions shift them by roughly ±30%, and the most optimistic one would cut the random-choice figure to about 1,200 lines.</li>
+    <li><strong>The yeast map excludes essential genes</strong>, which human screens include.</li>
+    <li><strong>Measurements are noisy.</strong> Even the yeast map agrees with itself only partly when a pair is measured in both directions, which caps how good any prediction can look.</li>
+  </ul>
+</section>
+
+<hr>
+<footer>
+  <p><strong>How this was done.</strong> All choices were fixed in advance using development data only. The 656 locked-away yeast genes were evaluated in a single, one-time run, and the results were recomputed independently with separate code. Plans, deviations and all reviews are recorded in the project repository (REPORT.md). Sources: Costanzo et al., <em>Science</em> 2016 (yeast map); Billmann, Costanzo et al., <em>Cell</em> 2026 (human HAP1 map).</p>
+  <p>Summary prepared 30 October 2026 from the project's final results.</p>
+</footer>
+</div>
+
+<script>
+(function () {
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+
+  /* ---------- colony plate: 6,480 dots = ~162M pairs; 157 tested ---------- */
+  function drawPlate() {
+    const c = document.getElementById('plate'), ctx = c.getContext('2d');
+    const cols = 120, rows = 54, total = cols * rows; // 6,480
+    const W = c.width, H = c.height, gx = W / cols, gy = H / rows, r = Math.min(gx, gy) * 0.36;
+    ctx.clearRect(0, 0, W, H);
+    // deterministic pseudo-random choice of 157 highlighted dots
+    let s = 20261030; const rnd = () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296;
+    const hi = new Set(); while (hi.size < 157) hi.add(Math.floor(rnd() * total));
+    const dot = css('--dot'), lethal = css('--lethal');
+    for (let i = 0; i < total; i++) {
+      const x = (i % cols + 0.5) * gx, y = (Math.floor(i / cols) + 0.5) * gy;
+      ctx.beginPath(); ctx.arc(x, y, hi.has(i) ? r * 1.25 : r, 0, Math.PI * 2);
+      ctx.fillStyle = hi.has(i) ? lethal : dot; ctx.fill();
+    }
+  }
+
+  /* ---------- chart 1: lift vs % screened ---------- */
+  const N = 3283;
+  const randomPts = [[10,2.62],[30,3.25],[60,3.73],[100,4.10],[120,4.25],[160,4.50],[210,4.78],[220,4.85],[330,5.40],[410,5.81],[490,6.13],[660,6.65],[820,6.92],[980,7.42],[1310,8.15],[1640,8.58],[1970,9.11],[2627,9.76]];
+  const smartPts = [[30,3.25],[60,3.93],[100,4.95],[160,5.91],[220,6.65],[330,7.73],[490,9.00],[660,9.55]];
+  function chart1() {
+    const svg = document.getElementById('svg1'); svg.innerHTML = '';
+    const m = {l: 44, r: 96, t: 12, b: 40}, W = 700, H = 360, iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const x = p => m.l + p / 80 * iw, y = v => m.t + ih - v / 10 * ih;
+    const g = el('g', {}, svg);
+    for (let v = 0; v <= 10; v += 2) {
+      el('line', {x1: m.l, x2: m.l + iw, y1: y(v), y2: y(v), stroke: css('--line'), 'stroke-width': 1}, g);
+      el('text', {x: m.l - 8, y: y(v) + 4, 'text-anchor': 'end'}, g).textContent = v + '×';
+    }
+    for (let p = 0; p <= 80; p += 20) el('text', {x: x(p), y: m.t + ih + 20, 'text-anchor': 'middle'}, g).textContent = p + '%';
+    el('text', {x: m.l + iw / 2, y: H - 4, 'text-anchor': 'middle'}, g).textContent = 'Share of genes screened';
+    [[4.9, '5%'], [20.1, '20%']].forEach(([p, lab]) => {
+      el('line', {x1: x(p), x2: x(p), y1: m.t, y2: m.t + ih, stroke: css('--muted'), 'stroke-width': 1, 'stroke-dasharray': '3 4'}, g);
+      el('text', {x: x(p) + 4, y: m.t + 12}, g).textContent = lab;
+    });
+    const path = (pts, col) => {
+      const d = pts.map((q, i) => (i ? 'L' : 'M') + x(q[0] / N * 100).toFixed(1) + ' ' + y(q[1]).toFixed(1)).join(' ');
+      el('path', {d, fill: 'none', stroke: col, 'stroke-width': 2, 'stroke-linejoin': 'round'}, g);
+    };
+    path(randomPts, css('--random')); path(smartPts, css('--smart'));
+    const tip = document.getElementById('tip1'), box = document.getElementById('c1');
+    const pts = (arr, col, name) => arr.forEach(q => {
+      const cx = x(q[0] / N * 100), cy = y(q[1]);
+      el('circle', {cx, cy, r: 4, fill: col, stroke: css('--surface'), 'stroke-width': 2}, g);
+      const hit = el('circle', {cx, cy, r: 12, fill: 'transparent', tabindex: 0, 'aria-label': `${name}: ${q[0]} genes screened, ${q[1].toFixed(1)} times better than guessing`}, g);
+      const show = () => {
+        const b = svg.getBoundingClientRect(), bb = box.getBoundingClientRect(), s = b.width / W;
+        tip.innerHTML = `<b>${name}</b><br>${q[0].toLocaleString()} genes (${(q[0] / N * 100).toFixed(1)}%)<br>${q[1].toFixed(1)}× better than guessing`;
+        tip.style.left = (b.left - bb.left + cx * s) + 'px'; tip.style.top = (b.top - bb.top + cy * s - 6) + 'px'; tip.hidden = false;
+      };
+      hit.addEventListener('mouseenter', show); hit.addEventListener('focus', show); hit.addEventListener('click', show);
+      hit.addEventListener('mouseleave', () => tip.hidden = true); hit.addEventListener('blur', () => tip.hidden = true);
+    });
+    pts(randomPts, css('--random'), 'Random choice'); pts(smartPts, css('--smart'), 'Smart choice');
+    const lr = randomPts[randomPts.length - 1], ls = smartPts[smartPts.length - 1];
+    el('text', {x: x(lr[0] / N * 100) + 8, y: y(lr[1]) + 4, style: `fill:${css('--ink')}`}, g).textContent = 'Random';
+    el('text', {x: x(ls[0] / N * 100) + 8, y: y(ls[1]) - 6, style: `fill:${css('--ink')}`}, g).textContent = 'Smart';
+  }
+
+  /* ---------- chart 2: HAP1 lines needed ---------- */
+  const bars = [
+    {name: 'Random choice', v: 3321, lo: 2570, hi: 4374, col: '--random', sub: 'one batch'},
+    {name: 'Smart choice', v: 1037, lo: 846, hi: 1309, col: '--smart', sub: '4 rounds of ~300'}
+  ];
+  function chart2() {
+    const svg = document.getElementById('svg2'); svg.innerHTML = '';
+    const m = {l: 130, r: 24, t: 14, b: 40}, W = 700, H = 230, iw = W - m.l - m.r;
+    const x = v => m.l + v / 4500 * iw, bh = 38, gap = 34;
+    const g = el('g', {}, svg);
+    for (let v = 0; v <= 4500; v += 1000) {
+      el('line', {x1: x(v), x2: x(v), y1: m.t, y2: H - m.b, stroke: css('--line'), 'stroke-width': 1}, g);
+      el('text', {x: x(v), y: H - m.b + 18, 'text-anchor': 'middle'}, g).textContent = v.toLocaleString();
+    }
+    el('text', {x: m.l + iw / 2, y: H - 4, 'text-anchor': 'middle'}, g).textContent = 'Human query lines (cell lines to screen)';
+    const tip = document.getElementById('tip2'), box = document.getElementById('c2');
+    bars.forEach((b, i) => {
+      const y0 = m.t + 10 + i * (bh + gap), col = css(b.col);
+      el('text', {x: m.l - 10, y: y0 + bh / 2 - 2, 'text-anchor': 'end', style: `fill:${css('--ink')};font-weight:600`}, g).textContent = b.name;
+      el('text', {x: m.l - 10, y: y0 + bh / 2 + 14, 'text-anchor': 'end'}, g).textContent = b.sub;
+      const w = x(b.v) - m.l;
+      el('path', {d: `M${m.l} ${y0} H${m.l + w - 4} Q${m.l + w} ${y0} ${m.l + w} ${y0 + 4} V${y0 + bh - 4} Q${m.l + w} ${y0 + bh} ${m.l + w - 4} ${y0 + bh} H${m.l} Z`, fill: col}, g);
+      el('line', {x1: x(b.lo), x2: x(b.hi), y1: y0 + bh / 2, y2: y0 + bh / 2, stroke: css('--ink'), 'stroke-width': 1.5}, g);
+      [b.lo, b.hi].forEach(v => el('line', {x1: x(v), x2: x(v), y1: y0 + bh / 2 - 6, y2: y0 + bh / 2 + 6, stroke: css('--ink'), 'stroke-width': 1.5}, g));
+      el('text', {x: x(b.hi) + 8, y: y0 + bh / 2 + 4, style: `fill:${css('--ink')}`}, g).textContent = '~' + b.v.toLocaleString();
+      const hit = el('rect', {x: m.l, y: y0 - 4, width: iw, height: bh + 8, fill: 'transparent', tabindex: 0, 'aria-label': `${b.name}: about ${b.v} lines, range ${b.lo} to ${b.hi}`}, g);
+      const show = () => {
+        const r = svg.getBoundingClientRect(), bb = box.getBoundingClientRect(), s = r.width / W;
+        tip.innerHTML = `<b>${b.name}</b><br>~${b.v.toLocaleString()} lines (range ${b.lo.toLocaleString()}–${b.hi.toLocaleString()})<br>${b.sub}`;
+        tip.style.left = (r.left - bb.left + x(b.v) * s) + 'px'; tip.style.top = (r.top - bb.top + y0 * s - 4) + 'px'; tip.hidden = false;
+      };
+      hit.addEventListener('mouseenter', show); hit.addEventListener('focus', show); hit.addEventListener('click', show);
+      hit.addEventListener('mouseleave', () => tip.hidden = true); hit.addEventListener('blur', () => tip.hidden = true);
+    });
+    // marker: lines screened so far
+    const xm = x(222);
+    el('line', {x1: xm, x2: xm, y1: m.t, y2: H - m.b, stroke: css('--lethal'), 'stroke-width': 2}, g);
+    el('text', {x: xm + 6, y: m.t + 4, style: `fill:${css('--ink')}`}, g).textContent = '222 screened so far';
+  }
+
+  function drawAll() { drawPlate(); chart1(); chart2(); }
+  drawAll();
+  try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawAll); } catch (e) {}
+  new MutationObserver(drawAll).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
+})();
+</script>
