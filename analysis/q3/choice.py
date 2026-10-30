@@ -54,6 +54,9 @@ FEATURES = {
     "lof_freq": ("lof_freq", "LoF variant frequency", "gnomAD LOEUF"),
 }
 ARMS = ("R0", "H", "C", "F_r16", "H-static", "R1")
+RULE_COMMIT = "bde1622"      # rank rules fixed here, before the final was scored (PI condition for the T evaluation)
+FINAL_LABEL = ("post-final descriptive; rule fixed before scoring (bde1622); not part of the frozen final plan; "
+               "evaluated once, no refitting or tweaking after seeing T")
 N_EARLY = 160
 
 
@@ -346,8 +349,14 @@ def evaluate_final(out=None, budgets=(160, 330, 660), seeds=(0, 1, 2), rule="for
     part = O / "choice_eval_rows.jsonl"
     done = set()
     if part.exists():
-        done = {(x["rule"], x["seed"], x["n"]) for x in map(json.loads, part.read_text().splitlines()) if x.strip()}
-    res = json.loads((C.ROOT / "results" / "q3_dev" / "choice_rules.json").read_text())
+        done = {(x["rule"], x["seed"], x["n"]) for x in map(json.loads, filter(str.strip, part.read_text().splitlines()))}
+    # PI condition: the rule must be the one fixed in commit bde1622 (before the final was scored); evaluated once.
+    import subprocess
+    fixed = subprocess.run(["git", "-C", str(C.ROOT), "show", f"{RULE_COMMIT}:results/q3_dev/choice_rules.json"],
+                           capture_output=True, text=True, check=True).stdout
+    if json.loads(fixed) != json.loads((C.ROOT / "results" / "q3_dev" / "choice_rules.json").read_text()):
+        raise RuntimeError(f"results/q3_dev/choice_rules.json differs from {RULE_COMMIT}: refuse (rule must be fixed)")
+    res = json.loads(fixed)
     k = int(rule.split("_k")[1])
     coef = res["all"]["forward"][k - 1]["coef"]
     pool = np.asarray(views.final_split().pool, dtype=str)
@@ -376,7 +385,7 @@ def evaluate_final(out=None, budgets=(160, 330, 660), seeds=(0, 1, 2), rule="for
                                  chunk_targets=int(pr["chunk_targets"]), params=params)
             s = np.asarray(Sm, dtype=np.float32)[L["rows"], L["cols"]]
             y = L["y"]
-            r = {"split": "final", "rule": rule, "seed": seed, "n": n, "model_seed": ms, "coef": coef,
+            r = {"label": FINAL_LABEL, "rule_commit": RULE_COMMIT, "split": "final", "rule": rule, "seed": seed, "n": n, "model_seed": ms, "coef": coef,
                  "fit_s": time.perf_counter() - t0, "auprc": E.average_precision(y, s),
                  "auprc_VV": E.average_precision(y[L["OA"]], s[L["OA"]]),
                  "offarray_share": float(np.mean([g not in smf_map_cached() for g in sel[:n]]))}

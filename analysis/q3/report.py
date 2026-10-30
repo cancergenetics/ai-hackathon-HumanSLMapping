@@ -32,6 +32,14 @@ def i0(x):
     return "∞" if x == np.inf else ("—" if not np.isfinite(x) else f"{x:,.0f}")
 
 
+def _rd(p):
+    try:
+        d = pd.read_csv(p)
+        return d if len(d) else None
+    except (FileNotFoundError, pd.errors.EmptyDataError):
+        return None
+
+
 def table(df: pd.DataFrame, cols, heads=None, fmt=None) -> str:
     heads = heads or cols
     keep = [k for k, c in enumerate(cols) if c in df.columns]          # tolerate columns a source does not have
@@ -54,7 +62,9 @@ def section_hap1(O) -> list[str]:
     b = pd.read_csv(O / "hap1_billmann222.csv")
     m = pd.read_csv(O / "hap1_marginal.csv")
     ny = s["n_yeast"]
-    L += ["Yeast P* random n_80 / n_90 by AUPRC stratum (pool maximum = 100%): " +
+    L += ["n_80 / n_90 = the random budget reaching 80% / 90% of what screening the WHOLE candidate pool gives "
+          "(the curve has no plateau; this is not a saturation point). Yeast P* random n_80 / n_90 by AUPRC "
+          "stratum: " +
           "; ".join(f"{st} {i0(v['n80'])} / {i0(v['n90'])}" for st, v in ny.items()) +
           f" (candidate pool ≈ {i0(s['pool_n'])}). DESIGN §7.4 uses the on-array stratum (OA = E_VV on dev, E_TT at "
           "the final) for the HAP1 translation: OA is the primary below; 'all' (E_fixed, the Q1 endpoint with its "
@@ -116,8 +126,46 @@ def section_hap1(O) -> list[str]:
           "random pool-max AUPRC and of the network's strong SLs; H only within its measured range ≤ 660 yeast):", "",
           table(mm, cols, cols, {c: (lambda v: f"{100 * v:.1f}" if np.isfinite(v) else "—") for c in cols
                                  if c != "hap1_lines"} | {"hap1_lines": i0}), ""]
+    q = _rd(O / "hap1_nreq.csv")
+    if q is not None:
+        q = q[(q.N_HAP1 == 8500)].copy()
+        q["n_req_ci"] = [f"{i0(a)} [{i0(lo)}, {i0(hi)}]" + (f" (right-cens. {100 * fr:.0f}%)" if fr > 0 else "")
+                         for a, lo, hi, fr in zip(q.n_req, q.lo, q.hi, q.frac_right_censored)]
+        q["ratio_"] = [f"{r:.2f}" if np.isfinite(r) else "∞" for r in q.ratio]
+        q["lines"] = [f"{i0(a)} → {i0(b)}" for a, b in zip(q.lines_strategy, q.lines_random_equiv)]
+        cols = ["stratum", "arm", "n", "n_req_ci", "ratio_", "lines"] + (["scorer_n_req_all"] if "scorer_n_req_all" in q
+                                                                         else [])
+        heads = ["stratum", "arm", "strategy n", "random-equivalent n_req [95% CI]", "n_req / n",
+                 "HAP1 lines: strategy → random-equivalent (N_HAP1 8,500, measured b)"] + (
+            ["scorer n_req (E_fixed)"] if "scorer_n_req_all" in q else [])
+        L += ["**Stratum-specific random-equivalent budgets** (PI addendum; DESIGN §7.4: the on-array stratum OA = "
+              "E_TT on T is the HAP1-relevant one). n_req inverts the arm's mean curve on the random mean curve of the "
+              "SAME stratum (frozen n_req). CI = trajectory bootstrap only (strategy and random trajectories "
+              "resampled; no query resampling, so narrower than the scorer's query-bootstrap CI). The E_fixed "
+              "('all') points reproduce the scorer's n_req.csv exactly; the E_fixed ratio is NOT the translation "
+              "estimate.", "",
+              table(q[q.stratum == "OA"], cols, heads, {"n": i0, "scorer_n_req_all": i0}), "",
+              "Sensitivities (E_fixed, on-array rows):", "",
+              table(q[q.stratum != "OA"], cols, heads, {"n": i0, "scorer_n_req_all": i0}), ""]
     L += ["![HAP1 translation (OA stratum)](fig_hap1_curves.png) (E_fixed version: fig_hap1_curves_all.png)", ""]
     return L
+
+
+def section_qualifiers(O) -> list[str]:
+    g = _rd(O / "gain_qualifiers.csv")
+    if g is None:
+        return []
+    cols = [c for c in ["arm", "n", "pooled_auprc_rel", "macro_auprc_rel", "auroc_diff", "TT_rel", "onrows_rel",
+                        "tert1_rel", "tert1_ci", "tert2_rel", "tert2_ci", "tert3_rel", "tert3_ci"] if c in g.columns]
+    pc = {c: (lambda v: f"{100 * v:+.1f}%" if isinstance(v, (float, np.floating)) and np.isfinite(v) else str(v))
+          for c in cols if c.endswith("_rel")}
+    return ["## Where the gain is (qualifiers to every strategy number)", "",
+            "Finalist vs random at the same n: pooled AUPRC (the endpoint) vs per-query macro AUPRC, AUROC "
+            "difference, and (T) relative Δ on E_TT, on-array rows and by target SL-count tertile (scorer "
+            "contrasts.csv; CIs are the Δ CIs). At n = 160 much of the pooled gain is better cross-query ordering and "
+            "top-of-list precision: macro AUPRC gains far less, AUROC does not improve, and the gain is detectable "
+            "only in the top SL-count tertile.", "",
+            table(g, cols, fmt={"n": i0, "auroc_diff": lambda v: f"{v:+.3f}", **pc}), ""]
 
 
 def section_frontier(O) -> list[str]:
@@ -163,6 +211,12 @@ def section_choice(O) -> list[str]:
                             for p in R["all"]["forward"]), ""]
     if (O / "choice_rule_gain.csv").exists():
         g = pd.read_csv(O / "choice_rule_gain.csv")
+        if "final" in str(O):
+            L += ["**Label: post-final descriptive; rule fixed before scoring (bde1622); not part of the frozen final "
+                  "plan.** The rules fitted on all three dev splits were applied once to the final pool (randomised "
+                  "top-20 static picks, seeds 0–2) and scored on T; no refitting or tweaking. A resume bug in the "
+                  "runner (not in the rule) stopped the run after n = 160; it was fixed and the remaining "
+                  "pre-specified budgets were run with the rule unchanged.", ""]
         L += ["**Static rank rule vs the adaptive strategies** (randomised top-20 static picks from the leave-split-out "
               "rule, P* refit; recovered = (rule − random)/(strategy − random)):", "",
               table(g, ["rule", "n", "auprc_rule", "auprc_random", "auprc_H", "auprc_H_static", "auprc_rel_gain_rule",
@@ -219,14 +273,17 @@ def section_stop(O) -> list[str]:
     if not (O / "stop_estimator.csv").exists():
         return L + ["(not run)", ""]
     e = pd.read_csv(O / "stop_estimator.csv")
-    L += ["LBO-CV AUPRC on screened rows vs the trajectory's held-out AUPRC (E_fixed), per n:", "",
+    L += ["LBO-CV AUPRC on screened rows vs the trajectory's held-out AUPRC (E_fixed), per n. The estimator uses "
+          "only screened rows. Final mode refits P* on the DEV bundle (screened genes are pool genes; no T row is "
+          "loaded and HSL_FINAL is not needed). T-gene columns are excluded from the CV cells, which is conservative "
+          "relative to a real HAP1 experimenter, who would also use those library columns.", "",
           table(e[e.arm == "all"], ["n", "R", "cv_mean", "true_mean", "bias", "mae", "rel_bias", "rel_mae", "pearson",
                                     "spearman", "pearson_split_centred", "lift_rel_bias", "pearson_lift", "fit_s_mean"],
                 fmt={"n": i0, "R": i0}), "",
           table(e[e.arm != "all"], ["arm", "n", "R", "cv_mean", "true_mean", "rel_bias", "rel_mae", "pearson",
                                     "lift_rel_bias", "lift_rel_mae", "pearson_lift"],
                 fmt={"n": i0, "R": i0}), ""]
-    if (O / "stop_rule_grid.csv").exists() and (O / "stop_rule_grid.csv").stat().st_size > 5:
+    if "final" not in str(O) and (O / "stop_rule_grid.csv").exists() and (O / "stop_rule_grid.csv").stat().st_size > 5:
         g = pd.read_csv(O / "stop_rule_grid.csv").head(8)
         L += ["Plateau-rule grid (best first; mean |log2(n_stop / n_knee)|; stop_frac = AUPRC at stop / AUPRC(660)):",
               "", table(g, ["family", "statistic", "delta", "m", "mae_log2", "bias_log2", "trig", "stop_frac"],
@@ -239,7 +296,7 @@ def section_stop(O) -> list[str]:
     if (O / "stop_knees.csv").exists() and (O / "stop_knees.csv").stat().st_size > 5:
         kn = pd.read_csv(O / "stop_knees.csv")
         L += ["True knees per trajectory (0.95 × AUPRC(660)):", "", table(kn, list(kn.columns)), ""]
-    if (O / "stop_rule_lso.csv").exists() and (O / "stop_rule_lso.csv").stat().st_size > 5:
+    if "final" not in str(O) and (O / "stop_rule_lso.csv").exists() and (O / "stop_rule_lso.csv").stat().st_size > 5:
         L += ["Leave-split-out check of the rule choice:", "", table(pd.read_csv(O / "stop_rule_lso.csv"),
                                                                     ["held_out", "delta", "m", "mae_log2", "bias_log2",
                                                                      "R"]), ""]
@@ -326,7 +383,8 @@ def key_findings(O) -> list[str]:
         b0 = x[x.b_label == "b=0 (count)"].set_index("target")
         c = pd.read_csv(O / "hap1_costs.csv")
         c = c[(c.stratum == "OA") & (c.N_HAP1 == 8500) & (c.b_label == "measured")].set_index(["target", "arm"])
-        L.append(f"- **Random screening, HAP1 lines** (N_HAP1 8,500, measured b, on-array stratum): n_80 ≈ "
+        L.append(f"- **Random screening, HAP1 lines** to reach 80% / 90% of what screening the whole pool gives "
+                 f"(no plateau; N_HAP1 8,500, measured b, on-array stratum): n_80 ≈ "
                  f"{i0(m.loc['n80', 'n_HAP1'])} [{i0(m.loc['n80', 'lo'])}, {i0(m.loc['n80', 'hi'])}], n_90 ≈ "
                  f"{i0(m.loc['n90', 'n_HAP1'])} [{i0(m.loc['n90', 'lo'])}, {i0(m.loc['n90', 'hi'])}] lines "
                  f"(count-scaling bound b = 0: {i0(b0.loc['n80', 'n_HAP1'])} / {i0(b0.loc['n90', 'n_HAP1'])}).")
@@ -337,6 +395,13 @@ def key_findings(O) -> list[str]:
                          f"{i0(c.loc[('n90', arm), 'rounds'])} rounds (saving "
                          f"{100 * c.loc[('n80', arm), 'saving_vs_random']:.0f}% / "
                          f"{100 * c.loc[('n90', arm), 'saving_vs_random']:.0f}%).")
+        q = _rd(O / "hap1_nreq.csv")
+        if q is not None:
+            q = q[(q.N_HAP1 == 8500) & (q.stratum == "OA") & (q.n == 160)].set_index("arm")
+            L.append("- **Stratum-specific n_req at n = 160 (on-array stratum)**: " + "; ".join(
+                f"{a} ≈ random at {q.loc[a, 'n_req']:.0f} [{q.loc[a, 'lo']:.0f}, {q.loc[a, 'hi']:.0f}] "
+                f"({q.loc[a, 'ratio']:.2f}×; {q.loc[a, 'lines_strategy']:,.0f} vs {q.loc[a, 'lines_random_equiv']:,.0f} "
+                f"HAP1 lines)" for a in C.FINALISTS if a in q.index) + ".")
         bb = pd.read_csv(O / "hap1_billmann222.csv")
         bb = bb[(bb.stratum == "OA") & (bb.N_HAP1 == 8500) & (bb.b_label == "measured")].set_index("arm")
         L.append(f"- **Billmann's 222 lines** ≈ {bb.loc['R0', 'n_yeast_equiv']:.0f} yeast queries at measured b: random "
@@ -344,11 +409,20 @@ def key_findings(O) -> list[str]:
                  f"{100 * bb.loc['H', 'auprc_frac_of_max']:.0f}%.")
     except (FileNotFoundError, KeyError, IndexError, pd.errors.EmptyDataError):
         pass
+    gq = _rd(O / "gain_qualifiers.csv")
+    if gq is not None:
+        x = gq[gq.n == 160]
+        L.append(f"- **Where the gain is (n = 160)**: pooled AUPRC {100 * x.pooled_auprc_rel.min():+.0f} to "
+                 f"{100 * x.pooled_auprc_rel.max():+.0f}%, but macro AUPRC only {100 * x.macro_auprc_rel.min():+.0f} to "
+                 f"{100 * x.macro_auprc_rel.max():+.0f}% and AUROC {x.auroc_diff.min():+.3f} to {x.auroc_diff.max():+.3f}"
+                 + (f"; top SL-count tertile {100 * x.tert3_rel.min():+.0f} to {100 * x.tert3_rel.max():+.0f}%, "
+                    f"tertiles 1–2 {100 * min(x.tert1_rel.min(), x.tert2_rel.min()):+.0f} to "
+                    f"{100 * max(x.tert1_rel.max(), x.tert2_rel.max()):+.0f}%" if "tert3_rel" in x else "") + ".")
     try:
         g = pd.read_csv(O / "choice_rule_gain.csv").set_index(["rule", "n"])
         k = g.loc[("forward_k3", 160)]
-        L.append(f"- **Static 3-feature rank rule** (low single-mutant fitness, low expression variability, high "
-                 f"conservation) recovers {100 * k.auprc_recovered_vs_H:.0f}% of H's AUPRC gain at n = 160 "
+        L.append(f"- **Static 3-feature rank rule**{' (post-final descriptive; rule fixed in bde1622)' if 'final' in str(O) else ''} "
+                 f"(low single-mutant fitness, low expression variability, high conservation) recovers {100 * k.auprc_recovered_vs_H:.0f}% of H's AUPRC gain at n = 160 "
                  f"(H-static {100 * k.auprc_recovered_H_static_vs_H:.0f}%).")
     except (FileNotFoundError, KeyError, pd.errors.EmptyDataError):
         pass
@@ -361,8 +435,16 @@ def key_findings(O) -> list[str]:
                  f"{100 * h.rel_bias.min():+.0f}% to {100 * h.rel_bias.max():+.0f}% under H (SL-rich screened rows).")
         f_ = pd.read_csv(O / "stop_fixed_n_baseline.csv").sort_values("mae_log2").iloc[0]
         s_ = json.loads((O / "stop_summary.json").read_text())["best"]
+        ap_ = _rd(O / "stop_rule_applied.csv")
+        if s_ is None and ap_ is not None:          # final: the frozen rule as applied (no re-selection)
+            s_ = {"mae_log2": float(ap_.log2_err.abs().mean())}
+            L.append(f"- **Frozen stopping rule on these trajectories**: stops H at "
+                     f"{', '.join(str(int(v)) for v in ap_[ap_.arm == 'H'].n_stop)} and random at "
+                     f"{', '.join(str(int(v)) for v in ap_[ap_.arm == 'R0'].n_stop)} (triggered "
+                     f"{100 * ap_.triggered.mean():.0f}%; AUPRC at stop = {100 * ap_.true_at_stop_frac.mean():.0f}% of "
+                     f"AUPRC(660)).")
         kn = pd.read_csv(O / "stop_knees.csv").knee / 660
-        L.append(f"- **Stopping**: true knees fall at {kn.min():.2f}–{kn.max():.2f} × the 660 cap; the best online rule "
+        L.append(f"- **Stopping** ({'frozen rule, applied' if 'final' in str(O) else 'best dev rule, in-sample'}): true knees fall at {kn.min():.2f}–{kn.max():.2f} × the 660 cap; the {'frozen' if 'final' in str(O) else 'best online'} rule "
                  f"has mean "
                  f"|log2 error| {s_['mae_log2']:.2f} vs {f_.mae_log2:.2f} for always stopping at n = {f_.n_fixed:.0f}.")
     except (FileNotFoundError, KeyError, TypeError, IndexError, pd.errors.EmptyDataError):
@@ -372,17 +454,24 @@ def key_findings(O) -> list[str]:
 
 def compose(source: str, out=None) -> str:
     O = C.out_dir(source, out)
-    head = [f"# Q3 analyses — {source.upper()} {'(DEV DATA ONLY)' if source == 'dev' else ''}", "",
-            "DESIGN v3.1 §7.2–7.4. Code: `analysis/q3/` (one command per analysis, `--source dev|final|dryrun`); "
+    head = [f"# Q3 analyses — {source.upper()} {'(DEV DATA ONLY)' if source == 'dev' else ''}", ""]
+    if source == "final":
+        head += ["T-based numbers are primary; dev (results/q3_dev/summary.md) is the consistency check. Side by "
+                 "side: `dev_vs_final.md`. Stopping rule applied exactly as frozen in 51cae82. Translation uses the "
+                 "T-based n_80 / n_90 (results/final/q1_nx.csv) and stratum-specific n_req, with the dev universe "
+                 "slope b. Saturating-fit parameters are not quoted (c sits on its bound).", ""]
+    head += [
+"DESIGN v3.1 §7.2–7.4. Code: `analysis/q3/` (one command per analysis, `--source dev|final|dryrun`); "
             "rerun everything with `bash analysis/q3/run_all.sh <source>`. Predictor: frozen P* "
             "(stack_lr_wr2_lb). All numbers below are generated from the CSV/JSON files in this directory.", "",
+            ] + ([] if source != "dev" else [
             "**On the final outputs** (only after `scripts/score_final.py` has finished): "
             "(1) `bash analysis/q3/run_all.sh final` (hap1, frontier, choice profile, predcontrib; minutes); "
             "(2) `SOURCE=final SPLITS=final TRAJS=\"0 1\" ARMS=\"R0 H\" bash analysis/q3/run_lbo.sh` (LBO-CV refits on "
             "the dev bundle, one P* job at a time, ~25 min per trajectory); (3) `bash analysis/q3/run_all.sh final` "
             "again, which applies the FROZEN stopping rule (`analysis/q3/stopping_rule.yaml`, never re-tuned) and the "
-            "CV thresholds. Outputs go to results/q3_final/.", ""]
-    body = key_findings(O) + section_hap1(O) + section_frontier(O) + section_choice(O) + section_pred(O) + section_stop(O)
+            "CV thresholds. Outputs go to results/q3_final/.", ""])
+    body = key_findings(O) + section_qualifiers(O) + section_hap1(O) + section_frontier(O) + section_choice(O) + section_pred(O) + section_stop(O)
     txt = "\n".join(head + body) + "\n" + NOTES
     (O / "summary.md").write_text(txt)
     return txt

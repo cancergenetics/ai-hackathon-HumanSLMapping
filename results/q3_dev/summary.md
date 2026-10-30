@@ -6,17 +6,32 @@ DESIGN v3.1 §7.2–7.4. Code: `analysis/q3/` (one command per analysis, `--sour
 
 ## Key findings
 
-- **Random screening, HAP1 lines** (N_HAP1 8,500, measured b, on-array stratum): n_80 ≈ 2,208 [1,758, 2,871], n_90 ≈ 3,539 [2,976, 4,238] lines (count-scaling bound b = 0: 805 / 1,288).
+- **Random screening, HAP1 lines** to reach 80% / 90% of what screening the whole pool gives (no plateau; N_HAP1 8,500, measured b, on-array stratum): n_80 ≈ 2,208 [1,758, 2,871], n_90 ≈ 3,539 [2,976, 4,238] lines (count-scaling bound b = 0: 805 / 1,288).
 - **H** reaches the same AUPRC with 639 (n_80) / 1,233 (n_90) lines in 24 / 45 rounds (saving 71% / 65%).
 - **H__b110** reaches the same AUPRC with 805 (n_80) / 1,339 (n_90) lines in 3 / 5 rounds (saving 64% / 62%).
+- **Stratum-specific n_req at n = 160 (on-array stratum)**: H ≈ random at 572 [507, 636] (3.57×; 439 vs 1,567 HAP1 lines); C ≈ random at 504 [447, 557] (3.15×; 439 vs 1,382 HAP1 lines); F_r16 ≈ random at 497 [436, 576] (3.10×; 439 vs 1,361 HAP1 lines).
 - **Billmann's 222 lines** ≈ 81 yeast queries at measured b: random selection gives 46% of the pool-max AUPRC, H 56%.
+- **Where the gain is (n = 160)**: pooled AUPRC +28 to +33%, but macro AUPRC only +3 to +7% and AUROC -0.006 to -0.001.
 - **Static 3-feature rank rule** (low single-mutant fitness, low expression variability, high conservation) recovers 72% of H's AUPRC gain at n = 160 (H-static 46%).
 - **Online estimator**: LBO-CV AUPRC on screened rows has relative bias -17% to +5% under random selection but +38% to +128% under H (SL-rich screened rows).
-- **Stopping**: true knees fall at 0.65–0.92 × the 660 cap; the best online rule has mean |log2 error| 0.25 vs 0.13 for always stopping at n = 490.
+- **Stopping** (best dev rule, in-sample): true knees fall at 0.65–0.92 × the 660 cap; the best online rule has mean |log2 error| 0.25 vs 0.13 for always stopping at n = 490.
+
+## Where the gain is (qualifiers to every strategy number)
+
+Finalist vs random at the same n: pooled AUPRC (the endpoint) vs per-query macro AUPRC, AUROC difference, and (T) relative Δ on E_TT, on-array rows and by target SL-count tertile (scorer contrasts.csv; CIs are the Δ CIs). At n = 160 much of the pooled gain is better cross-query ordering and top-of-list precision: macro AUPRC gains far less, AUROC does not improve, and the gain is detectable only in the top SL-count tertile.
+
+| arm | n | pooled_auprc_rel | macro_auprc_rel | auroc_diff |
+|---|---|---|---|---|
+| H | 160 | +32.7% | +7.4% | -0.003 |
+| H | 660 | +28.2% | +12.3% | -0.004 |
+| C | 160 | +29.9% | +6.8% | -0.001 |
+| C | 660 | +22.6% | +11.0% | -0.002 |
+| F_r16 | 160 | +28.0% | +3.0% | -0.006 |
+| F_r16 | 660 | +27.1% | +10.8% | -0.002 |
 
 ## 1. HAP1 translation (§7.3–7.4)
 
-Yeast P* random n_80 / n_90 by AUPRC stratum (pool maximum = 100%): OA 805 / 1,288; all 810 / 1,279; onrows 817 / 1,279 (candidate pool ≈ 2,101). DESIGN §7.4 uses the on-array stratum (OA = E_VV on dev, E_TT at the final) for the HAP1 translation: OA is the primary below; 'all' (E_fixed, the Q1 endpoint with its frozen joint-bootstrap CI) and on-array rows are sensitivities. OA/onrows CIs carry over the 'all' stratum's relative CI width (approximation). Slope b (universe subsampling, re-bootstrapped): n_80 1.06 [0.85, 1.30], n_90 1.06 [0.89, 1.24].
+n_80 / n_90 = the random budget reaching 80% / 90% of what screening the WHOLE candidate pool gives (the curve has no plateau; this is not a saturation point). Yeast P* random n_80 / n_90 by AUPRC stratum: OA 805 / 1,288; all 810 / 1,279; onrows 817 / 1,279 (candidate pool ≈ 2,101). DESIGN §7.4 uses the on-array stratum (OA = E_VV on dev, E_TT at the final) for the HAP1 translation: OA is the primary below; 'all' (E_fixed, the Q1 endpoint with its frozen joint-bootstrap CI) and on-array rows are sensitivities. OA/onrows CIs carry over the 'all' stratum's relative CI width (approximation). Slope b (universe subsampling, re-bootstrapped): n_80 1.06 [0.85, 1.30], n_90 1.06 [0.89, 1.24].
 
 **Random selection, HAP1 lines needed** (N_yeast = 3,283; 95% CI from the joint bootstrap of n_yeast and b; screens = lines × 1.34):
 
@@ -127,6 +142,88 @@ Denominator sensitivity (N_HAP1 = 8,500, measured b):
 | 2,000 | — | 77.4 | — | 1.0 | — | 1.4 |
 | 3,000 | — | 86.0 | — | 0.7 | — | 1.4 |
 | 4,000 | — | 92.5 | — | 0.6 | — | 1.4 |
+
+**Stratum-specific random-equivalent budgets** (PI addendum; DESIGN §7.4: the on-array stratum OA = E_TT on T is the HAP1-relevant one). n_req inverts the arm's mean curve on the random mean curve of the SAME stratum (frozen n_req). CI = trajectory bootstrap only (strategy and random trajectories resampled; no query resampling, so narrower than the scorer's query-bootstrap CI). The E_fixed ('all') points reproduce the scorer's n_req.csv exactly; the E_fixed ratio is NOT the translation estimate.
+
+| stratum | arm | strategy n | random-equivalent n_req [95% CI] | n_req / n | HAP1 lines: strategy → random-equivalent (N_HAP1 8,500, measured b) |
+|---|---|---|---|---|---|
+| OA | H | 30 | 39 [31, 50] | 1.31 | 82 → 108 |
+| OA | H | 60 | 111 [83, 140] | 1.86 | 165 → 306 |
+| OA | H | 100 | 299 [246, 358] | 2.99 | 274 → 821 |
+| OA | H | 160 | 572 [507, 636] | 3.57 | 439 → 1,567 |
+| OA | H | 220 | 757 [695, 834] | 3.44 | 603 → 2,076 |
+| OA | H | 330 | 1,090 [1,013, 1,163] | 3.30 | 905 → 2,989 |
+| OA | H | 490 | 1,393 [1,322, 1,464] | 2.84 | 1,344 → 3,820 |
+| OA | H | 660 | 1,781 [1,731, 1,819] (right-cens. 17%) | 2.70 | 1,810 → 4,885 |
+| OA | C | 30 | 46 [34, 62] | 1.55 | 82 → 127 |
+| OA | C | 60 | 167 [144, 192] | 2.79 | 165 → 458 |
+| OA | C | 100 | 339 [295, 389] | 3.39 | 274 → 929 |
+| OA | C | 160 | 504 [447, 557] | 3.15 | 439 → 1,382 |
+| OA | C | 220 | 673 [603, 757] | 3.06 | 603 → 1,845 |
+| OA | C | 330 | 943 [876, 1,016] | 2.86 | 905 → 2,585 |
+| OA | C | 490 | 1,177 [1,105, 1,238] | 2.40 | 1,344 → 3,226 |
+| OA | C | 660 | 1,406 [1,353, 1,453] | 2.13 | 1,810 → 3,856 |
+| OA | F_r16 | 30 | 36 [31, 43] | 1.22 | 82 → 100 |
+| OA | F_r16 | 60 | 111 [87, 135] | 1.85 | 165 → 305 |
+| OA | F_r16 | 100 | 269 [239, 306] | 2.69 | 274 → 738 |
+| OA | F_r16 | 160 | 497 [436, 576] | 3.10 | 439 → 1,361 |
+| OA | F_r16 | 220 | 635 [580, 705] | 2.89 | 603 → 1,742 |
+| OA | F_r16 | 330 | 964 [888, 1,057] | 2.92 | 905 → 2,642 |
+| OA | F_r16 | 490 | 1,388 [1,330, 1,444] | 2.83 | 1,344 → 3,805 |
+| OA | F_r16 | 660 | 1,720 [1,666, 1,771] | 2.61 | 1,810 → 4,716 |
+
+Sensitivities (E_fixed, on-array rows):
+
+| stratum | arm | strategy n | random-equivalent n_req [95% CI] | n_req / n | HAP1 lines: strategy → random-equivalent (N_HAP1 8,500, measured b) |
+|---|---|---|---|---|---|
+| all | H | 30 | 39 [32, 46] | 1.29 | 82 → 106 |
+| all | H | 60 | 104 [84, 124] | 1.73 | 165 → 284 |
+| all | H | 100 | 281 [226, 346] | 2.81 | 274 → 770 |
+| all | H | 160 | 532 [479, 593] | 3.33 | 439 → 1,459 |
+| all | H | 220 | 747 [689, 810] | 3.39 | 603 → 2,047 |
+| all | H | 330 | 1,085 [1,030, 1,141] | 3.29 | 905 → 2,974 |
+| all | H | 490 | 1,421 [1,345, 1,501] | 2.90 | 1,344 → 3,897 |
+| all | H | 660 | 1,773 [1,729, 1,811] | 2.69 | 1,810 → 4,863 |
+| all | C | 30 | 45 [35, 55] | 1.48 | 82 → 122 |
+| all | C | 60 | 147 [131, 170] | 2.46 | 165 → 404 |
+| all | C | 100 | 320 [281, 358] | 3.20 | 274 → 878 |
+| all | C | 160 | 496 [447, 547] | 3.10 | 439 → 1,359 |
+| all | C | 220 | 690 [626, 762] | 3.13 | 603 → 1,891 |
+| all | C | 330 | 970 [927, 1,012] | 2.94 | 905 → 2,661 |
+| all | C | 490 | 1,187 [1,138, 1,237] | 2.42 | 1,344 → 3,256 |
+| all | C | 660 | 1,438 [1,398, 1,476] | 2.18 | 1,810 → 3,942 |
+| all | F_r16 | 30 | 36 [31, 42] | 1.21 | 82 → 100 |
+| all | F_r16 | 60 | 95 [78, 116] | 1.58 | 165 → 260 |
+| all | F_r16 | 100 | 249 [219, 273] | 2.49 | 274 → 683 |
+| all | F_r16 | 160 | 466 [420, 516] | 2.91 | 439 → 1,278 |
+| all | F_r16 | 220 | 638 [589, 697] | 2.90 | 603 → 1,749 |
+| all | F_r16 | 330 | 983 [933, 1,039] | 2.98 | 905 → 2,695 |
+| all | F_r16 | 490 | 1,359 [1,318, 1,398] | 2.77 | 1,344 → 3,725 |
+| all | F_r16 | 660 | 1,708 [1,658, 1,750] | 2.59 | 1,810 → 4,683 |
+| onrows | H | 30 | 36 [29, 42] | 1.19 | 82 → 98 |
+| onrows | H | 60 | 106 [81, 130] | 1.77 | 165 → 291 |
+| onrows | H | 100 | 290 [224, 366] | 2.90 | 274 → 795 |
+| onrows | H | 160 | 554 [498, 604] | 3.46 | 439 → 1,519 |
+| onrows | H | 220 | 758 [696, 825] | 3.45 | 603 → 2,080 |
+| onrows | H | 330 | 1,112 [1,067, 1,155] | 3.37 | 905 → 3,050 |
+| onrows | H | 490 | 1,473 [1,402, 1,532] | 3.01 | 1,344 → 4,039 |
+| onrows | H | 660 | 1,836 [1,785, 1,858] (right-cens. 42%) | 2.78 | 1,810 → 5,035 |
+| onrows | C | 30 | 35 [26, 47] | 1.17 | 82 → 96 |
+| onrows | C | 60 | 154 [131, 186] | 2.57 | 165 → 423 |
+| onrows | C | 100 | 340 [285, 385] | 3.40 | 274 → 933 |
+| onrows | C | 160 | 509 [455, 553] | 3.18 | 439 → 1,396 |
+| onrows | C | 220 | 702 [640, 786] | 3.19 | 603 → 1,926 |
+| onrows | C | 330 | 991 [938, 1,045] | 3.00 | 905 → 2,716 |
+| onrows | C | 490 | 1,232 [1,171, 1,293] | 2.51 | 1,344 → 3,378 |
+| onrows | C | 660 | 1,520 [1,473, 1,559] | 2.30 | 1,810 → 4,169 |
+| onrows | F_r16 | 30 | 37 [32, 42] | 1.23 | 82 → 101 |
+| onrows | F_r16 | 60 | 94 [74, 120] | 1.57 | 165 → 258 |
+| onrows | F_r16 | 100 | 254 [225, 283] | 2.54 | 274 → 696 |
+| onrows | F_r16 | 160 | 499 [452, 550] | 3.12 | 439 → 1,367 |
+| onrows | F_r16 | 220 | 665 [620, 715] | 3.02 | 603 → 1,824 |
+| onrows | F_r16 | 330 | 1,027 [963, 1,090] | 3.11 | 905 → 2,816 |
+| onrows | F_r16 | 490 | 1,435 [1,388, 1,474] | 2.93 | 1,344 → 3,935 |
+| onrows | F_r16 | 660 | 1,802 [1,760, 1,838] (right-cens. 0%) | 2.73 | 1,810 → 4,940 |
 
 ![HAP1 translation (OA stratum)](fig_hap1_curves.png) (E_fixed version: fig_hap1_curves_all.png)
 
@@ -315,7 +412,7 @@ Thresholds chosen by leave-batch-out CV on screened rows, applied to the targets
 
 ## 5. Online stopping estimator (§7.4)
 
-LBO-CV AUPRC on screened rows vs the trajectory's held-out AUPRC (E_fixed), per n:
+LBO-CV AUPRC on screened rows vs the trajectory's held-out AUPRC (E_fixed), per n. The estimator uses only screened rows. Final mode refits P* on the DEV bundle (screened genes are pool genes; no T row is loaded and HSL_FINAL is not needed). T-gene columns are excluded from the CV cells, which is conservative relative to a real HAP1 experimenter, who would also use those library columns.
 
 | n | R | cv_mean | true_mean | bias | mae | rel_bias | rel_mae | pearson | spearman | pearson_split_centred | lift_rel_bias | pearson_lift | fit_s_mean |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|

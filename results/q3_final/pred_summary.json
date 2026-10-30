@@ -1,0 +1,20 @@
+{
+ "source": "final",
+ "reference": [
+  {
+   "split": "final",
+   "n_cells": 238870,
+   "n_pos": 2754,
+   "prevalence": 0.011529283710805041,
+   "ref_precision": 0.17792302106027597,
+   "ref_recall": 0.17792302106027597,
+   "kappa": 0.1683345137164272
+  }
+ ],
+ "hap1_context": {
+  "precision": 0.61,
+  "recall": 0.37
+ },
+ "n_threshold_rows": 20,
+ "runtime_s": 326.3453174158931
+}

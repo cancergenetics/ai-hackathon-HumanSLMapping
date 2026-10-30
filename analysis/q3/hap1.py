@@ -108,27 +108,48 @@ def nx_from_rows(rows: pd.DataFrame, col: str, nx_all: pd.DataFrame) -> pd.DataF
     return pd.DataFrame(out)
 
 
-def nreq_table(source, O, rows, bb, K) -> pd.DataFrame:
-    """Random-equivalent budgets of the finalists at their checkpoints, in yeast queries and HAP1 lines (E_fixed).
-    final/dryrun: the scorer's n_req.csv (frozen joint bootstrap CI); dev: n_req of the split-mean strategy curve on the
-    split's random mean curve (frozen n_req), averaged over dev1-3 (no CI)."""
+def _traj_matrix(rows, arm, split, col):
+    d = rows[(rows.arm == arm) & (rows.split == split)].pivot_table(index="traj", columns="n", values=col)
+    return d.columns.to_numpy(float), d.to_numpy(float)
+
+
+def nreq_table(source, O, rows, bb, K, B: int = 500) -> pd.DataFrame:
+    """Stratum-specific random-equivalent budgets n_req(n) of the finalists (PI addendum, DESIGN §7.4): the arm's
+    mean curve at checkpoint n inverted on the random mean curve OF THE SAME STRATUM (frozen hsl.eval.n_req), per
+    split; CI = trajectory bootstrap (strategy and random trajectories resampled independently, B replicates; dev:
+    split-averaged). Strata: OA (dev E_VV / final E_TT, primary), onrows, all (E_fixed; final cross-check against the
+    scorer's n_req.csv, whose CI is the frozen query bootstrap). Translated to HAP1 lines with the dev slope b."""
     from hsl import eval as E
-    if source == "dev":
-        recs = []
-        rc = mean_curves(rows, C.RANDOM)
+    rng = np.random.default_rng(int(K["bootstrap"]["seed"]) + 1)
+    recs = []
+    for st, col in STRATA.items():
         for a in C.FINALISTS:
-            for sp, cur in mean_curves(rows, a).items():
-                r = rc[sp]
-                for n, v in zip(cur.n, cur.auprc):
-                    q = E.n_req(float(v), r.n.to_numpy(float), r.auprc.to_numpy(float))
-                    recs.append({"arm": a, "n": int(n), "n_req": q.n, "censored": q.censored, "split": sp})
-        d = pd.DataFrame(recs)
-        d = d.groupby(["arm", "n"]).agg(n_req=("n_req", "mean"),
-                                        censored=("censored", lambda x: ";".join(sorted(set(x) - {""})))).reset_index()
-        d["lo"], d["hi"] = np.nan, np.nan
-    else:
-        d = pd.read_csv(C.final_dir(source) / "n_req.csv")
-        d = d[d.arm.isin(C.FINALISTS)].copy()
+            per_split = {}
+            for sp in sorted(rows[rows.arm == a].split.unique()):
+                rn, Rm = _traj_matrix(rows, C.RANDOM, sp, col)
+                sn, Sm = _traj_matrix(rows, a, sp, col)
+                pt = [E.n_req(v, rn, np.nanmean(Rm, 0)) for v in np.nanmean(Sm, 0)]
+                reps = np.empty((B, len(sn)))
+                for i in range(B):
+                    rr = np.nanmean(Rm[rng.integers(0, len(Rm), len(Rm))], 0)
+                    ss = np.nanmean(Sm[rng.integers(0, len(Sm), len(Sm))], 0)
+                    reps[i] = [E.n_req(v, rn, rr).n for v in ss]
+                per_split[sp] = (sn, pt, reps)
+            sn = list(per_split.values())[0][0]
+            for j, n in enumerate(sn):
+                ptv = np.array([v[1][j].n for v in per_split.values()])
+                cens = ";".join(sorted({v[1][j].censored for v in per_split.values()} - {""}))
+                rep = np.mean(np.vstack([v[2][:, j] for v in per_split.values()]), 0)
+                lo, hi = pct(rep)
+                recs.append({"stratum": st, "arm": a, "n": int(n), "n_req": float(np.mean(ptv)), "censored": cens,
+                             "lo": lo, "hi": hi, "frac_right_censored": float(np.mean(~np.isfinite(rep))),
+                             "n_req_per_split": "|".join(f"{v:.0f}" for v in ptv)})
+    d = pd.DataFrame(recs)
+    if source != "dev" and (C.final_dir(source) / "n_req.csv").exists():
+        q = pd.read_csv(C.final_dir(source) / "n_req.csv")
+        q = q[q.arm.isin(C.FINALISTS)][["arm", "n", "n_req", "lo", "hi"]].rename(
+            columns={"n_req": "scorer_n_req_all", "lo": "scorer_lo", "hi": "scorer_hi"})
+        d = d.merge(q, on=["arm", "n"], how="left")
     NY = float(K["N_yeast"]["primary"])
     b0, br = bb["n80"]
     out = []
@@ -137,11 +158,10 @@ def nreq_table(source, O, rows, bb, K) -> pd.DataFrame:
         sc = (Nh / NY) ** b0
         for _, x in d.iterrows():
             reps = x.n_req * (Nh / NY) ** br if np.isfinite(x.n_req) else np.full(len(br), np.inf)
-            out.append({"arm": x.arm, "n_yeast": int(x.n), "n_req_yeast": x.n_req, "n_req_lo": x.lo,
-                        "n_req_hi": x.hi, "censored": x.get("censored", ""), "ratio": x.n_req / x.n,
+            out.append({**x.to_dict(), "ratio": x.n_req / x.n, "ratio_lo": x.lo / x.n, "ratio_hi": x.hi / x.n,
                         "N_HAP1": Nh, "lines_strategy": x.n * sc, "lines_random_equiv": x.n_req * sc,
-                        "lines_random_equiv_b_lo": pct(reps)[0], "lines_random_equiv_b_hi": pct(reps)[1],
-                        "lines_random_equiv_nreq_lo": x.lo * sc, "lines_random_equiv_nreq_hi": x.hi * sc})
+                        "lines_random_equiv_lo": x.lo * sc, "lines_random_equiv_hi": x.hi * sc,
+                        "lines_random_equiv_b_lo": pct(reps)[0], "lines_random_equiv_b_hi": pct(reps)[1]})
     return pd.DataFrame(out)
 
 

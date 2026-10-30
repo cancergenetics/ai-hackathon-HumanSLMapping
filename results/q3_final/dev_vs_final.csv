@@ -1,0 +1,79 @@
+metric,dev,final_T
+random n80 yeast queries (OA),805,"1,211"
+"random n80 HAP1 lines (OA, N_HAP1 8,500, b measured)","2,208 [1,758, 2,871]","3,321 [2,570, 4,374]"
+"random n80 HAP1 lines (OA, b = 0 bound)",805,"1,211"
+"random n80 HAP1 lines (OA, b = 1 bound)","2,084","3,136"
+random n90 yeast queries (OA),"1,288","1,796"
+"random n90 HAP1 lines (OA, N_HAP1 8,500, b measured)","3,539 [2,976, 4,238]","4,934 [4,110, 5,982]"
+"random n90 HAP1 lines (OA, b = 0 bound)","1,288","1,796"
+"random n90 HAP1 lines (OA, b = 1 bound)","3,336","4,651"
+random n80 yeast queries (all),810,"1,143"
+"random n80 HAP1 lines (all, N_HAP1 8,500, b measured)","2,220 [1,759, 2,874]","3,135 [2,438, 4,132]"
+"random n80 HAP1 lines (all, b = 0 bound)",810,"1,143"
+"random n80 HAP1 lines (all, b = 1 bound)","2,096","2,960"
+random n90 yeast queries (all),"1,279","1,761"
+"random n90 HAP1 lines (all, N_HAP1 8,500, b measured)","3,512 [2,947, 4,216]","4,837 [4,030, 5,897]"
+"random n90 HAP1 lines (all, b = 0 bound)","1,279","1,761"
+"random n90 HAP1 lines (all, b = 1 bound)","3,311","4,559"
+H budget for random n80 AUPRC (OA),"639 lines, 24 rounds, saving 71%","999 lines, 37 rounds, saving 70%"
+H budget for random n90 AUPRC (OA),"1,233 lines, 45 rounds, saving 65%","1,296 lines, 48 rounds, saving 74%"
+C budget for random n80 AUPRC (OA),"746 lines, 28 rounds, saving 66%","956 lines, 35 rounds, saving 71%"
+C budget for random n90 AUPRC (OA),"1,549 lines, 57 rounds, saving 56%","1,361 lines, 50 rounds, saving 72%"
+F_r16 budget for random n80 AUPRC (OA),"758 lines, 28 rounds, saving 66%","904 lines, 33 rounds, saving 73%"
+F_r16 budget for random n90 AUPRC (OA),"1,247 lines, 46 rounds, saving 65%","1,189 lines, 44 rounds, saving 76%"
+H__b110 budget for random n80 AUPRC (OA),"805 lines, 3 rounds, saving 64%","1,037 lines, 4 rounds, saving 69%"
+H__b110 budget for random n90 AUPRC (OA),"1,339 lines, 5 rounds, saving 62%","1,438 lines, 5 rounds, saving 71%"
+C__b110 budget for random n80 AUPRC (OA),"895 lines, 3 rounds, saving 59%","1,159 lines, 4 rounds, saving 65%"
+C__b110 budget for random n90 AUPRC (OA),"1,572 lines, 6 rounds, saving 56%","1,592 lines, 6 rounds, saving 68%"
+H-static budget for random n80 AUPRC (OA),"1,333 lines, 49 rounds, saving 40%",not reached by 660 (right)
+H-static budget for random n90 AUPRC (OA),not reached by 660 (right;right;right),not reached by 660 (right)
+R1 budget for random n80 AUPRC (OA),not reached by 660 (right;right;right),not reached by 660 (right)
+R1 budget for random n90 AUPRC (OA),not reached by 660 (right;right;right),not reached by 660 (right)
+H n_req at n = 160 (E_fixed; ratio),532 (3.33×),434 (2.71×)
+H n_req at n = 660 (E_fixed; ratio),"1,773 (2.69×)","2,387 (3.62×)"
+C n_req at n = 160 (E_fixed; ratio),496 (3.10×),433 (2.70×)
+C n_req at n = 660 (E_fixed; ratio),"1,438 (2.18×)","2,212 (3.35×)"
+F_r16 n_req at n = 160 (E_fixed; ratio),466 (2.91×),384 (2.40×)
+F_r16 n_req at n = 660 (E_fixed; ratio),"1,708 (2.59×)",inf (inf×)
+Billmann 222 lines: R0 AUPRC % of pool-max random (OA),45.940,36.008
+Billmann 222 lines: H AUPRC % of pool-max random (OA),55.645,43.087
+Billmann 222 lines: R1 AUPRC % of pool-max random (OA),45.147,35.524
+H n = 160: SL cells detected ×random / AUPRC ×random,1.63 / 1.33,1.62 / 1.31
+H n = 660: SL cells detected ×random / AUPRC ×random,1.36 / 1.28,1.43 / 1.44
+C n = 160: SL cells detected ×random / AUPRC ×random,1.49 / 1.30,1.39 / 1.31
+C n = 660: SL cells detected ×random / AUPRC ×random,1.23 / 1.23,1.28 / 1.41
+F_r16 n = 160: SL cells detected ×random / AUPRC ×random,1.62 / 1.28,1.63 / 1.26
+F_r16 n = 660: SL cells detected ×random / AUPRC ×random,1.36 / 1.27,1.42 / 1.48
+R1 n = 160: SL cells detected ×random / AUPRC ×random,0.99 / 1.01,1.02 / 1.00
+R1 n = 660: SL cells detected ×random / AUPRC ×random,1.00 / 0.99,1.00 / 0.98
+H early picks: SMD smf,-1.651,-1.691
+H early picks: SMD conservation,0.479,0.592
+H early picks: SMD expr_sd,-0.281,-0.290
+H early picks: SMD abundance,0.402,0.490
+H early picks: SMD apms_degree,0.318,0.323
+static rule forward_k1 n = 160: gain vs random / recovered of H's gain,"+15.9% / 0.43 (splits 3, fits 9)",—
+static rule forward_k1 n = 330: gain vs random / recovered of H's gain,"+26.2% / 0.73 (splits 3, fits 9)",—
+static rule forward_k1 n = 660: gain vs random / recovered of H's gain,"+24.1% / 0.73 (splits 2, fits 4)",—
+static rule forward_k3 n = 160: gain vs random / recovered of H's gain,"+24.6% / 0.72 (splits 3, fits 9)",—
+static rule forward_k3 n = 330: gain vs random / recovered of H's gain,"+28.9% / 0.79 (splits 3, fits 9)",—
+static rule forward_k3 n = 660: gain vs random / recovered of H's gain,"+21.7% / 0.81 (splits 1, fits 2)",—
+reciprocal-reference precision = recall (on-array stratum),0.121,0.178
+P* R0 n = 160: precision at reference recall,0.085,0.070
+P* R0 n = 160: precision at recall 0.37 / recall at precision 0.61,0.050 / 0.000,0.048 / 0.001
+P* R0 n = 660: precision at reference recall,0.130,0.115
+P* R0 n = 660: precision at recall 0.37 / recall at precision 0.61,0.060 / 0.008,0.061 / 0.010
+P* H n = 160: precision at reference recall,0.119,0.091
+P* H n = 160: precision at recall 0.37 / recall at precision 0.61,0.052 / 0.016,0.046 / 0.008
+P* H n = 660: precision at reference recall,0.192,0.224
+P* H n = 660: precision at recall 0.37 / recall at precision 0.61,0.064 / 0.024,0.066 / 0.048
+"true SLs in top-10 per unscreened gene, R0 n = 660",1.058,1.089
+"true SLs in top-10 per unscreened gene, H n = 660",1.163,1.342
+"CV threshold at CV recall 0.10, R0 n = 660: CV precision → target precision",0.123 → 0.120,—
+"CV threshold at CV recall 0.10, H n = 660: CV precision → target precision",0.278 → 0.217,—
+"LBO-CV relative bias range, R0",-17% to +5%,—
+"LBO-CV relative bias range, H",+38% to +128%,—
+frozen stopping rule: mean |log2(n_stop / knee)|,0.253,—
+frozen stopping rule: triggered share / AUPRC at stop ÷ AUPRC(660),0.50 / 0.971,—
+frozen stopping rule: trajectories,12,—
+true knee range (n),428–608,—
+fixed n = 490 comparator: mean |log2(490 / knee)|,0.130,—

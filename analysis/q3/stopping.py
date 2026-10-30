@@ -182,10 +182,15 @@ def evaluate(source: str, out=None) -> dict:
     E_.to_csv(O / "stop_estimator.csv", index=False)
     M.to_csv(O / "stop_traj_rows.csv", index=False)
     T = per_traj(M, frac)
+    if source != "dev":           # never re-select a rule on final data: estimator table + fixed-n comparator only
+        T_ = T
+        T = []
     G = grid_eval(T)
     G.to_csv(O / "stop_rule_grid_traj.csv", index=False)
     best, S = choose(G) if len(G) else (None, pd.DataFrame())
     S.to_csv(O / "stop_rule_grid.csv", index=False)
+    if source != "dev":
+        T = T_
     # comparator: a FIXED stopping budget (no online information), each checkpoint
     fx = []
     for t in T:
@@ -213,6 +218,10 @@ def evaluate(source: str, out=None) -> dict:
            "lso": lso, "runtime_s": time.perf_counter() - t0}
     C.write_json(O / "stop_summary.json", res)
     if len(T):
+        if best is None and RULE_FILE.exists():          # final: plot the FROZEN rule
+            R_ = yaml.safe_load(RULE_FILE.read_text())["rule"]
+            best = pd.Series({"family": R_["family"], "statistic": R_["statistic"], "delta": R_["param"],
+                              "m": R_["m_or_window"]})
         fig(M, T, best, O / "fig_stopping.png", source)
     return res
 
@@ -330,7 +339,8 @@ def fig(M, T, best, path, source):
         ax.legend(frameon=False, fontsize=8, loc="lower right")
         ax.set_xlabel("true knee n (0.95 x AUPRC(660))")
         ax.set_ylabel("stopping n of the rule (checkpoint)")
-        ax.set_title(f"{best['family']} rule on {best['statistic']}: param {best['delta']}, m/w {int(best['m'])} (dev)",
+        ax.set_title(f"{best['family']} rule on {best['statistic']}: param {best['delta']}, m/w {int(best['m'])} "
+                     f"(frozen on dev; {source})",
                      fontsize=9)
     f.suptitle(f"Online stopping ({source})", fontsize=10)
     f.tight_layout()

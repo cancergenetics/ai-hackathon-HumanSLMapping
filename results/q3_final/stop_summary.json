@@ -1,0 +1,12 @@
+{
+ "source": "final",
+ "n_traj_complete": 6,
+ "best": null,
+ "best_fixed_n": {
+  "n_fixed": 490.0,
+  "mae_log2": 0.11778287336439246,
+  "bias_log2": -0.09670297960213849
+ },
+ "lso": [],
+ "runtime_s": 1.0958043748978525
+}
