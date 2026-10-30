@@ -51,18 +51,32 @@ def section_hap1(O) -> list[str]:
     c = pd.read_csv(O / "hap1_costs.csv")
     b = pd.read_csv(O / "hap1_billmann222.csv")
     m = pd.read_csv(O / "hap1_marginal.csv")
-    L += [f"Yeast P* random: n_80 = {i0(s['n_yeast']['n80'])}, n_90 = {i0(s['n_yeast']['n90'])} queries "
-          f"(candidate pool ≈ {i0(s['pool_n'])}). Slope b (universe subsampling, re-bootstrapped): "
+    ny = s["n_yeast"]
+    L += ["Yeast P* random n_80 / n_90 by AUPRC stratum (pool maximum = 100%): " +
+          "; ".join(f"{st} {i0(v['n80'])} / {i0(v['n90'])}" for st, v in ny.items()) +
+          f" (candidate pool ≈ {i0(s['pool_n'])}). DESIGN §7.4 uses the on-array stratum (OA = E_VV on dev, E_TT at "
+          "the final) for the HAP1 translation: OA is the primary below; 'all' (E_fixed, the Q1 endpoint with its "
+          "frozen joint-bootstrap CI) and on-array rows are sensitivities. OA/onrows CIs carry over the 'all' "
+          "stratum's relative CI width (approximation). Slope b (universe subsampling, re-bootstrapped): "
           f"n_80 {f(s['b']['n80']['b'], 2)} [{f(s['b']['n80']['ci95'][0], 2)}, {f(s['b']['n80']['ci95'][1], 2)}], "
           f"n_90 {f(s['b']['n90']['b'], 2)} [{f(s['b']['n90']['ci95'][0], 2)}, {f(s['b']['n90']['ci95'][1], 2)}].", "",
           "**Random selection, HAP1 lines needed** (N_yeast = 3,283; 95% CI from the joint bootstrap of n_yeast and "
           "b; screens = lines × 1.34):", ""]
+    sens = t[t.N_yeast_label.str.contains("primary") & (t.N_HAP1_label == "mid") & (t.b_label == "measured")].copy()
+    sens["lines"] = [f"{i0(a)} [{i0(lo)}, {i0(hi)}]" for a, lo, hi in zip(sens.n_HAP1, sens.lo, sens.hi)]
+    t = t[t.stratum == "OA"]
+    c = c[c.stratum == "OA"]
+    b = b[b.stratum == "OA"]
+    m = m[m.stratum == "OA"]
     tt = t[t.N_yeast_label.str.contains("primary")].copy()
     tt["lines"] = [f"{i0(a)} [{i0(lo)}, {i0(hi)}]" if bl == "measured" else i0(a)
                    for a, lo, hi, bl in zip(tt.n_HAP1, tt.lo, tt.hi, tt.b_label)]
     tt["screens_"] = tt.screens.map(i0)
     L += [table(tt, ["target", "N_HAP1", "b_label", "lines", "screens_"],
                 ["target", "N_HAP1", "scaling", "HAP1 lines", "screens"], {"N_HAP1": i0}), ""]
+    L += ["Stratum sensitivity (N_yeast 3,283, N_HAP1 8,500, measured b):", "",
+          table(sens, ["stratum", "target", "n_yeast", "lines"], ["AUPRC stratum", "target", "yeast n", "HAP1 lines"],
+                {"n_yeast": i0}), ""]
     tn = t[(t.N_HAP1_label == "mid") & (t.b_label == "measured")].copy()
     tn["lines"] = [f"{i0(a)} [{i0(lo)}, {i0(hi)}]" for a, lo, hi in zip(tn.n_HAP1, tn.lo, tn.hi)]
     L += ["Denominator sensitivity (N_HAP1 = 8,500, measured b):", "",
@@ -100,7 +114,7 @@ def section_hap1(O) -> list[str]:
           "random pool-max AUPRC and of the network's strong SLs; H only within its measured range ≤ 660 yeast):", "",
           table(mm, cols, cols, {c: (lambda v: f"{100 * v:.1f}" if np.isfinite(v) else "—") for c in cols
                                  if c != "hap1_lines"} | {"hap1_lines": i0}), ""]
-    L += ["![HAP1 translation](fig_hap1_curves.png)", ""]
+    L += ["![HAP1 translation (OA stratum)](fig_hap1_curves.png) (E_fixed version: fig_hap1_curves_all.png)", ""]
     return L
 
 

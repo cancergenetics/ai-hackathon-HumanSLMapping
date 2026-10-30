@@ -43,9 +43,14 @@ def set_threads(n: int = 2) -> None:
     os.environ.setdefault("HSL_THREADS", str(n))
 
 
+_OUT: dict = {}
+
+
 def out_dir(source: str, override: str | None = None) -> Path:
     if override:
-        p = Path(override)
+        _OUT[source] = Path(override)
+    if source in _OUT:
+        p = _OUT[source]
     else:
         p = ROOT / "results" / {"dev": "q3_dev", "final": "q3_final", "dryrun": "q3_dryrun"}[source]
     p.mkdir(parents=True, exist_ok=True)
@@ -93,14 +98,16 @@ def _p1_random_rows() -> pd.DataFrame:
     return d
 
 
-COLS = ["arm", "split", "traj", "n", "auprc", "auprc_VV", "auprc_AO", "sl_detected", "sl_detected_frac", "p_at_10",
-        "p_at_50", "pred_file", "model_seed", "prevalence"]
+COLS = ["arm", "split", "traj", "n", "auprc", "auprc_OA", "auprc_onrows", "auprc_AO", "sl_detected",
+        "sl_detected_frac", "p_at_10", "p_at_50", "pred_file", "model_seed", "prevalence"]
+# auprc_OA = on-array target-column stratum (dev E_VV, final E_TT); auprc_onrows = on-array target rows
 
 
 def rows(source: str) -> pd.DataFrame:
     """All P* rows: random + strategy arms, one per (arm, split, traj, n)."""
     if source == "dev":
         d = pd.concat([_p1_random_rows(), _p4_rows()], ignore_index=True)
+        d = d.rename(columns={"auprc_VV": "auprc_OA", "auprc_on_array_rows": "auprc_onrows"})
         d = d[[c for c in COLS if c in d.columns]]
     else:
         d = _final_rows(source)
@@ -120,8 +127,29 @@ def _final_rows(source: str) -> pd.DataFrame:
     out = pd.DataFrame({"arm": r["cid"], "split": split, "traj": r["traj"], "n": r["n"], "auprc": r["auprc_inline"],
                         "sl_detected": r.get("sl_detected"), "sl_detected_frac": r.get("sl_detected_frac"),
                         "pred_file": r["pred_file"], "model_seed": r["model_seed"]})
-    # strata are not in runs.csv: filled by analyses that need them from the prediction files + labels
-    return out
+    # strata are not in runs.csv: unit-weight AP on the stratum recomputed from the saved predictions (cached)
+    return _final_strata(source, out)
+
+
+def _final_strata(source: str, d: pd.DataFrame) -> pd.DataFrame:
+    from hsl import eval as E
+    F = final_dir(source)
+    cache = out_dir(source) / "strata_cache.csv"
+    have = pd.read_csv(cache) if cache.exists() else pd.DataFrame(columns=["pred_file", "auprc_OA", "auprc_onrows"])
+    have = have.drop_duplicates("pred_file")
+    todo = sorted(set(d.pred_file) - set(have.pred_file))
+    if todo:
+        with np.load(F / "run" / "labels.npz") as z:
+            y, rows, TT, onr = z["y"].astype(np.int8), z["rows"], z["TT"], z["on_array_rows"]
+        onm = onr[rows]
+        new = []
+        for pf in todo:
+            s = load_pred(pf)
+            new.append({"pred_file": pf, "auprc_OA": E.average_precision(y[TT], s[TT]),
+                        "auprc_onrows": E.average_precision(y[onm], s[onm])})
+        have = pd.concat([have, pd.DataFrame(new)], ignore_index=True)
+        have.to_csv(cache, index=False)
+    return d.merge(have, on="pred_file", how="left")
 
 
 # ============================================================================ n_80 / n_90 (yeast)

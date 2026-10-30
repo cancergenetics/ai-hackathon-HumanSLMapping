@@ -30,6 +30,10 @@ import pandas as pd
 from analysis.q3 import common as C
 
 FRACS = {"n80": 0.80, "n90": 0.90}
+# DESIGN §7.4: the on-array stratum is the estimate used for HAP1 translation ('OA' = dev E_VV / final E_TT target
+# columns, primary here); 'all' = E_fixed (the Q1 n_80/n_90 with their frozen joint-bootstrap CIs); 'onrows' = on-array
+# target rows (sensitivity).
+STRATA = {"OA": "auprc_OA", "all": "auprc", "onrows": "auprc_onrows"}
 
 
 # ============================================================================ b bootstrap
@@ -73,15 +77,35 @@ def pct(x, q=(2.5, 97.5)):
 
 
 # ============================================================================ curves
-def mean_curves(rows: pd.DataFrame, arm: str) -> dict:
+def mean_curves(rows: pd.DataFrame, arm: str, col: str = "auprc") -> dict:
     """{split: DataFrame(n, auprc, sl_frac, R)} trajectory means per budget."""
     out = {}
     d = rows[rows.arm == arm]
     for sp, g in d.groupby("split"):
-        m = g.groupby("n").agg(auprc=("auprc", "mean"), sl_frac=("sl_detected_frac", "mean"),
+        m = g.groupby("n").agg(auprc=(col, "mean"), sl_frac=("sl_detected_frac", "mean"),
                                R=("traj", "nunique")).reset_index()
         out[sp] = m.sort_values("n")
     return out
+
+
+def nx_from_rows(rows: pd.DataFrame, col: str, nx_all: pd.DataFrame) -> pd.DataFrame:
+    """n_80 / n_90 of a stratum: random mean curve per split over the full grid, frozen PAVA + n_req, anchored at
+    the pool maximum. CI: the 'all' stratum's per-split log-scale CI half-widths carried over (approximation; the
+    stratum's own joint bootstrap is not stored)."""
+    from hsl import eval as E
+    out = []
+    rc = mean_curves(rows, C.RANDOM, col)
+    for _, a in nx_all.iterrows():
+        cur = rc[a.split]
+        f = E.pava(cur.auprc.to_numpy(float))
+        rec = {"split": a.split, "pool_n": int(cur.n.max()), "auprc_anchor": float(f[-1])}
+        for k, frac in FRACS.items():
+            n = float(E.n_req(frac * f[-1], cur.n.to_numpy(float), cur.auprc.to_numpy(float)).n)
+            rec[k] = n
+            rec[f"{k}_lo"] = n * a[f"{k}_lo"] / a[k]
+            rec[f"{k}_hi"] = n * a[f"{k}_hi"] / a[k]
+        out.append(rec)
+    return pd.DataFrame(out)
 
 
 def arm_budget_for_target(curve: pd.DataFrame, target: float) -> tuple[float, str]:
@@ -109,7 +133,8 @@ def analyse(source: str, out=None) -> dict:
     rng = np.random.default_rng(int(K["bootstrap"]["seed"]))
     B = int(K["bootstrap"]["B"])
     rows = C.rows(source)
-    nx = C.nx_table(source)
+    nx_all = C.nx_table(source)
+    nx = nx_all
     draws = C.universe_draws()
     NY = {"N_yeast=3283 (primary)": K["N_yeast"]["primary"], "N_yeast=4458 (Q∪A)": K["N_yeast"]["sensitivity_QuA"],
           "N_yeast=pool size": float(nx.pool_n.mean())}
@@ -117,8 +142,6 @@ def analyse(source: str, out=None) -> dict:
     rep = float(K["replicate_factor"])
     arms_all = [a for a in sorted(rows.arm.unique()) if a in C.MAIN_ARMS]
     strat_arms = [a for a in arms_all if a != C.RANDOM]
-    rc = mean_curves(rows, C.RANDOM)
-    anchors = dict(zip(nx.split, nx.auprc_anchor))
 
     # ---- b bootstrap
     bb = {}
@@ -130,123 +153,132 @@ def analyse(source: str, out=None) -> dict:
         brows.append({"quantity": col, "b": b0, "lo": lo, "hi": hi, "B": B, "n_draws": int(len(draws))})
     pd.DataFrame(brows).to_csv(O / "hap1_b_boot.csv", index=False)
 
-    # ---- random n_X and strategy budgets (yeast)
-    tr, costs = [], []
-    for col, frac in FRACS.items():
-        ny0, nyr = nyeast_boot(nx, col, B, rng)
-        b0, br = bb[col]
-        # strategy budget per split for the same target
-        sb = {}
-        for a in strat_arms:
-            ac = mean_curves(rows, a)
-            vals, cens = [], []
-            for sp, cur in ac.items():
-                if sp not in anchors:
-                    continue
-                n_s, c = arm_budget_for_target(cur, frac * anchors[sp])
-                if c == "left":                      # reached before the first checkpoint: upper bound
-                    n_s = float(cur.n.min())
-                vals.append(n_s)
-                cens.append(c)
-            if vals:
-                sb[a] = (float(np.mean(vals)) if all(c == "" for c in cens) else
-                         (float("inf") if any(c == "right" for c in cens) else float(np.mean(vals))),
-                         ";".join(c or "ok" for c in cens), [float(v) for v in vals],
-                         int(max(cur.n.max() for cur in ac.values())))
-        for nyl, NYv in NY.items():
-            for nhl in ("low", "mid", "high"):
-                Nh = float(NH[nhl])
-                for bl, bv, brep in (("measured", b0, br), ("b=0 (count)", 0.0, None), ("b=1 (fraction)", 1.0, None)):
-                    pt = float(translate(ny0, Nh, NYv, bv))
-                    reps = translate(nyr, Nh, NYv, brep if brep is not None else bv)
-                    lo, hi = pct(reps)
-                    tr.append({"target": col, "N_yeast_label": nyl, "N_yeast": NYv, "N_HAP1_label": nhl,
-                               "N_HAP1": Nh, "b_label": bl, "b": bv, "n_yeast": ny0, "n_HAP1": pt, "lo": lo,
-                               "hi": hi, "screens": pt * rep, "screens_lo": lo * rep, "screens_hi": hi * rep})
-                    if nyl.endswith("(primary)"):
-                        scale = (Nh / NYv) ** bv
-                        costs.append({"target": col, "N_HAP1": Nh, "b_label": bl, "arm": "random", "n_yeast": ny0,
-                                      "lines": pt, "lines_lo": lo, "lines_hi": hi, "screens": pt * rep,
-                                      "rounds": 1, "batch_yeast": None, "lines_per_round": pt, "censored": "",
-                                      "saving_vs_random": 0.0})
-                        for a, (ns, cens, per, nmax) in sb.items():
-                            batch = 110 if "__b110" in a else (50 if "__b50" in a else 10)
-                            lines = ns * scale if np.isfinite(ns) else np.inf
-                            reps_s = (ns * (Nh / NYv) ** (brep if brep is not None else bv)
-                                      if np.isfinite(ns) else np.full(B, np.inf))
-                            slo, shi = pct(reps_s)
-                            costs.append({"target": col, "N_HAP1": Nh, "b_label": bl, "arm": a, "n_yeast": ns,
-                                          "n_yeast_per_split": "|".join(f"{v:.0f}" for v in per),
-                                          "lines": lines, "lines_lo": slo, "lines_hi": shi,
-                                          "screens": lines * rep,
-                                          "rounds": (int(np.ceil(ns / batch)) if np.isfinite(ns) else None),
-                                          "batch_yeast": batch, "lines_per_round": batch * scale,
-                                          "censored": "" if set(cens.split(";")) == {"ok"} else cens,
-                                          "max_checkpoint": nmax,
-                                          "saving_vs_random": 1 - ns / ny0 if np.isfinite(ns) else np.nan})
-    tr = pd.DataFrame(tr)
-    costs = pd.DataFrame(costs)
-    tr.to_csv(O / "hap1_translation.csv", index=False)
-    costs.to_csv(O / "hap1_costs.csv", index=False)
-
-    # ---- Billmann 222 lines + marginal returns (random and strategies), N_yeast primary
-    NYp = float(K["N_yeast"]["primary"])
-    bl_rows, mg = [], []
-    b0 = bb["n80"][0]
-    br = bb["n80"][1]
-    L222 = float(K["billmann"]["lines"])
-    curves = {a: mean_curves(rows, a) for a in arms_all}
-    for nhl in ("low", "mid", "high"):
-        Nh = float(NH[nhl])
-        for bl, bv, brep in (("measured", b0, br), ("b=0 (count)", 0.0, None), ("b=1 (fraction)", 1.0, None)):
-            ny = L222 * (NYp / Nh) ** bv
-            nyr = L222 * (NYp / Nh) ** (brep if brep is not None else np.array([bv]))
-            for a, cs in curves.items():
-                fr, frr, slf = [], [], []
-                for sp, cur in cs.items():
-                    anc = anchors.get(sp)
-                    if anc is None:
+    TR, CO, BL, MG, FIGS = [], [], [], [], {}
+    for stratum, scol in STRATA.items():
+        nx = nx_all if stratum == "all" else nx_from_rows(rows, scol, nx_all)
+        anchors = dict(zip(nx.split, nx.auprc_anchor))
+        tr, costs = [], []
+        # ---- random n_X and strategy budgets (yeast)
+        for col, frac in FRACS.items():
+            ny0, nyr = nyeast_boot(nx, col, B, rng)
+            b0, br = bb[col]
+            # strategy budget per split for the same target
+            sb = {}
+            for a in strat_arms:
+                ac = mean_curves(rows, a, scol)
+                vals, cens = [], []
+                for sp, cur in ac.items():
+                    if sp not in anchors:
                         continue
-                    fr.append(float(auprc_at(cur, ny)) / anc)
-                    frr.append(auprc_at(cur, nyr) / anc)
-                    slf.append(float(auprc_at(cur, ny, "sl_frac")))
-                if not fr:
-                    continue
-                v = np.nanmean(np.vstack([np.atleast_1d(x) for x in frr]), 0)
-                lo, hi = pct(v)
-                bl_rows.append({"N_HAP1": Nh, "b_label": bl, "arm": a, "n_yeast_equiv": ny,
-                                "auprc_frac_of_max": float(np.nanmean(fr)), "lo": lo, "hi": hi,
-                                "sl_detected_frac": float(np.nanmean(slf))})
-            # marginal returns per +100 lines (random + strategies within their measured range)
-            for L in K["hap1_line_grid"]:
-                n1, n2 = L * (NYp / Nh) ** bv, (L + 100) * (NYp / Nh) ** bv
+                    n_s, c = arm_budget_for_target(cur, frac * anchors[sp])
+                    if c == "left":                      # reached before the first checkpoint: upper bound
+                        n_s = float(cur.n.min())
+                    vals.append(n_s)
+                    cens.append(c)
+                if vals:
+                    sb[a] = (float(np.mean(vals)) if all(c == "" for c in cens) else
+                             (float("inf") if any(c == "right" for c in cens) else float(np.mean(vals))),
+                             ";".join(c or "ok" for c in cens), [float(v) for v in vals],
+                             int(max(cur.n.max() for cur in ac.values())))
+            for nyl, NYv in NY.items():
+                for nhl in ("low", "mid", "high"):
+                    Nh = float(NH[nhl])
+                    for bl, bv, brep in (("measured", b0, br), ("b=0 (count)", 0.0, None), ("b=1 (fraction)", 1.0, None)):
+                        pt = float(translate(ny0, Nh, NYv, bv))
+                        reps = translate(nyr, Nh, NYv, brep if brep is not None else bv)
+                        lo, hi = pct(reps)
+                        tr.append({"stratum": stratum, "target": col, "N_yeast_label": nyl, "N_yeast": NYv, "N_HAP1_label": nhl,
+                                   "N_HAP1": Nh, "b_label": bl, "b": bv, "n_yeast": ny0, "n_HAP1": pt, "lo": lo,
+                                   "hi": hi, "screens": pt * rep, "screens_lo": lo * rep, "screens_hi": hi * rep})
+                        if nyl.endswith("(primary)"):
+                            scale = (Nh / NYv) ** bv
+                            costs.append({"stratum": stratum, "target": col, "N_HAP1": Nh, "b_label": bl, "arm": "random", "n_yeast": ny0,
+                                          "lines": pt, "lines_lo": lo, "lines_hi": hi, "screens": pt * rep,
+                                          "rounds": 1, "batch_yeast": None, "lines_per_round": pt, "censored": "",
+                                          "saving_vs_random": 0.0})
+                            for a, (ns, cens, per, nmax) in sb.items():
+                                batch = 110 if "__b110" in a else (50 if "__b50" in a else 10)
+                                lines = ns * scale if np.isfinite(ns) else np.inf
+                                reps_s = (ns * (Nh / NYv) ** (brep if brep is not None else bv)
+                                          if np.isfinite(ns) else np.full(B, np.inf))
+                                slo, shi = pct(reps_s)
+                                costs.append({"stratum": stratum, "target": col, "N_HAP1": Nh, "b_label": bl, "arm": a, "n_yeast": ns,
+                                              "n_yeast_per_split": "|".join(f"{v:.0f}" for v in per),
+                                              "lines": lines, "lines_lo": slo, "lines_hi": shi,
+                                              "screens": lines * rep,
+                                              "rounds": (int(np.ceil(ns / batch)) if np.isfinite(ns) else None),
+                                              "batch_yeast": batch, "lines_per_round": batch * scale,
+                                              "censored": "" if set(cens.split(";")) == {"ok"} else cens,
+                                              "max_checkpoint": nmax,
+                                              "saving_vs_random": 1 - ns / ny0 if np.isfinite(ns) else np.nan})
+        TR.append(pd.DataFrame(tr))
+        CO.append(pd.DataFrame(costs))
+
+        # ---- Billmann 222 lines + marginal returns (random and strategies), N_yeast primary
+        NYp = float(K["N_yeast"]["primary"])
+        bl_rows, mg = [], []
+        b0 = bb["n80"][0]
+        br = bb["n80"][1]
+        L222 = float(K["billmann"]["lines"])
+        curves = {a: mean_curves(rows, a, scol) for a in arms_all}
+        for nhl in ("low", "mid", "high"):
+            Nh = float(NH[nhl])
+            for bl, bv, brep in (("measured", b0, br), ("b=0 (count)", 0.0, None), ("b=1 (fraction)", 1.0, None)):
+                ny = L222 * (NYp / Nh) ** bv
+                nyr = L222 * (NYp / Nh) ** (brep if brep is not None else np.array([bv]))
                 for a, cs in curves.items():
-                    da, ds, a1 = [], [], []
+                    fr, frr, slf = [], [], []
                     for sp, cur in cs.items():
                         anc = anchors.get(sp)
                         if anc is None:
                             continue
-                        v1, v2 = auprc_at(cur, n1), auprc_at(cur, n2)
-                        s1, s2 = auprc_at(cur, n1, "sl_frac"), auprc_at(cur, n2, "sl_frac")
-                        da.append(float(v2 - v1) / anc)
-                        ds.append(float(s2 - s1))
-                        a1.append(float(v1) / anc)
-                    if not da or not np.isfinite(np.nanmean(da)):
+                        fr.append(float(auprc_at(cur, ny)) / anc)
+                        frr.append(auprc_at(cur, nyr) / anc)
+                        slf.append(float(auprc_at(cur, ny, "sl_frac")))
+                    if not fr:
                         continue
-                    mg.append({"N_HAP1": Nh, "b_label": bl, "arm": a, "hap1_lines": L, "n_yeast": n1,
-                               "auprc_frac_of_max": float(np.nanmean(a1)),
-                               "d_auprc_frac_per100": float(np.nanmean(da)),
-                               "d_auprc_abs_per100": float(np.nanmean(da)) * float(np.mean(list(anchors.values()))),
-                               "d_sl_detected_frac_per100": float(np.nanmean(ds))})
-    bl_df = pd.DataFrame(bl_rows)
-    mg_df = pd.DataFrame(mg)
-    bl_df.to_csv(O / "hap1_billmann222.csv", index=False)
-    mg_df.to_csv(O / "hap1_marginal.csv", index=False)
+                    v = np.nanmean(np.vstack([np.atleast_1d(x) for x in frr]), 0)
+                    lo, hi = pct(v)
+                    bl_rows.append({"stratum": stratum, "N_HAP1": Nh, "b_label": bl, "arm": a, "n_yeast_equiv": ny,
+                                    "auprc_frac_of_max": float(np.nanmean(fr)), "lo": lo, "hi": hi,
+                                    "sl_detected_frac": float(np.nanmean(slf))})
+                # marginal returns per +100 lines (random + strategies within their measured range)
+                for L in K["hap1_line_grid"]:
+                    n1, n2 = L * (NYp / Nh) ** bv, (L + 100) * (NYp / Nh) ** bv
+                    for a, cs in curves.items():
+                        da, ds, a1 = [], [], []
+                        for sp, cur in cs.items():
+                            anc = anchors.get(sp)
+                            if anc is None:
+                                continue
+                            v1, v2 = auprc_at(cur, n1), auprc_at(cur, n2)
+                            s1, s2 = auprc_at(cur, n1, "sl_frac"), auprc_at(cur, n2, "sl_frac")
+                            da.append(float(v2 - v1) / anc)
+                            ds.append(float(s2 - s1))
+                            a1.append(float(v1) / anc)
+                        if not da or not np.isfinite(np.nanmean(da)):
+                            continue
+                        mg.append({"stratum": stratum, "N_HAP1": Nh, "b_label": bl, "arm": a, "hap1_lines": L, "n_yeast": n1,
+                                   "auprc_frac_of_max": float(np.nanmean(a1)),
+                                   "d_auprc_frac_per100": float(np.nanmean(da)),
+                                   "d_auprc_abs_per100": float(np.nanmean(da)) * float(np.mean(list(anchors.values()))),
+                                   "d_sl_detected_frac_per100": float(np.nanmean(ds))})
+        BL.append(pd.DataFrame(bl_rows))
+        MG.append(pd.DataFrame(mg))
+        FIGS[stratum] = (curves, anchors, nx)
+    pd.concat(TR).to_csv(O / "hap1_translation.csv", index=False)
+    pd.concat(CO).to_csv(O / "hap1_costs.csv", index=False)
+    pd.concat(BL).to_csv(O / "hap1_billmann222.csv", index=False)
+    pd.concat(MG).to_csv(O / "hap1_marginal.csv", index=False)
     summ = {"source": source, "b": {k: {"b": v[0], "ci95": pct(v[1])} for k, v in bb.items()},
-            "n_yeast": {k: float(nx[k].mean()) for k in FRACS}, "pool_n": float(nx.pool_n.mean()),
-            "anchors": anchors, "arms": arms_all, "runtime_s": time.perf_counter() - t0}
+            "n_yeast": {st: {k: float(v[2][k].mean()) for k in FRACS} for st, v in FIGS.items()},
+            "nx_by_split": {st: v[2].to_dict("records") for st, v in FIGS.items()},
+            "pool_n": float(nx_all.pool_n.mean()), "anchors": {st: v[1] for st, v in FIGS.items()},
+            "arms": arms_all, "strata": STRATA, "runtime_s": time.perf_counter() - t0}
     C.write_json(O / "hap1_summary.json", summ)
-    fig(curves, anchors, b0, float(NH["mid"]), NYp, L222, O / "fig_hap1_curves.png", source)
+    for st, (curves, anchors, _) in FIGS.items():
+        fig(curves, anchors, bb["n80"][0], float(NH["mid"]), NYp, float(K["billmann"]["lines"]),
+            O / ("fig_hap1_curves.png" if st == "OA" else f"fig_hap1_curves_{st}.png"), source, st)
     return summ
 
 
@@ -255,7 +287,7 @@ ARM_STYLE = {"R0": ("#6f6e69", "random"), "H": ("#2a78d6", "H (hub-first)"), "C"
              "F_r16": ("#1baf7a", "F_r16 (Fisher-D)"), "H-static": ("#6250d6", "H-static")}
 
 
-def fig(curves, anchors, b, Nh, NY, L222, path, source):
+def fig(curves, anchors, b, Nh, NY, L222, path, source, stratum="OA"):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -300,7 +332,8 @@ def fig(curves, anchors, b, Nh, NY, L222, path, source):
         ax.set_xlabel(f"HAP1 query lines (N_HAP1 = {Nh:.0f}, b = {b:.2f})")
         ax.set_ylabel(ylab)
     axes[0].legend(frameon=False, fontsize=8, loc="lower right")
-    fig_.suptitle(f"Q3 HAP1 translation ({source}): yeast P* curves rescaled by (N_HAP1/N_yeast)^b", fontsize=10,
+    fig_.suptitle(f"Q3 HAP1 translation ({source}, AUPRC stratum {stratum}): yeast P* curves rescaled by "
+                  f"(N_HAP1/N_yeast)^b", fontsize=10,
                   color="#0b0b0b")
     fig_.tight_layout()
     fig_.savefig(path, dpi=150, facecolor="#fcfcfb")
