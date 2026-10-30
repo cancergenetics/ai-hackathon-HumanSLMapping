@@ -1,0 +1,46 @@
+{
+ "created": "2026-10-30T00:22:47+0000",
+ "finalists_sha256": "6a9344eae2eaefb73012205dc27f9155543f6fbd2daf8f9b8036a3b082c7cf48",
+ "frozen_sha256": "d474c05f40c6b80a805ed195b89e1163d76840699a948c471710a02cf2e275df",
+ "git_dirty_at_start": false,
+ "git_head": "9694404728866ab32aab2a98ac9f6b2c72ffc3bf",
+ "host": "Colms-MacBook-Air.local",
+ "mode": "final",
+ "n_jobs": 394,
+ "n_units": 4019,
+ "plan_sha256": "97dc55c3c8dbc896f6fbc659d62185c7913bb9216496113d65ccbc868e021205",
+ "preflight": [
+  {
+   "detail": "bc449a7",
+   "name": "finalists_committed",
+   "ok": true
+  },
+  {
+   "detail": "clean",
+   "name": "tree_clean",
+   "ok": true
+  },
+  {
+   "detail": "81 files match",
+   "name": "frozen_hashes",
+   "ok": true
+  },
+  {
+   "detail": "/Users/colmclaude/claude_experiments/humanSLmapping/results/final/.lock absent",
+   "name": "lock_absent",
+   "ok": true
+  },
+  {
+   "detail": "git status --short: clean (HEAD 9b5dce9)",
+   "name": "yeast_sls_readonly",
+   "ok": true
+  },
+  {
+   "detail": "461 files match",
+   "name": "upstream_checksums",
+   "ok": true
+  }
+ ],
+ "python": "3.12.15",
+ "split": "final"
+}
