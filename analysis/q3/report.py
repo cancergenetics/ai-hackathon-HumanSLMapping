@@ -342,7 +342,7 @@ def key_findings(O) -> list[str]:
         L.append(f"- **Billmann's 222 lines** ≈ {bb.loc['R0', 'n_yeast_equiv']:.0f} yeast queries at measured b: random "
                  f"selection gives {100 * bb.loc['R0', 'auprc_frac_of_max']:.0f}% of the pool-max AUPRC, H "
                  f"{100 * bb.loc['H', 'auprc_frac_of_max']:.0f}%.")
-    except (FileNotFoundError, KeyError, IndexError):
+    except (FileNotFoundError, KeyError, IndexError, pd.errors.EmptyDataError):
         pass
     try:
         g = pd.read_csv(O / "choice_rule_gain.csv").set_index(["rule", "n"])
@@ -350,7 +350,7 @@ def key_findings(O) -> list[str]:
         L.append(f"- **Static 3-feature rank rule** (low single-mutant fitness, low expression variability, high "
                  f"conservation) recovers {100 * k.auprc_recovered_vs_H:.0f}% of H's AUPRC gain at n = 160 "
                  f"(H-static {100 * k.auprc_recovered_H_static_vs_H:.0f}%).")
-    except (FileNotFoundError, KeyError):
+    except (FileNotFoundError, KeyError, pd.errors.EmptyDataError):
         pass
     try:
         e = pd.read_csv(O / "stop_estimator.csv")
@@ -365,7 +365,7 @@ def key_findings(O) -> list[str]:
         L.append(f"- **Stopping**: true knees fall at {kn.min():.2f}–{kn.max():.2f} × the 660 cap; the best online rule "
                  f"has mean "
                  f"|log2 error| {s_['mae_log2']:.2f} vs {f_.mae_log2:.2f} for always stopping at n = {f_.n_fixed:.0f}.")
-    except (FileNotFoundError, KeyError, TypeError):
+    except (FileNotFoundError, KeyError, TypeError, IndexError, pd.errors.EmptyDataError):
         pass
     return L + [""]
 
