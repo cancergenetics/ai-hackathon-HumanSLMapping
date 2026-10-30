@@ -4,7 +4,7 @@
 # STATUS: PI-decided (D9; independent P4 review ACCEPT WITH FIXES, docs/reviews/p4_review.md, commit 1938d80). Binding
 # when committed together with config/frozen.yaml (scripts/make_frozen.py) at the freeze; never edited after the lock.
 # Evidence: results/p4/shortlist_proposal.md §1 (shortlist rule), results/p4/summary.md.
-status: decided_pending_freeze
+status: frozen   # 2026-10-30 PI freeze
 design: v3.1
 
 # ---------------------------------------------------------------------------------------------------- predictors
