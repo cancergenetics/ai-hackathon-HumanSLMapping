@@ -2,45 +2,41 @@
 
 Legend: [ ] planned · [~] in progress · [x] done · [-] abandoned/negative · [!] key finding
 
-## Status summary (2026-10-30 00:45, milestone M-final: frozen, final on T running)
+## Status summary (2026-10-30 evening, milestone M7: project complete)
 
-Development is complete on dev splits only; T has never been used for any decision.
-- **Predictor.** P2 froze P* = stack_lr_wr2_lb: +4.0–4.5% over upstream stack_lr_wr2 at n ≤ 330, as the best of 10
-  adaptive dev configs.
-- **Q1, random screening (dev).** AUPRC rises from 0.031 (n = 30) to 0.060 (660) to 0.080 (pool max ≈ 2,100) with no
-  plateau. n_80 / n_90 ≈ 810 / 1,279 (0.39 / 0.61 of the pool). Simple baselines saturate early (B1 n_80 ≈ 110).
-  Universe subsampling gives b ≈ 1.06 [0.85, 1.28], i.e. fraction scaling; this is a bound.
-- **Q2, strategies (dev).** Adaptive batch-of-10 selection beats random at n = 160 by +28–33% (H, C, F_r16, M; per
-  split +15 to +52%), G ≈ 0.72–0.84. s160 ≈ r490, so "5% matches 20%" is not met on dev. Static variants recover
-  little, and a Billmann-like R1 panel ≈ random.
-- **Q2 mechanism (P4 review).** Adaptive arms screen moderately SL-rich genes whose rows reveal target-side columns.
-  There is no leakage: poison replays are bit-identical.
-- **Finalists.** H, C and F_r16 are frozen (R_s 20, R_r 40; declared deviations D9/D10). The one-shot final started at
-  00:22: 4,019 units, projected 10–14 h.
+The one-shot final on T (656 held-out queries) ran 4,019/4,019 units and was independently rescored with 0 mismatches.
 
-**In parallel:**
-- Q3 analyses are being built on dev, and the stopping rule will be frozen before the final finishes.
-- An independent rescorer (no hsl import) is to be built and tested on the dry run.
-- A null-result reading is pre-stated below.
+Q1 (random screening):
+- P\* AUPRC rises from 0.031 (30 queries) to 0.042 (160), 0.063 (660) and 0.092 (whole 2,627 pool), with no plateau.
+- n_80 / n_90 = 1,143 / 1,761 queries (44% / 67% of the pool).
 
-**Next:**
-- Score the final; then independent rescoring and review.
-- Q3 on the final outputs; then REPORT.md with figures and claims, and its review.
+Q2 (strategies vs random):
+- Adaptive selection in batches of 10 beats random at a matched budget of 160 [C]: H +31%, C +31%, F +26%; Holm p ≤ 0.0014.
+- It was not shown to beat 490 random (c1), and "5% matches 20%" is not met. G = 0.55–0.65.
+- The random-equivalent budget is 2.4–2.7× [D].
+- The gain is pooled-AUPRC, concentrated on SL-rich targets: macro-AUPRC +5–10%, AUROC unchanged.
+- A Billmann-like R1 panel is indistinguishable from random.
+- A warm start (+27–40%) and batch 110 both keep most of the gain.
 
-Retrospective (docs/reviews/retro_m_final.md):
-- Stop freezing rules that were never evaluated on pilot output.
-- Stop quoting oracle and best-of-k numbers as headlines.
-- Enforce compute budgets in code.
-- Keep this summary current.
+Q3 (HAP1):
+- With b ≈ 1, reaching 80% of whole-pool performance needs ≈ 3,300 HAP1 lines at random vs ≈ 1,000 adaptively (4 rounds of ≈ 300).
+- Billmann's 222 lines ≈ 36–43% of whole-pool performance.
+- A static three-feature rule fixed on dev (low fitness, conserved, stable expression) recovered 91–108% of H's gain on T (post-final descriptive, 3 runs).
+- Prediction at 20% adaptive reaches the precision of a reverse-direction remeasurement but not of a screen.
+- Online CV on adaptively screened lines is badly biased, and the frozen stopping rule did not beat a fixed budget.
 
-**Pre-stated readings for the final** (written before scoring, 2026-10-30 00:45):
-- (1) If (a) Δ(160) > 0 is not rejected for any finalist after Holm, the conclusion is "no confirmed advantage of
-  adaptive selection on T at this power". Dev point estimates are reported as dev-only; we do not reinterpret.
-- (2) If (a) is rejected but c1 (s160 > r490) is not, the claim is limited to "beats random at matched budget",
-  with G and n_req as estimates.
-- (3) "Matches 20%" is stated only under its three-condition rule. Otherwise we report G with its CI and say it is
-  not met. We do not write "approaches".
-- (4) E_unobs and E_TT are reported prominently, next to E_fixed, whatever their sign.
+Deliverables are complete:
+- REPORT.md (final, reviewed; 6 figures);
+- results/final, results/q3_final and the independent rescorer;
+- reproducible code; DATA.md; all reviews in docs/reviews/.
+
+Remaining ideas are listed in REPORT.md §8. The most valuable is a pre-registered confirmation of the static three-feature rule against H, and an H-vs-C comparison. No compute is running.
+
+**Pre-stated readings** (written before scoring, 2026-10-30 00:45; outcome in brackets):
+- (1) If (a) is rejected for no finalist: no confirmed advantage. [Not triggered: (a) rejected for all 3.]
+- (2) (a) rejected, c1 not: "beats random at matched budget", with G and n_req as estimates. [APPLIED.]
+- (3) "Matches 20%" only under the 3-condition rule; never "approaches". [Not met; honoured.]
+- (4) E_unobs and E_TT reported prominently. [Done: REPORT §4.3.]
 
 ## Decision log
 - 2026-10-30 D11: FREEZE and FINAL START.
@@ -242,6 +238,16 @@ Retrospective (docs/reviews/retro_m_final.md):
     - Do not quote the saturating-fit parameters (c at its bound). Deterministic arms have R = 1, so their CIs omit
       trajectory variance.
     - Review: docs/reviews/final_results_review.md (claims list).
+  - [x] Q3 on the final (b3be29b; results/q3_final):
+    - [!] HAP1 lines for 80% of whole-pool performance: random ≈ 3,321 [2,570, 4,374] vs H ≈ 999 (37 rounds) or H b110 ≈ 1,037
+      (4 rounds). The b = 0 floor is 1,211. The denominator lever is ±27%.
+    - [!] Static three-feature rule (dev-fixed coefficients at bde1622; T evaluation code written post-scoring): 91–108% of H's
+      gain on T (dev 72–81%); fitness-only 77–97%. Post-final descriptive, 3 runs. Confirmation is needed.
+    - [!] Prediction: on-array precision at reference recall is 0.224 (H@660) vs 0.178 for the reciprocal measurement; top-10 has
+      ≈ 1 true SL per gene (10–14× random).
+    - [-] Online stopping: LBO-CV is inflated up to +143% under H. The frozen rule's |log2 err| is 0.23 vs 0.12 for a fixed
+      n = 490 (hindsight). Negative result.
+  - [x] REPORT.md final (940f64f); reviews: docs/reviews/report_review.md (READY WITH FIXES, all applied).
     - [x] Independent rescoring (no hsl import): 0 mismatches.
       - 12,738 rows match exactly, including all 4,019 unit APs and 6,299 strata APs.
       - 154 Monte-Carlo rows are within tolerance.
@@ -251,7 +257,7 @@ Retrospective (docs/reviews/retro_m_final.md):
     - CIs and p-values agree within Monte-Carlo error, and all decisions agree.
     - A negative control with 4 planted errors flagged all 4.
     - Two DESIGN readings are reported both ways (G-defined interval; n_X anchor).
-- [ ] M4 Q1: performance vs. fraction screened (random)
-- [ ] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
-- [ ] M6 Q3: translation to HAP1 (query numbers, choice of query lines, role of prediction)
-- [ ] M7 REPORT.md, figures, final verification
+- [x] M4 Q1: performance vs. fraction screened (random)
+- [x] M5 Q2: strategic iterative selection (batches of 10) vs. random at matched budgets
+- [x] M6 Q3: translation to HAP1 (query numbers, choice of query lines, role of prediction)
+- [x] M7 REPORT.md, figures, final verification

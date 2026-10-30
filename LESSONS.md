@@ -19,3 +19,4 @@ the list below.
 6. Evaluate every pre-registered rule and trigger on pilot output before freezing it. The ρ = 0 power rule and the §12 R action were both undefined when needed (D9, D10).
 7. Label dev-selected winners and oracles for what they are: best-of-k, in-sample, reference. Expect shrinkage. Never quote them as ceilings or headlines.
 8. Decisions live in DESIGN (deviations) and in the status summary, not only in the decision log. Rewrite the summary at every milestone.
+9. Subagents cannot write report-type files (the harness blocks it). Brief writer and reviewer agents to return text; the PI saves it. Also, write the final-evaluation code for any post-hoc analysis before scoring, not only its coefficients (the static-rule provenance caveat) (2026-10-30).
