@@ -203,7 +203,31 @@ Retrospective (docs/reviews/retro_m_final.md):
   - [x] Independent review of the final pipeline: READY WITH FIXES. All fixes applied (43af996, e7d9a69); 321 tests pass.
     The projection is 10.2–13.6 h at an 18 GB gate.
   - [x] Freeze (9694404)
-  - [~] Final on T (one shot): running since 00:22 (projection 10–14 h) → score → independent rescoring
+  - [x] Final on T (one shot): 4,019/4,019 units, 0 failures (00:22–12:29), scored at 13:39; frozen check ok
+    (commit 8c1818a).
+    - [!] Confirmatory: (a) Δ(160) > 0 is REJECTED for H, C and F_r16 (Holm p 0.0003 / 0.0001 / 0.0014).
+      - s160 = 0.0555 / 0.0555 / 0.0534 vs r160 = 0.0423, i.e. +31% / +31% / +26%.
+      - c1 (s160 > r490 = 0.0576) is NOT rejected: Δ −0.002 / −0.002 / −0.004.
+      - Per pre-stated reading (2): the claim is "beats random at matched budget"; c1 is not met.
+    - [!] G = 0.65 [0.41, 0.90] (H), 0.65 [0.43, 0.87] (C), 0.55 [0.29, 0.80] (F), with G* = 0.85.
+      'Matches 20%' is NOT allowed (s160 − 0.95·r660 < 0). The headline sign rule holds for all 3 (P* and m1_hgb;
+      all, AO, TT).
+    - [!] n_req / n ≈ 2.7 at n = 160 and ≈ 3.4–3.9 at 330–490 (H, C). Adaptive selection is worth about 3× the
+      random budget.
+    - [!] R1 (Billmann-like) ≈ random at every n. H-static gives +12–22%; F-static ≈ random (+1%).
+    - [!] Warm start (220 R1, then adaptive): +27–35% vs R1-continuation at 440 and +38–40% at 660.
+    - [!] Batch 110: H +33% at 160 (vs +31% at batch 10), so there is no loss from large batches on T. Batch 50: +42%.
+    - [!] Q1 (T): P* AUPRC is 0.0917 at the full pool (2,627). n_80 = 1,143 [970, 1,311] (0.44 of the pool);
+      n_90 = 1,761 [1,571, 1,899] (0.67). The baselines saturate early (B1 n_80 = 119).
+    - Sensitivities agree:
+      - lockbox: H +32%;
+      - no same-chromosome: H +33%;
+      - two-way bootstrap: CI excludes 0;
+      - on-array rows: H +40%;
+      - off-array rows: +2–6% (yeast artefact rows).
+    - E_unobs (unpaired): H 0.0521 vs R0 0.0457 at n = 160 (lift 5.2 vs 4.1); equal AUPRC at 660, but the lift is
+      8.8 vs 6.4 because the strategy leaves a sparser unobserved set.
+    - [~] Independent rescoring running (analysis/rescore).
   - [x] Independent rescorer (analysis/rescore, no hsl import; commit f72da0d), 44 tests:
     - The dry run matches exactly: 179 unit APs, 378 strata APs and all point contrasts.
     - CIs and p-values agree within Monte-Carlo error, and all decisions agree.
