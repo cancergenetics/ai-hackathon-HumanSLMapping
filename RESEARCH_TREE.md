@@ -212,11 +212,14 @@ Retrospective (docs/reviews/retro_m_final.md):
     - [!] G = 0.65 [0.41, 0.90] (H), 0.65 [0.43, 0.87] (C), 0.55 [0.29, 0.80] (F), with G* = 0.85.
       'Matches 20%' is NOT allowed (s160 − 0.95·r660 < 0). The headline sign rule holds for all 3 (P* and m1_hgb;
       all, AO, TT).
-    - [!] n_req / n ≈ 2.7 at n = 160 and ≈ 3.4–3.9 at 330–490 (H, C). Adaptive selection is worth about 3× the
-      random budget.
+    - [!] n_req(160) (descriptive): 434 [317, 583] (H), 433 (C), 384 (F).
+      - That is 2.4–2.7× the random budget (ratio CIs ≈ 1.7–3.6×), about 13% of the query set.
+      - It is NOT '3×' or '≈ r490' (c1 not shown).
+      - On E_TT, s160 − r490 < 0 with CIs excluding 0 for C and F.
     - [!] R1 (Billmann-like) ≈ random at every n. H-static gives +12–22%; F-static ≈ random (+1%).
     - [!] Warm start (220 R1, then adaptive): +27–35% vs R1-continuation at 440 and +38–40% at 660.
-    - [!] Batch 110: H +33% at 160 (vs +31% at batch 10), so there is no loss from large batches on T. Batch 50: +42%.
+    - [!] Batch size: H at batch 110 gives +33% vs random at 160 (batch 10: +31%), batch 50 +42%. But C at batch 110
+      loses 6–7% vs batch 10 at 160 and 330 (CIs exclude 0). Read: 'modest or no loss', not 'no loss'.
     - [!] Q1 (T): P* AUPRC is 0.0917 at the full pool (2,627). n_80 = 1,143 [970, 1,311] (0.44 of the pool);
       n_90 = 1,761 [1,571, 1,899] (0.67). The baselines saturate early (B1 n_80 = 119).
     - Sensitivities agree:
@@ -225,8 +228,20 @@ Retrospective (docs/reviews/retro_m_final.md):
       - two-way bootstrap: CI excludes 0;
       - on-array rows: H +40%;
       - off-array rows: +2–6% (yeast artefact rows).
-    - E_unobs (unpaired): H 0.0521 vs R0 0.0457 at n = 160 (lift 5.2 vs 4.1); equal AUPRC at 660, but the lift is
-      8.8 vs 6.4 because the strategy leaves a sparser unobserved set.
+    - [!] E_unobs (the brief's literal set; unpaired; prevalence differs by arm):
+      - n = 160: H 0.0521 vs R0 0.0457.
+      - n = 660: H = R0 = F = 0.0695, while C is +12%.
+      - Strategies observe 1.63× (160) and 1.43× (660) random's SLs, so the unobserved remainder is sparser.
+      - Do not claim 'better prediction of unobserved pairs' from lift alone.
+    - [!] Where the gain is (n = 160):
+      - pooled AUPRC +26–31%, but per-query macro-AUPRC only +5–10%;
+      - AUROC unchanged;
+      - the gain is concentrated in the top SL-count tertile (+22–24%); F tertile 1 is −10%, n.s.
+    - Dev → T: no winner's curse on rel Δ(160) (dev 30.2% vs T 29.5%). G fell 0.84 → 0.65 (H) because T's random
+      curve is steeper. The finalist ranking is not tested (H ≈ C > F at 160, F > H > C at 660).
+    - Do not quote the saturating-fit parameters (c at its bound). Deterministic arms have R = 1, so their CIs omit
+      trajectory variance.
+    - Review: docs/reviews/final_results_review.md (claims list).
     - [x] Independent rescoring (no hsl import): 0 mismatches.
       - 12,738 rows match exactly, including all 4,019 unit APs and 6,299 strata APs.
       - 154 Monte-Carlo rows are within tolerance.
