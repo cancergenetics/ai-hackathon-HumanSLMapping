@@ -1,6 +1,6 @@
 # REPORT — Designing human HAP1 synthetic-lethal screens from the yeast genetic-interaction network
 
-Status: **draft**, 2026-10-30. Q1 and Q2 are final: the one-shot test-set evaluation was scored at commit 8c1818a and independently rescored at dad7bf0 with 0 mismatches. Q3 (§5, §6) is pending and is marked `<!-- Q3: ... -->`.
+Status: **draft for review**, 2026-10-30. The one-shot test-set evaluation was scored at commit 8c1818a and independently rescored at dad7bf0 with 0 mismatches. Q3 was run on the final outputs at b3be29b.
 
 **Claim labels.** **[C]** = confirmatory (pre-registered family, one-sided, Holm, familywise α = 0.025). **[P]** = pre-specified rule, reported descriptively. **[D]** = descriptive. **[dev]** = development data only, never the test set. Every number is cited to a committed file. `final/` means `results/final/`, and `final/summary.md §X` names a section of that file.
 
@@ -13,11 +13,20 @@ Status: **draft**, 2026-10-30. Q1 and Q2 are final: the one-shot test-set evalua
 - **The brief's example is not met [P].** 160 strategic queries (5%) did not match 660 random queries (20%): s160 − r660 = −0.0070 (H, C) and −0.0091 (F); all CIs exclude 0. Adaptive selection closed an estimated 65% [41–90%] (H), 65% [43–87%] (C) and 55% [29–80%] (F) of the 160 → 660 random gap [D].
 - **c1 not shown [C, not rejected].** It was not shown that 160 strategic queries beat 490 random queries (15%) (Holm p = 1.0). This is not evidence of equivalence. Descriptively, random needed 434 [317, 583] (H), 433 [329, 574] (C) and 384 [268, 516] (F) queries to match a 160-query strategy: 2.4–2.7× (ratio CIs ≈ 1.7–3.6×) [D].
 - **Where the gain is [D].** The pooled gain (+26–31%) is much larger than the per-query gain (macro AUPRC +5–10%), and AUROC does not improve. At n = 160 the gain is detectable only in the most SL-rich third of test genes. On the brief's literal evaluation set (unobserved pairs, E_unobs) the gain is +14% for H at 160 and vanishes by 660 for H and F. Adaptive arms also observe 1.4–1.6× more SLs directly.
-- **Iteration matters; a Billmann-like panel does not beat random [D].** Static versions recovered much less (H-static +12%, F-static +0.7% n.s. at 160). A diverse panel stratified on fitness and expression (R1) showed no detectable difference from random at any budget.
+- **Informed selection matters; a Billmann-like panel does not beat random [D].** The pre-specified static versions recovered much less (H-static +12%, F-static +0.7% n.s. at 160). A dev-fitted static three-feature rule (low fitness, conserved, stably expressed), applied post hoc, came close to the adaptive gain (§5.4). A diverse panel stratified on fitness and expression (R1) showed no detectable difference from random at any budget.
 - **Practical robustness [D].** After a 220-line Billmann-like panel, switching to adaptive selection gave +27–35% at 440 and +39–40% at 660 over continuing the panel. Batches of 50 or 110 (≤ 6 rounds) still beat random by +23% to +42% at 160. H lost nothing at batch 110; C lost 6–7%.
-- **HAP1 query numbers.** <!-- Q3: HAP1 line counts for n_80 / n_90 under random and adaptive selection (N_HAP1 7,500–9,500; measured b plus the b = 0 / b = 1 bounds), from results/q3_final/summary.md --> *[Q3 pending]*
-- **Recommended HAP1 strategy.** Screen in sequential rounds, choosing each batch adaptively (hub-first H, ≤ 110 lines per round), and switch to adaptive selection after any existing diverse panel. <!-- Q3: number of lines and rounds, the Billmann-222 placement, marginal returns per +100 lines and the stopping guidance --> *[Q3 pending]*
-- **What prediction can contribute.** <!-- Q3: precision/recall of P* on E_TT vs the within-yeast replicate reference; expected true SLs among top-k predictions per unscreened gene; online stopping estimator --> *[Q3 pending]*
+- **HAP1 query numbers [D; bound].** The universe-subsampling slope is b ≈ 1, i.e. the required number of lines scales with the size of the query universe. Under random selection, reaching 80% of what screening the whole pool gives would take ≈ 3,300 [2,600, 4,400] HAP1 lines (N_HAP1 = 8,500), against an optimistic count-scaling floor of ≈ 1,200. Adaptive hub-first selection reaches the same level with ≈ 1,000 lines (≈ 70% fewer), and in batches of about 300 lines that takes 4 rounds (§5.1–5.2). Billmann's 222 lines correspond to ≈ 81 yeast queries, which gives 36% of the whole-pool AUPRC under random selection and 43% under H (§5.3).
+- **Recommended HAP1 strategy (§6).**
+  - Prioritise query lines with low single-knockout fitness, high conservation and stable expression.
+  - Screen in a few large rounds, re-ranking between rounds with hub-first selection on the screened data.
+  - Plan about 1,000–1,500 lines for 80–90% of whole-pool performance, against about 3,300–4,900 at random.
+  - Fix the number of rounds in advance rather than stopping on cross-validation of the screened lines.
+
+  A static three-feature rule fixed on dev recovered most of the adaptive gain on T. That result is post-final descriptive and comes from 3 trajectories.
+- **What prediction can contribute [D].**
+  - After about 20% of queries chosen adaptively, predictions for unscreened genes match the precision of an independent reverse-direction measurement of the same pair (0.22 vs 0.18). That is still far below a HAP1 screen (0.61).
+  - Each unscreened gene's top 10 predicted partners contain ≈ 1 true SL, about 10–14× random.
+  - Cross-validation on adaptively chosen screened lines strongly overestimates performance (up to +143%), so it should not be used to decide when to stop (§5.5–5.6).
 
 ---
 
@@ -178,7 +187,7 @@ Sources: `final/contrasts.csv` (strata, sensitivity_c1 rows), `final/e_unobs.csv
 - **[D] Iteration.** The static versions recovered much less.
   - H-static gained +11.9% at 160 [0.0010, 0.0090] (−14.7% vs H) and peaked at +22.4% at 330.
   - F-static gained +0.7% n.s. (−20% vs F) (`final/contrasts.csv`, same_arm rows).
-  - The value of the strategies therefore comes mostly from feeding back screened rows, not from prior features.
+  - So the pre-specified static variants capture only part of the gain. A dev-fitted three-feature static rule, evaluated post-final, came close to H (§5.4). Iteration therefore matters relative to these static variants, but most of the gain may be reachable by choosing the right kind of gene.
 - **[D] Billmann-like panel.** R1 showed no detectable difference from random at any n: relative Δ −3.4% to +0.5%, all CIs include 0, n_req/n 0.89–1.03 (`final/n_req.csv`). Do not read this as "R1 equals random".
 
 ### 4.6 Warm start and batch size
@@ -242,44 +251,114 @@ Sources: `results/p4/summary.md` (ranking, Relative Δ(n)); `final/summary.md`.
 
 ## 5. Q3 — Implications for HAP1
 
-<!-- Q3: fill only after results/q3_final/summary.md exists AND the PI says go. Planned shape (from results/q3_dev): -->
+All Q3 numbers come from `results/q3_final/summary.md`. The T-based numbers are primary; dev is a consistency check (`results/q3_final/dev_vs_final.md`). Code: `analysis/q3/`. The HAP1 constants and their LITERATURE.md sources are in `analysis/q3/hap1_constants.yaml`: N_HAP1 = 7,500–9,500 viable-knockout query genes (8,500 central), 1.34 screens per line (298/222), and Billmann single-screen precision 0.61 / recall 0.37.
 
-*[Q3 pending: results/q3_final/summary.md not yet available.]*
+**Translation.** n_HAP1 = n_yeast · (N_HAP1 / N_yeast)^b, with N_yeast = 3,283 and the dev universe slope b = 1.06 [0.85, 1.28]. b = 0 (count scaling) and b = 1 (fraction scaling) are shown as bounds. The primary AUPRC stratum is on-array target columns (E_TT), per DESIGN §7.4; E_fixed is a sensitivity.
 
-### 5.1 How many lines: translation of n_80 / n_90 to HAP1
-<!-- Q3: table of HAP1 lines (and screens × 1.34) for random n_80 / n_90 at N_HAP1 = 7,500 / 8,500 / 9,500, using the measured b plus the b = 0 (count) and b = 1 (fraction) bounds. Use the E_TT stratum as primary (DESIGN §7.4), with E_fixed and on-array rows as sensitivities, and the N_yeast denominator sensitivity. State that n_80 is "80% of what screening the whole pool gives". Source: results/q3_final/hap1_translation.csv, hap1_b_boot.csv -->
+### 5.1 How many lines with random selection [D; bound]
 
-### 5.2 How many lines with adaptive selection; rounds
-<!-- Q3: lines, rounds and lines per round to reach the random n_80 / n_90 AUPRC for H, C, F and H__b110 / C__b110, using stratum-specific n_req (the E_TT c1 caveat from §4.3), with censoring stated. Source: hap1_nreq.csv, hap1_costs.csv -->
+Random-selection HAP1 lines needed to reach 80% / 90% of what screening the whole pool gives. These are not saturation points, because the curve has no plateau.
 
-### 5.3 Billmann's 222 lines on the curves; marginal returns
-<!-- Q3: yeast-equivalent n of 222 HAP1 lines under measured b / b = 0 / b = 1; AUPRC as % of the pool max and SLs detected for R0, R1, H, C, F; marginal ΔAUPRC and ΔSLs per +100 lines. Source: hap1_billmann222.csv, hap1_marginal.csv -->
+| target | N_HAP1 | measured b | b = 0 (count) | b = 1 (fraction) |
+|---|---|---|---|---|
+| n_80 | 7,500 | 2,908 [2,299, 3,735] | 1,211 | 2,767 |
+| n_80 | 8,500 | **3,321 [2,570, 4,374]** | 1,211 | 3,136 |
+| n_80 | 9,500 | 3,736 [2,835, 5,039] | 1,211 | 3,505 |
+| n_90 | 8,500 | **4,934 [4,110, 5,982]** | 1,796 | 4,651 |
+
+At N_HAP1 = 8,500 that is about 4,460 / 6,620 screens (× 1.34).
+
+**Sensitivities.**
+- **Denominator.** N_yeast = 4,458 (Q ∪ A) gives 2,401 lines for n_80. N_yeast = the pool size gives 4,206. The choice of denominator is the largest single lever.
+- **Stratum.** E_fixed gives 3,135 lines and on-array rows 3,388.
+- **Dev.** Dev gives 2,208 [1,758, 2,871], because its anchor is lower (§3).
+
+**Reading.** The measured b ≈ 1 means the required number of lines scales with the size of the human query universe. Under random selection, reaching 80% of the whole-pool performance would take roughly 2,900–3,700 HAP1 lines, more than ten times Billmann's 222. The b = 0 count bound (≈ 1,200) is the optimistic floor.
+
+### 5.2 How many lines with adaptive selection; rounds [D]
+
+| target (on-array stratum) | arm | HAP1 lines [95% CI] | rounds | lines / round | saving vs random |
+|---|---|---|---|---|---|
+| n_80 | random | 3,321 [2,570, 4,374] | 1 | — | — |
+| n_80 | H (batch 10) | 999 [815, 1,261] | 37 | 27 | 70% |
+| n_80 | H (batch 110) | 1,037 [846, 1,309] | 4 | 302 | 69% |
+| n_80 | C (batch 110) | 1,159 [945, 1,463] | 4 | 302 | 65% |
+| n_90 | random | 4,934 [4,110, 5,982] | 1 | — | — |
+| n_90 | H (batch 10) | 1,296 [1,102, 1,531] | 48 | 27 | 74% |
+| n_90 | H (batch 110) | 1,438 [1,223, 1,699] | 5 | 302 | 71% |
+
+Source: `results/q3_final/summary.md` §1, "Costs, random vs strategies"; N_HAP1 = 8,500, measured b.
+
+- **How a strategy's budget is defined.** It is the n at which the strategy's own mean curve reaches the random target AUPRC. Its CI propagates the uncertainty in b and in the random-curve n_X, not the trajectory variance of the strategy curve.
+- **Static arms.** H-static, F-static and R1 never reach the n_80 target within the 660-query range measured.
+- **[D] Stratum-specific random-equivalent budget at n = 160** (on-array stratum; trajectory bootstrap only):
+  - H 396 [343, 460] (2.5×), C 368 [324, 420] (2.3×), F 341 [305, 377] (2.1×).
+  - In HAP1 terms, 439 adaptively chosen lines ≈ 935–1,087 random lines.
+  - The ratio rises to 3.2–3.8× at 330–490 queries. Because c1 was not shown (§4.1), these ratios are descriptive.
+
+### 5.3 Billmann's 222 lines on the curves; marginal returns [D]
+
+- **Where 222 lines sit.** At the measured b, 222 HAP1 lines ≈ 81 yeast queries. At that budget, random selection gives 36% [34, 37] of the pool-max AUPRC and H gives 43% [38, 47]. Strong SLs detected are 3.2% vs 4.4%. A diverse panel like R1 gives the same as random (36%). Under the b = 0 bound (222 = 222 yeast queries), random gives 46% and H 64%.
+- **Marginal returns per +100 lines.** These diminish slowly.
+  - With H, AUPRC rises by 7.2 percentage points of the pool max at 222 lines, 4.5 at 500, 3.7 at 1,000 and 1.4 at 1,500.
+  - Under random selection the gains are 2.7, 2.3, 2.0 and 1.2.
+  - Strong SLs detected rise by about 2–2.7% of the network per +100 lines with H, against about 1.3–1.4% with random.
 
 ### 5.4 Choice of query lines (human-available features)
-<!-- Q3: profile of the genes the strategies pick vs random (fitness, expression, conservation, ...), and the interpretable static rank rule with the share of H's gain it recovers, evaluated on T (dev value 72% is dev-only). Source: choice_profile.csv -->
 
-### 5.5 What computational prediction can contribute
-<!-- Q3: P* precision/recall on E_TT vs the within-yeast replicate reference (reciprocal BA → AB, κ 0.14); thresholds from leave-batch-out CV on screened rows; expected true SLs among top-k per unscreened gene. Source: pred_vs_reference.csv, pred_thresholds.csv, pred_topk.csv, pred_reciprocal.csv -->
+- **[D] Profile of the picks.** Compared with the candidate pool (standardised mean differences of the first 160 picks), the adaptive arms pick genes with lower single-mutant fitness (H −1.7 SD, F −1.4, C −1.0). They also pick genes with higher conservation and paralog identity, higher expression and abundance, more AP-MS partners and lower expression variability. Random and R1 picks are indistinguishable from the pool (|SMD| < 0.08). All of these features have human analogues: HAP1 / DepMap single-knockout fitness, expression atlases, orthology, and BioPlex / OpenCell.
+- **[D; post-final descriptive] A simple static rule recovers most of the gain.**
+  - The rule ranks genes by three features: low single-mutant fitness, low expression variability and high conservation.
+  - It was fitted on dev and fixed at bde1622, before the final was scored. It was applied once to T: 3 trajectories, no refitting, no CI. It is not part of the frozen final plan.
+  - It reached 0.057 at n = 160, against 0.056 for H and 0.042 for random. That is 108% of H's gain at 160, 92% at 330 and 91% at 660 (partial at 660). The pre-specified H-static recovered only 38%.
+  - So the value of the adaptive strategies at these budgets can largely be captured by choosing "sick", conserved, stably expressed genes first. Iteration helps relative to H-static's hub model, but a well-chosen static prior comes close. This finding is descriptive and needs confirmation (§8).
 
-### 5.6 Knowing when to stop
-<!-- Q3: frozen online stopping rule (51cae82: projection, cv_auprc, τ 0.97, window 4) applied on T, against the fixed-n comparator; the LBO-CV estimator's bias under random vs adaptive selection. Source: stop_* files, if present in q3_final -->
+### 5.5 What computational prediction can contribute [D]
+
+- **Against a replicate-like reference.** On on-array target cells, the reciprocal measurement of the same pair (BA → AB) has precision = recall = 0.178 (κ 0.17).
+  - P\* after 660 H-selected queries reaches precision 0.224 at that recall. After 660 random queries it reaches 0.115; after 160 H queries, 0.091.
+  - So with about 20% of queries screened adaptively, predictions for unscreened genes are about as informative as an independent reverse-direction measurement of the pair.
+  - Neither is close to Billmann's HAP1 single-screen precision of 0.61 at recall 0.37: P\* precision at recall 0.37 is ≈ 0.05–0.07.
+- **Top-k per unscreened gene.** The 10 top-ranked partners of each unscreened test gene contain 0.93 true strong SLs on average after 160 H queries, and 1.34 after 660. A random pick of 10 gives 0.095, so the enrichment is about 10–14×. 48–54% of genes have at least one true SL in their top 10.
+- **Calling thresholds.** Thresholds set by leave-batch-out CV on screened rows over-promise under adaptive selection. A threshold tuned to CV precision 0.20 gave 0.12–0.18 on targets for H (`pred_thresholds.csv`).
+
+### 5.6 Knowing when to stop [D; negative]
+
+- **The online estimator is biased under adaptive selection.** The estimator is leave-batch-out CV AUPRC on screened rows only.
+  - It tracks the true held-out AUPRC under random selection (relative bias −15% to +6%).
+  - Under H it is strongly inflated (+35% to +143% at n ≤ 220), because H's screened rows are SL-rich.
+  - The within-n correlation with the truth is high (Pearson 0.97–0.99 at n ≥ 160).
+- **The frozen plateau rule does not beat a fixed budget.** The rule (frozen at 51cae82 before any final output) was applied once:
+  - It stopped H at 330, 490 and 490, reaching 85–96% of AUPRC(660).
+  - It did not trigger for random (stopped at the cap, 660).
+  - Its mean |log₂(n_stop / knee)| was 0.23, against 0.12 for always stopping at n = 490. The 490 comparator is known only in hindsight.
+- **Recommendation.** Do not stop on CV performance of screened rows when screening adaptively. Fix the number of rounds in advance (§6), or estimate performance on a small randomly chosen validation set of lines.
 
 ### 5.7 Dev vs final for Q3
-<!-- Q3: summary of results/q3_final/dev_vs_final.md -->
+
+- **Same conclusions, larger numbers on T.** Dev and T agree on every qualitative Q3 conclusion. The HAP1 line numbers are about 1.5× larger on T, because T's whole-pool anchor is higher: random n_80 is 2,208 HAP1 lines on dev vs 3,321 on T.
+- **Savings.** Adaptive savings are 64–71% on dev vs 69–74% on T. H at batch 110 reaches the n_80 target in 3 rounds on dev (805 lines) and 4 rounds on T (1,037 lines) (`results/q3_final/dev_vs_final.md`).
 
 ---
 
 ## 6. Recommended HAP1 screening strategy
 
-<!-- Q3: finalise the numbers once 5.1-5.6 are filled. The structure below draws only on the final Q2 results. -->
-
-1. **Screen iteratively, not as one fixed panel.** On T, adaptive batch selection beat random at a matched budget [C]. Static and diversity-stratified panels recovered much less (H-static) or showed no detectable difference from random (F-static, R1) [D].
+1. **Choose lines by informed priority, not by diversity or at random.** On T, adaptive batch selection beat random at a matched budget [C]. The pre-specified static variants recovered less (H-static) or nothing (F-static), and a diversity-stratified panel (R1) showed no detectable difference from random [D]. A simple static three-feature rule came close to the adaptive gain (§5.4; post-final descriptive), so most of the benefit comes from screening the right kind of gene. Re-ranking between rounds is a cheap addition.
 2. **Selector: hub-first H, in rounds of up to about 110 lines.** H showed no loss at batch 110 vs 10 [D], needs only per-gene features with direct human analogues (fitness, abundance, AP-MS/coexpression degree, conservation, paralogs) plus the screened rows, and costs seconds per round.
    - C performed as well at batch 10 but lost 6–7% at batch 110 [D].
    - This is a judgement for practical robustness. It is **not** a tested ranking: H, C and F are indistinguishable at 160.
 3. **If a diverse panel already exists (e.g. Billmann's 222 lines), switch to adaptive selection now.** On T, a warm start gave +27–40% over continuing the panel [D].
-4. **Number of lines:** <!-- Q3: HAP1 lines and rounds for the target (e.g. n_80 of the E_TT stratum) under random and H/H__b110, with the b = 0 / b = 1 bounds and CIs --> *[Q3 pending]*
-5. **Expectations for prediction:** <!-- Q3: what precision to expect for unscreened genes at the recommended budget, and the role of the online stopping estimate --> *[Q3 pending]*
+4. **Number of lines.** At N_HAP1 ≈ 8,500 and the measured b ≈ 1 (on-array stratum, §5.2):
+   - About 1,000 lines [850, 1,300] in about 4 rounds of about 300 reach 80% of what screening the whole pool gives.
+   - About 1,450 lines [1,200, 1,700] in 5 rounds reach 90%.
+   - Random selection would need about 3,300 and about 4,900 lines.
+   - Under the optimistic count-scaling bound (b = 0) the batch-110 numbers would be about 380–520 lines.
+   - Returns per +100 lines remain positive throughout (§5.3), so there is no natural stopping point. Budget by target fraction, not by a plateau.
+   - Billmann's 222 lines give an estimated 36% (random-like) to 43% (adaptive) of whole-pool performance.
+5. **Choosing the first round, and expectations for prediction.**
+   - **First round.** Seed it with genes ranked by low single-knockout fitness, high conservation and low expression variability. On T this static rule recovered about 90–108% of H's gain (post-final descriptive, 3 trajectories, §5.4). Then re-rank between rounds with H.
+   - **Predictions for unscreened genes.** Expect about 1 true SL among each gene's top 10 predicted partners, and precision comparable to a reverse-direction remeasurement, not to a screen (§5.5).
+   - **Stopping.** Do not stop on cross-validated performance of the screened lines; it is inflated under adaptive selection (§5.6). Set the number of rounds in advance, or hold out a small random validation set of lines.
 6. **Caveats that travel with the recommendation.**
    - The gain is in pooled AUPRC and concentrated on SL-rich genes at small budgets (§4.4).
    - 160 strategic queries do not replace 660 random ones (§4.2).
