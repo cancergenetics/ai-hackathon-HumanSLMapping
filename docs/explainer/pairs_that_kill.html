@@ -86,129 +86,159 @@ a { color: var(--smart); }
 <div class="wrap">
 
 <header style="display:flex;flex-direction:column;gap:18px">
-  <div class="eyebrow">A plain-language summary · yeast → human</div>
-  <h1>Pairs that kill: choosing which human genes to test first</h1>
-  <p class="lede">Some genes are harmless to lose one at a time but deadly to lose together. Finding those pairs could point to new cancer treatments, but there are far too many pairs to test them all. We used a complete map from yeast to work out how human experiments should choose where to look.</p>
+  <div class="eyebrow">Genetic interaction mapping · experimental design · yeast → HAP1</div>
+  <h1>Which queries to screen next? Designing human synthetic-lethal maps from the yeast network</h1>
+  <p class="lede">Query-by-genome CRISPR screens in HAP1 cells now map genetic interactions at scale, but each query line is expensive and the pair space is enormous. We used the essentially complete yeast SGA network as a testbed to ask how many queries are needed, which ones to pick, and how much computational prediction can fill in for unscreened genes.</p>
 </header>
 
 <section>
-  <h2>Two knockouts, one dead cell</h2>
-  <p>A cell can usually survive losing a single gene, because another gene covers for it. <strong>Synthetic lethality</strong> is when two genes back each other up: knock out either one and the cell lives, knock out both and it dies.</p>
-  <div class="cells" role="img" aria-label="Four cells: normal cell lives; without gene A lives; without gene B lives; without both A and B dies.">
-    <div class="cell"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--ink)" stroke-width="2"/><circle cx="24" cy="30" r="5" fill="var(--smart)"/><circle cx="40" cy="34" r="5" fill="var(--smart)"/></svg><div>Gene A and gene B working</div><div class="tag">LIVES</div></div>
-    <div class="cell"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--ink)" stroke-width="2"/><circle cx="24" cy="30" r="5" fill="none" stroke="var(--muted)" stroke-dasharray="2 2"/><circle cx="40" cy="34" r="5" fill="var(--smart)"/></svg><div>Gene A knocked out</div><div class="tag">LIVES</div></div>
-    <div class="cell"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--ink)" stroke-width="2"/><circle cx="24" cy="30" r="5" fill="var(--smart)"/><circle cx="40" cy="34" r="5" fill="none" stroke="var(--muted)" stroke-dasharray="2 2"/></svg><div>Gene B knocked out</div><div class="tag">LIVES</div></div>
-    <div class="cell dead"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--lethal)" stroke-width="2" stroke-dasharray="5 4"/><path d="M22 22 L42 42 M42 22 L22 42" stroke="var(--lethal)" stroke-width="3" stroke-linecap="round"/></svg><div>Both knocked out</div><div class="tag">DIES</div></div>
+  <h2>The target: strong negative interactions</h2>
+  <p>We focus on <strong>synthetic lethal / strong negative genetic interactions</strong>. These are pairs where the double mutant is much sicker than the single mutants predict: ε &lt; −0.12 at P &lt; 0.05 in the yeast SGA scoring. They are the interactions most directly useful for target discovery, where a tumour's loss-of-function lesion creates a dependency on its buffering partner. PARP inhibition in BRCA1/2-deficient tumours is the textbook case. They are also sparse: about <span class="num">1.1%</span> of tested pairs in yeast. HAP1 has a comparable negative-interaction density of about <span class="num">1.2%</span>.</p>
+  <div class="cells" role="img" aria-label="Four cells: wild type viable; single mutant a viable; single mutant b viable; double mutant ab lethal.">
+    <div class="cell"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--ink)" stroke-width="2"/><circle cx="24" cy="30" r="5" fill="var(--smart)"/><circle cx="40" cy="34" r="5" fill="var(--smart)"/></svg><div>Wild type</div><div class="tag">VIABLE</div></div>
+    <div class="cell"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--ink)" stroke-width="2"/><circle cx="24" cy="30" r="5" fill="none" stroke="var(--muted)" stroke-dasharray="2 2"/><circle cx="40" cy="34" r="5" fill="var(--smart)"/></svg><div><i>a</i>Δ</div><div class="tag">VIABLE</div></div>
+    <div class="cell"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--ink)" stroke-width="2"/><circle cx="24" cy="30" r="5" fill="var(--smart)"/><circle cx="40" cy="34" r="5" fill="none" stroke="var(--muted)" stroke-dasharray="2 2"/></svg><div><i>b</i>Δ</div><div class="tag">VIABLE</div></div>
+    <div class="cell dead"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--lethal)" stroke-width="2" stroke-dasharray="5 4"/><path d="M22 22 L42 42 M42 22 L22 42" stroke="var(--lethal)" stroke-width="3" stroke-linecap="round"/></svg><div><i>a</i>Δ <i>b</i>Δ</div><div class="tag">LETHAL</div></div>
   </div>
-  <p>This matters for medicine. Many tumours have already lost one gene through mutation. A drug that blocks its partner would kill the tumour cells and largely spare healthy cells, which still have both genes. PARP inhibitors for BRCA-mutant breast and ovarian cancers work this way.</p>
 </section>
 
 <section>
-  <h2>The problem is scale</h2>
+  <h2>The design problem is the pair space</h2>
   <div class="stats">
-    <div class="stat"><span class="v num">~18,000</span><span class="l">human protein-coding genes in a standard genome-wide knockout library</span></div>
-    <div class="stat"><span class="v num">~160 million</span><span class="l">possible pairs of those genes (18,000 × 18,000 ÷ 2)</span></div>
-    <div class="stat"><span class="v num">~1 in 100</span><span class="l">tested pairs that show a strong harmful interaction, in both yeast and human cells</span></div>
+    <div class="stat"><span class="v num">~18,000</span><span class="l">genes in a genome-wide library (TKOv3), ~11,000 of them expressed in HAP1</span></div>
+    <div class="stat"><span class="v num">~160 M</span><span class="l">possible gene pairs in the library (~60 M among expressed genes)</span></div>
+    <div class="stat"><span class="v num">&lt;5%</span><span class="l">of possible HAP1 pairs assayed so far (Billmann et al., 2026)</span></div>
   </div>
-  <p>Testing pairs one at a time is impossible at this scale. Instead, labs use a <strong>screen</strong>. They build one cell line that lacks a chosen "query" gene, then use CRISPR to knock out every other gene in it, all at once in a pool. One screen tests one query gene against all ~18,000 others. Each query line has to be engineered and grown in large numbers, so a lab can afford hundreds of screens, not thousands.</p>
+  <p>A query screen measures one query knockout against the whole library, so it reveals one row of the interaction matrix. The cost unit is the query line: each must be engineered, validated and screened in replicate. The largest human map to date (Billmann, Costanzo et al., <em>Cell</em> 2026) screened <span class="num">222</span> HAP1 query lines (<span class="num">298</span> screens). It tested about <span class="num">3.9 M</span> pairs and called <span class="num">47,052</span> negative interactions. Its queries were chosen for functional diversity across expression and fitness, not for network coverage.</p>
   <div class="plate">
-    <div class="title" style="font-weight:600">All possible human gene pairs, one dot per 25,000 pairs</div>
-    <canvas id="plate" width="1400" height="560" role="img" aria-label="A field of 6,480 dots representing about 162 million human gene pairs. About 157 dots are highlighted, representing the roughly 3.9 million pairs tested by the largest human study so far."></canvas>
-    <div class="legend"><span><i class="sw" style="background:var(--dot)"></i>not yet tested</span><span><i class="sw" style="background:var(--lethal)"></i>tested by the largest human map so far (222 screens, ~3.9 million pairs)</span></div>
+    <div class="title" style="font-weight:600">The library pair space, one dot per 25,000 gene pairs</div>
+    <canvas id="plate" width="1400" height="560" role="img" aria-label="A field of 6,480 dots representing about 162 million gene pairs in a genome-wide library. About 157 dots are highlighted, representing roughly 3.9 million pairs tested by the 222-query HAP1 map."></canvas>
+    <div class="legend"><span><i class="sw" style="background:var(--dot)"></i>unassayed</span><span><i class="sw" style="background:var(--lethal)"></i>assayed by the 222-query HAP1 map (~3.9 M pairs)</span></div>
   </div>
-  <p>The biggest human map to date (Billmann, Costanzo and colleagues, <em>Cell</em> 2026) screened 222 query genes in a human cell line called HAP1. It tested about 3.9 million pairs and found about 47,000 harmful interactions. The authors estimate this covers <strong>under 5% of all possible pairs</strong>. So <em class="k">which query genes should be screened next?</em></p>
-</section>
-
-<section>
-  <h2>Learning from yeast, where the whole map exists</h2>
-  <p>We can't test strategies in human cells without the answers. Baker's yeast is different. Its map is essentially complete for genes that are not essential: <span class="num">3,283</span> query genes were each screened against <span class="num">3,827</span> others, about <span class="num">12.6 million</span> measured combinations, of which about <span class="num">129,000</span> are strongly harmful (Costanzo and colleagues, <em>Science</em> 2016).</p>
-  <p>That lets us rehearse the human problem with the answer key in hand:</p>
+  <p>The open questions are therefore experimental-design questions:</p>
   <ul class="plain">
-    <li>We locked away 656 yeast genes (20%) as an exam that no method was allowed to see or screen.</li>
-    <li>We then "screened" other genes, in a simulation, either chosen at random or chosen smartly in rounds of 10.</li>
-    <li>After each round, a computer model used the screened results, plus gene information that also exists for humans (activity levels, protein partners, evolutionary conservation), to predict the harmful partners of the locked-away genes.</li>
-    <li>We scored how well those predictions ranked the true partners.</li>
+    <li>How does predictive coverage of unscreened genes scale with the number of queries?</li>
+    <li>Does choosing queries adaptively, in batches, beat random or diversity-driven panels at the same budget?</li>
+    <li>What does that imply for the number and identity of the next HAP1 query lines?</li>
   </ul>
-  <p>The locked-away genes were scored exactly once, at the very end, after every choice had been frozen. An independent re-check of all the numbers found no discrepancies.</p>
+  <p>To our knowledge, iterative query selection has not been evaluated for genetic interaction maps. Related active-learning work exists for Perturb-seq and for drug–target matrices.</p>
 </section>
 
 <section>
-  <h2>1. More screens keep helping, with no plateau</h2>
-  <p>With randomly chosen query genes, predictions get steadily better as more genes are screened. They never level off. Screening 20% of genes at random gives predictions about <span class="num">6.7×</span> better than guessing. Screening everything we could gives about <span class="num">9.8×</span>.</p>
+  <h2>Testbed: the yeast NxN network with an answer key</h2>
+  <p>The Costanzo et al. (2016) nonessential × nonessential map gives a near-complete matrix: <span class="num">3,283</span> queries × <span class="num">3,827</span> arrays, about <span class="num">12.6 M</span> scored pairs and <span class="num">128,955</span> strong negatives. We used it to simulate HAP1-style campaigns.</p>
+  <ul class="plain">
+    <li><strong>Held-out test queries.</strong> Before any development, 656 query genes (20%) were held out, stratified by interaction degree. They were never screened, selected or used for tuning.</li>
+    <li><strong>Observation model.</strong> Screening a gene reveals its full query row. Any pair involving a screened gene counts as observed, on whichever side. AB/BA measurements are kept as separate directed cells, because their concordance is low (κ ≈ 0.14).</li>
+    <li><strong>Predictor.</strong> A kernel-ridge fold-in of the screened interaction profiles, stacked with logistic regression. Gene features are limited to sources with a direct human analogue: coexpression, AP-MS interactome, ESM-2 protein embeddings, paralogy and conservation, abundance, and single-mutant fitness. There are no external genetic interactions, no text-mining or STRING, and no GO, to avoid circularity.</li>
+    <li><strong>Selection strategies</strong>, run in batches of 10:
+      <ul class="plain" style="margin-top:6px">
+        <li>random;</li>
+        <li>a Billmann-like diversity panel stratified by fitness and expression;</li>
+        <li>adaptive hub-first (H), a degree model refit on screened rows;</li>
+        <li>coverage (C), facility location in the kernel space;</li>
+        <li>Fisher D-optimal design over low-rank interaction factors (F);</li>
+        <li>static, one-shot versions of these.</li>
+      </ul>
+    </li>
+    <li><strong>Evaluation.</strong> AUPRC for strong negatives on held-out query rows × never-screenable arrays. This set is identical for every strategy, so all comparisons are paired.</li>
+    <li><strong>Pre-registration.</strong> The analysis plan, finalist strategies and statistical tests were frozen before the test set was touched. It was run once and recomputed by independent code.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>1. Random query sampling: steady gains, no saturation</h2>
+  <p>With randomly sampled queries, AUPRC on held-out queries rises from <span class="num">0.031</span> at 30 queries to <span class="num">0.042</span> at 160 (5%), <span class="num">0.063</span> at 660 (20%) and <span class="num">0.092</span> with all 2,627 candidate queries screened. That is a lift over the 0.94% base rate of 3.2×, 4.5×, 6.7× and 9.8×. The curve has not saturated. Reaching 80% / 90% of the full-pool AUPRC takes about <span class="num">1,140</span> / <span class="num">1,760</span> queries, i.e. 35% / 54% of all 3,283 query genes.</p>
   <div class="chart" id="c1">
-    <div class="title">How much better than guessing, as more genes are screened</div>
-    <svg id="svg1" viewBox="0 0 700 360" role="img" aria-label="Line chart. Prediction quality, as times better than guessing, versus percent of yeast genes screened. Random choice rises from 2.6 at 0.3% to 6.7 at 20% and 9.8 at 80%. Smart choice rises faster: 5.9 at 4.9% and 9.5 at 20%."></svg>
-    <div class="legend"><span><i class="sw" style="background:var(--random)"></i>genes chosen at random</span><span><i class="sw" style="background:var(--smart)"></i>genes chosen smartly, in rounds of 10 (measured up to 20%)</span></div>
-    <div class="note">"Better than guessing" is the precision-recall score divided by the rate a random guess would achieve (about 1 in 100). Scored on the 656 locked-away genes. Hover or tap the points for values.</div>
+    <div class="title">AUPRC lift on held-out queries vs fraction of queries screened</div>
+    <svg id="svg1" viewBox="0 0 700 360" role="img" aria-label="Line chart. AUPRC lift over base rate versus percent of yeast query genes screened. Random sampling rises from 2.6× at 0.3% to 6.7× at 20% and 9.8× at 80%. Adaptive hub-first selection rises faster: 5.9× at 4.9% and 9.5× at 20%."></svg>
+    <div class="legend"><span><i class="sw" style="background:var(--random)"></i>random query sampling</span><span><i class="sw" style="background:var(--smart)"></i>adaptive hub-first (H), batches of 10, run to 20%</span></div>
+    <div class="note">Lift = pooled AUPRC ÷ prevalence (0.94%) on held-out query rows × never-screenable arrays. Means over 40 random trajectories (fewer above 660 queries) and 20 adaptive trajectories. Hover or tap the points for values.</div>
     <div class="tip" id="tip1" hidden></div>
   </div>
+  <p>The model matters as much as the data. Simple degree baselines plateau by about 120 queries, while the full predictor keeps improving. Its advantage over a simpler stacked model grows from +14% at 160 queries to +36% at 660.</p>
 </section>
 
 <section>
-  <h2>2. Choosing smartly gets you more from the same budget</h2>
-  <p>With <strong>160 screens (5% of genes)</strong>, the smart strategies made predictions about <strong>26–31% better</strong> than random screening. This was the main pre-registered test, and it passed for all three smart strategies. To match them, random screening needed about <span class="num">430</span> genes, roughly 2.5 times as many.</p>
-  <p class="callout">To be clear about the limits: 160 smart screens did <strong>not</strong> match 660 random screens (20%). They closed about 55–65% of that gap. They also did not clearly beat 490 random screens.</p>
-  <p>The smart strategies work by spending early screens on genes that turn out to have many partners. Their results reveal a lot about the rest of the map. The gain is largest for genes with many harmful partners. For genes with few, it is small.</p>
-</section>
-
-<section>
-  <h2>3. What makes a good gene to screen</h2>
-  <p>The genes the smart strategies picked had a clear profile. Each feature can be measured for human genes too:</p>
+  <h2>2. Adaptive selection beats random at matched budget</h2>
+  <p>At <strong>160 queries (5%)</strong>, all three pre-specified adaptive strategies outperformed random sampling (one-sided tests, Holm-corrected, p ≤ 0.0014):</p>
   <ul class="plain">
-    <li><strong>Losing the gene alone already makes the cell grow poorly.</strong> This was the strongest signal.</li>
-    <li><strong>It is conserved</strong> across species.</li>
-    <li><strong>It is steadily and highly active</strong>, with many protein partners.</li>
+    <li>hub-first: <span class="num">+31%</span> AUPRC;</li>
+    <li>coverage: <span class="num">+31%</span>;</li>
+    <li>Fisher design: <span class="num">+26%</span>.</li>
   </ul>
-  <p>A simple fixed rule using just three features (poor growth when the gene is lost, conservation, and steady activity) recovered most of the smart strategies' advantage in a follow-up check. That check is promising but small (3 runs), so it needs confirming. By contrast, a panel chosen for <em>diversity</em>, spread across growth rates and activity levels in the way the human study chose its genes, did no better than random.</p>
+  <p>Random sampling needs about <span class="num">380–430</span> queries to reach the same AUPRC, a <strong>2.4–2.7× budget equivalence</strong>. At 330–490 queries this rises to 3–4×.</p>
+  <p class="callout">Limits: 160 adaptive queries did <strong>not</strong> match 660 random queries (the "5% vs 20%" question). They closed 55–65% of that gap, and they did not significantly beat 490 random queries. The gain is concentrated in pooled AUPRC on high-degree targets: per-query (macro) AUPRC improves only 5–10%, and AUROC is unchanged. The Billmann-like diversity panel was indistinguishable from random at every budget.</p>
+  <p><strong>Mechanism.</strong> Adaptive strategies preferentially screen moderately high-degree genes (about 1.5–1.6× the degree of random picks), not the extreme hubs. Their rows reveal 1.4–1.6× more strong negatives, including interactions in the array-side columns of unscreened genes, and the fold-in predictor exploits these. A true-degree "oracle" that screens the biggest hubs first does worse, because it overshoots. Selection is leak-free: selections were bit-identical when all held-out data were scrambled.</p>
 </section>
 
 <section>
-  <h2>4. What this means for human screens</h2>
-  <p>The number of screens you need grows with the number of genes, so human cells need more than yeast. We estimate the number of human query lines needed for predictions to reach <strong>80% of the quality you would get by screening every possible query gene</strong>:</p>
+  <h2>3. Which genes make informative queries</h2>
+  <p>The early adaptive picks share a profile, and every feature in it has a human counterpart (HAP1/DepMap single-KO fitness, expression atlases, orthology, BioPlex/OpenCell):</p>
+  <ul class="plain">
+    <li><strong>Low single-mutant fitness</strong>: about −1.7 SD vs the candidate pool. This was the dominant signal.</li>
+    <li><strong>High conservation and paralog identity.</strong></li>
+    <li><strong>High, stable expression</strong> and higher AP-MS degree.</li>
+  </ul>
+  <p>These are the same correlates of interaction degree reported for HAP1 hubs. In a post-hoc check, a static three-feature ranking (low fitness, high conservation, low expression variability) recovered 91–108% of the adaptive gain on held-out genes. The ranking was fixed on development data before testing, but the check used only 3 runs with no CI, so it needs confirmation. The pre-specified static variants recovered much less, and diversity sampling recovered nothing.</p>
+</section>
+
+<section>
+  <h2>4. Translating to HAP1 query numbers</h2>
+  <p>Subsampling the yeast gene universe gave a scaling exponent of <span class="num">b ≈ 1.06</span> [0.85, 1.30] for queries needed versus universe size. In other words, the queries required scale with the fraction of genes, not their absolute count. Projecting onto about 8,500 viable HAP1 query genes gives the following query lines needed to reach 80% of whole-pool prediction performance:</p>
   <div class="chart" id="c2">
-    <div class="title">Human query lines needed to reach 80% of whole-genome prediction quality</div>
-    <svg id="svg2" viewBox="0 0 700 230" role="img" aria-label="Bar chart. Random choice needs about 3,300 lines (range 2,600 to 4,400). Smart choice needs about 1,000 lines (range 850 to 1,300) in 4 rounds of about 300. The largest study so far screened 222 lines."></svg>
-    <div class="note">Bars show central estimates; whiskers show 95% uncertainty ranges from the yeast-to-human scaling. Assumes about 8,500 human genes that can be knocked out as queries. Under the most optimistic scaling assumption, random choice would need about 1,200 lines. Hover or tap the bars for values.</div>
+    <div class="title">HAP1 query lines to reach 80% of full-pool AUPRC (on-array targets)</div>
+    <svg id="svg2" viewBox="0 0 700 230" role="img" aria-label="Bar chart. Random sampling needs about 3,300 HAP1 query lines (95% range 2,600 to 4,400). Adaptive hub-first selection in rounds of about 300 lines needs about 1,000 (range 850 to 1,300). Billmann et al. screened 222."></svg>
+    <div class="note">The ranges propagate uncertainty in the scaling exponent and in the yeast estimate. They do not include run-to-run variance of the strategy. The choice of yeast denominator shifts all numbers by about ±27%. Under pure count scaling (b = 0), random sampling would need about 1,200 lines. Hover or tap the bars for values.</div>
     <div class="tip" id="tip2" hidden></div>
   </div>
   <div class="stats">
-    <div class="stat"><span class="v num">~70%</span><span class="l">fewer query lines with smart choice, for the same prediction quality</span></div>
-    <div class="stat"><span class="v num">4–5</span><span class="l">rounds of ~300 lines are enough. Choosing in big batches loses little.</span></div>
-    <div class="stat"><span class="v num">36–43%</span><span class="l">of whole-genome prediction quality that the 222 lines screened so far are estimated to provide</span></div>
+    <div class="stat"><span class="v num">~70%</span><span class="l">fewer query lines with adaptive selection, at equal predictive performance</span></div>
+    <div class="stat"><span class="v num">4–5</span><span class="l">rounds of ~300 lines suffice; large batches cost the hub-first strategy no detectable performance</span></div>
+    <div class="stat"><span class="v num">36–43%</span><span class="l">of full-pool AUPRC estimated for a 222-query campaign (random vs adaptive)</span></div>
   </div>
+  <p>Switching from an existing 220-query diversity panel to adaptive selection improved AUPRC by 27–40% over continuing the panel. Returns per additional 100 lines diminish slowly but stay positive throughout the measured range.</p>
 </section>
 
 <section>
-  <h2>What computer predictions can and cannot do</h2>
-  <p>Predictions do not replace experiments, but they narrow the search. After screening about 20% of genes smartly, each unscreened gene's <strong>top 10 predicted partners contain about one true harmful partner</strong>. That is 10–14 times better than picking 10 at random. At that point the predictions are about as reliable as re-measuring the same pair in reverse. They remain far less reliable than an actual screen.</p>
-  <p>One warning for labs. When genes are chosen smartly, the usual way to check a model, by testing it on the genes already screened, badly overstates how good it is (by up to 2.4 times). That makes it unreliable for deciding when to stop. It is better to fix the number of rounds in advance.</p>
+  <h2>What prediction adds, and a caution on model validation</h2>
+  <p>After about 20% of queries chosen adaptively, each unscreened gene's top-10 predicted partners contain about <strong>one true strong negative</strong> on average, 10–14× above chance. On on-array targets, precision at matched recall (0.22) roughly equals the agreement between reciprocal AB/BA measurements of the same pair (0.18). It remains far below a HAP1 screen's own precision of 0.61 at recall 0.37. Prediction prioritises; it does not replace screening.</p>
+  <p class="callout">Leave-batch-out cross-validation on screened queries is a poor progress monitor under adaptive selection. The screened rows are enriched for high-degree genes, so CV AUPRC overestimated held-out performance by up to 2.4×. A plateau-based stopping rule, frozen in advance, did no better than a fixed budget. Fix the number of rounds up front, or reserve a small random validation set of queries.</p>
 </section>
 
 <section>
-  <h2>Our recommendation for human screens</h2>
+  <h2>Recommendations for the next HAP1 campaign</h2>
   <ol class="steps">
-    <li><div><strong>Start with the right kind of gene.</strong> For the first round, pick query genes whose loss alone slows growth, that are conserved, and that are steadily active. Not a deliberately diverse panel.</div></li>
-    <li><div><strong>Screen in a few large rounds and re-choose between them.</strong> After each round of about 300 lines, use the results to rank the next candidates.</div></li>
-    <li><div><strong>Plan for about 1,000–1,500 query lines</strong> to reach 80–90% of whole-genome prediction quality. Random choice would need about 3,300–4,900. Every extra 100 lines keeps adding value.</div></li>
-    <li><div><strong>If a diverse panel already exists, switch strategy now.</strong> In our tests, switching after an existing 220-gene panel gave 27–40% better predictions than continuing it.</div></li>
-    <li><div><strong>Fix the number of rounds in advance.</strong> Don't stop based on how well the model predicts the genes already screened.</div></li>
+    <li><div><strong>Seed the first round with informative queries.</strong> Rank candidates by low single-KO fitness, high conservation and stable expression, not by functional diversity.</div></li>
+    <li><div><strong>Re-rank between rounds.</strong> After each round of ~300 lines, refit a degree model on the screened profiles (hub-first) and choose the next batch.</div></li>
+    <li><div><strong>Budget about 1,000–1,500 query lines</strong> for 80–90% of full-pool predictive performance. Random sampling would need about 3,300–4,900.</div></li>
+    <li><div><strong>Build on existing panels.</strong> Switching to adaptive selection after a diversity panel still yields most of the benefit.</div></li>
+    <li><div><strong>Set the stopping point in advance</strong>, or validate on randomly chosen held-out queries, not on CV of the adaptive set.</div></li>
   </ol>
-  <p class="muted">One practical caution: the best candidates are often the hardest cell lines to make, because losing the gene already makes cells sick. Leaving out the sickest 10% cost a little (6–9% of the benefit) in our tests.</p>
+  <p class="muted">Practical caveat: the most informative queries are often the sickest lines to derive. Excluding the lowest-fitness decile reduced the benefit by 6–9% in development runs.</p>
 </section>
 
 <section>
-  <h2>Caveats</h2>
+  <h2>Limitations</h2>
   <ul class="plain">
-    <li><strong>This is a rehearsal in yeast.</strong> Individual harmful pairs rarely carry over from yeast to human. Network-level patterns do carry over better, such as some genes having many partners, so the advice is about how many genes to screen and what kind, not which specific genes.</li>
-    <li><strong>The human numbers rest on a scaling estimate</strong> and on an assumed number of human query genes. Different reasonable assumptions shift them by roughly ±30%, and the most optimistic one would cut the random-choice figure to about 1,200 lines.</li>
-    <li><strong>The yeast map excludes essential genes</strong>, which human screens include.</li>
-    <li><strong>Measurements are noisy.</strong> Even the yeast map agrees with itself only partly when a pair is measured in both directions, which caps how good any prediction can look.</li>
+    <li><strong>Yeast → human transfer.</strong> Pair-level conservation of interactions between yeast and HAP1 is low. Network-level properties transfer better: degree correlates and hub features. The guidance concerns how many queries and what kind, not specific pairs.</li>
+    <li><strong>The HAP1 numbers are projections.</strong> They depend on the scaling exponent from random sub-universes (an approximation), on the HAP1 query universe size (7,500–9,500), and on the denominator. The b = 0 bound is the optimistic floor.</li>
+    <li><strong>Essential genes are absent</strong> from the yeast NxN matrix but present in HAP1 libraries.</li>
+    <li><strong>Labels are noisy.</strong> Single-direction calls agree poorly with their reciprocal measurement, which caps attainable AUPRC.</li>
+    <li><strong>Hub-first, coverage and Fisher design were not ranked against each other</strong>, and their order differs between budgets.</li>
   </ul>
 </section>
 
 <hr>
 <footer>
-  <p><strong>How this was done.</strong> All choices were fixed in advance using development data only. The 656 locked-away yeast genes were evaluated in a single, one-time run, and the results were recomputed independently with separate code. Plans, deviations and all reviews are recorded in the project repository (REPORT.md). Sources: Costanzo et al., <em>Science</em> 2016 (yeast map); Billmann, Costanzo et al., <em>Cell</em> 2026 (human HAP1 map).</p>
+  <div><strong>Methods in brief.</strong>
+    <ul class="plain" style="margin-top:6px">
+      <li>Development used three internal splits of the non-test genes. The predictor, finalist strategies and analysis plan were frozen before the one-shot test evaluation (4,019 evaluation units).</li>
+      <li>Statistics: paired Welch contrasts on a shared stratified query bootstrap, with Holm correction over the confirmatory family. Points were recomputed by an independent rescorer with 0 mismatches.</li>
+      <li>Full report, declared deviations and reviews: REPORT.md in the project repository.</li>
+      <li>Data: Costanzo et al., <em>Science</em> 2016 (yeast); Billmann, Costanzo et al., <em>Cell</em> 2026 (HAP1).</li>
+    </ul>
+  </div>
   <p>Summary prepared 30 October 2026 from the project's final results.</p>
 </footer>
 </div>
@@ -250,7 +280,7 @@ a { color: var(--smart); }
       el('text', {x: m.l - 8, y: y(v) + 4, 'text-anchor': 'end'}, g).textContent = v + '×';
     }
     for (let p = 0; p <= 80; p += 20) el('text', {x: x(p), y: m.t + ih + 20, 'text-anchor': 'middle'}, g).textContent = p + '%';
-    el('text', {x: m.l + iw / 2, y: H - 4, 'text-anchor': 'middle'}, g).textContent = 'Share of genes screened';
+    el('text', {x: m.l + iw / 2, y: H - 4, 'text-anchor': 'middle'}, g).textContent = 'Share of query genes screened';
     [[4.9, '5%'], [20.1, '20%']].forEach(([p, lab]) => {
       el('line', {x1: x(p), x2: x(p), y1: m.t, y2: m.t + ih, stroke: css('--muted'), 'stroke-width': 1, 'stroke-dasharray': '3 4'}, g);
       el('text', {x: x(p) + 4, y: m.t + 12}, g).textContent = lab;
@@ -264,25 +294,25 @@ a { color: var(--smart); }
     const pts = (arr, col, name) => arr.forEach(q => {
       const cx = x(q[0] / N * 100), cy = y(q[1]);
       el('circle', {cx, cy, r: 4, fill: col, stroke: css('--surface'), 'stroke-width': 2}, g);
-      const hit = el('circle', {cx, cy, r: 12, fill: 'transparent', tabindex: 0, 'aria-label': `${name}: ${q[0]} genes screened, ${q[1].toFixed(1)} times better than guessing`}, g);
+      const hit = el('circle', {cx, cy, r: 12, fill: 'transparent', tabindex: 0, 'aria-label': `${name}: ${q[0]} genes screened, ${q[1].toFixed(1)} times lift`}, g);
       const show = () => {
         const b = svg.getBoundingClientRect(), bb = box.getBoundingClientRect(), s = b.width / W;
-        tip.innerHTML = `<b>${name}</b><br>${q[0].toLocaleString()} genes (${(q[0] / N * 100).toFixed(1)}%)<br>${q[1].toFixed(1)}× better than guessing`;
+        tip.innerHTML = `<b>${name}</b><br>${q[0].toLocaleString()} genes (${(q[0] / N * 100).toFixed(1)}%)<br>AUPRC lift ${q[1].toFixed(1)}×`;
         tip.style.left = (b.left - bb.left + cx * s) + 'px'; tip.style.top = (b.top - bb.top + cy * s - 6) + 'px'; tip.hidden = false;
       };
       hit.addEventListener('mouseenter', show); hit.addEventListener('focus', show); hit.addEventListener('click', show);
       hit.addEventListener('mouseleave', () => tip.hidden = true); hit.addEventListener('blur', () => tip.hidden = true);
     });
-    pts(randomPts, css('--random'), 'Random choice'); pts(smartPts, css('--smart'), 'Smart choice');
+    pts(randomPts, css('--random'), 'Random sampling'); pts(smartPts, css('--smart'), 'Adaptive hub-first');
     const lr = randomPts[randomPts.length - 1], ls = smartPts[smartPts.length - 1];
     el('text', {x: x(lr[0] / N * 100) + 8, y: y(lr[1]) + 4, style: `fill:${css('--ink')}`}, g).textContent = 'Random';
-    el('text', {x: x(ls[0] / N * 100) + 8, y: y(ls[1]) - 6, style: `fill:${css('--ink')}`}, g).textContent = 'Smart';
+    el('text', {x: x(ls[0] / N * 100) + 8, y: y(ls[1]) - 6, style: `fill:${css('--ink')}`}, g).textContent = 'Adaptive (H)';
   }
 
   /* ---------- chart 2: HAP1 lines needed ---------- */
   const bars = [
-    {name: 'Random choice', v: 3321, lo: 2570, hi: 4374, col: '--random', sub: 'one batch'},
-    {name: 'Smart choice', v: 1037, lo: 846, hi: 1309, col: '--smart', sub: '4 rounds of ~300'}
+    {name: 'Random', v: 3321, lo: 2570, hi: 4374, col: '--random', sub: 'any order'},
+    {name: 'Adaptive (H)', v: 1037, lo: 846, hi: 1309, col: '--smart', sub: '4 rounds of ~300'}
   ];
   function chart2() {
     const svg = document.getElementById('svg2'); svg.innerHTML = '';
@@ -293,7 +323,7 @@ a { color: var(--smart); }
       el('line', {x1: x(v), x2: x(v), y1: m.t, y2: H - m.b, stroke: css('--line'), 'stroke-width': 1}, g);
       el('text', {x: x(v), y: H - m.b + 18, 'text-anchor': 'middle'}, g).textContent = v.toLocaleString();
     }
-    el('text', {x: m.l + iw / 2, y: H - 4, 'text-anchor': 'middle'}, g).textContent = 'Human query lines (cell lines to screen)';
+    el('text', {x: m.l + iw / 2, y: H - 4, 'text-anchor': 'middle'}, g).textContent = 'HAP1 query lines';
     const tip = document.getElementById('tip2'), box = document.getElementById('c2');
     bars.forEach((b, i) => {
       const y0 = m.t + 10 + i * (bh + gap), col = css(b.col);
@@ -316,7 +346,7 @@ a { color: var(--smart); }
     // marker: lines screened so far
     const xm = x(222);
     el('line', {x1: xm, x2: xm, y1: m.t, y2: H - m.b, stroke: css('--lethal'), 'stroke-width': 2}, g);
-    el('text', {x: xm + 6, y: m.t + 4, style: `fill:${css('--ink')}`}, g).textContent = '222 screened so far';
+    el('text', {x: xm + 6, y: m.t + 4, style: `fill:${css('--ink')}`}, g).textContent = 'Billmann et al.: 222';
   }
 
   function drawAll() { drawPlate(); chart1(); chart2(); }
