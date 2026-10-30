@@ -227,7 +227,10 @@ Retrospective (docs/reviews/retro_m_final.md):
       - off-array rows: +2–6% (yeast artefact rows).
     - E_unobs (unpaired): H 0.0521 vs R0 0.0457 at n = 160 (lift 5.2 vs 4.1); equal AUPRC at 660, but the lift is
       8.8 vs 6.4 because the strategy leaves a sparser unobserved set.
-    - [~] Independent rescoring running (analysis/rescore).
+    - [x] Independent rescoring (no hsl import): 0 mismatches.
+      - 12,738 rows match exactly, including all 4,019 unit APs and 6,299 strata APs.
+      - 154 Monte-Carlo rows are within tolerance.
+      - All 6 Holm decisions are identical.
   - [x] Independent rescorer (analysis/rescore, no hsl import; commit f72da0d), 44 tests:
     - The dry run matches exactly: 179 unit APs, 378 strata APs and all point contrasts.
     - CIs and p-values agree within Monte-Carlo error, and all decisions agree.
