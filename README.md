@@ -20,6 +20,7 @@ We used the essentially complete yeast genetic-interaction network (Costanzo et 
 
 | File | What it is |
 |---|---|
+| [BRIEFING.md](BRIEFING.md) | Research briefing for a broad scientific audience: the biology and the agentic process, with figures |
 | [REPORT.md](REPORT.md) | Full report: approach, results on the held-out test set, the HAP1 recommendation, limitations, follow-ups |
 | [docs/explainer/pairs_that_kill.html](docs/explainer/pairs_that_kill.html) | Short illustrated summary for systems-biology readers |
 | [RESEARCH_TREE.md](RESEARCH_TREE.md) | Project log: status, decision log, research tree |
