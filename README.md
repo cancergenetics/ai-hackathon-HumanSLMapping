@@ -4,7 +4,7 @@ Models and machine: the project was run in Claude Code. The PI agent and most su
 
 Currently none of the results have been verified by a human. We plan to verify the agent’s methodology and benchmarking, and we will update this section accordingly.
 
-The rest of this repository is entirely AI generated. It includes code for implementation of the predictive model and a AI-written report in the style of a journal article, detailing the final method, the path followed to reach it, and benchmarking against other methods.
+The rest of this repository is entirely AI generated. It is a simulation study of experimental design. It includes code for the SL predictor, the query-selection strategies and the one-shot held-out evaluation, and an AI-written report (REPORT.md) on the design, results and recommendations. The report describes the final approach and the path followed to reach it, including the pre-registered design, independent reviews and declared deviations. It benchmarks the query-selection strategies against random and diversity-based query panels, and the predictor against simpler baselines.
 
 ---
 
