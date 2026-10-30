@@ -1,3 +1,13 @@
+This is an exercise in assessing the bioinformatics capabilities of agentic AI. This particular exercise was run by the Ryan lab at University College Dublin as part of a larger hackathon run by the Beltrao lab at ETH Zurich, where we used Claude to run bioinformatics projects. All results in this project were generated entirely by AI with minimal human intervention. This is not intended to be viewed as a traditional publication and bioinformatics tool.
+
+Models and machine: the project was run in Claude Code. The PI agent and most sub-agents used Claude Opus 5.5 (`claude-opus-5-5`); one retrospective reviewer used Claude Sonnet 5.5. The sub-agents covered literature review, design reviewers, data and evaluation infrastructure, predictor development, strategy evaluation, the final-evaluation pipeline, an independent rescorer, the Q3 analyses, report writing, and code and results reviewers. All computation ran locally on an Apple MacBook Air (M2) with an 8-core CPU (4 performance + 4 efficiency cores) and 24 GB unified memory. The integrated 10-core GPU was not used; all model fitting was CPU-only.
+
+Currently none of the results have been verified by a human. We plan to verify the agent’s methodology and benchmarking, and we will update this section accordingly.
+
+The rest of this repository is entirely AI generated. It includes code for implementation of the predictive model and a AI-written report in the style of a journal article, detailing the final method, the path followed to reach it, and benchmarking against other methods.
+
+---
+
 # Human SL mapping: designing HAP1 synthetic-lethal screens from the yeast network
 
 We used the essentially complete yeast genetic-interaction network (Costanzo et al., *Science* 2016) to ask how human query-by-genome CRISPR screens in HAP1 cells (Billmann, Costanzo et al., *Cell* 2026) should be designed to find strong negative / synthetic-lethal interactions (ε < −0.12, P < 0.05). The questions were:
